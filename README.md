@@ -544,7 +544,47 @@ See screenshots in `/Config screenshot 1/` for reference implementations:
 
 ---
 
+## 🎨 Frontend UI Architecture Documentation
+
+For comprehensive details on the frontend component architecture and UI planning, see:
+
+### Primary Documentation
+- **[CONFIG.md](CONFIG.md)** - Complete configuration schema with UI component architecture (Section: "Frontend UI Architecture & Component Plan")
+- **[FRONTEND_UI_PLAN_SUMMARY.md](FRONTEND_UI_PLAN_SUMMARY.md)** - High-level overview of the complete UI plan
+- **[FRONTEND_COMPONENT_ARCHITECTURE.md](FRONTEND_COMPONENT_ARCHITECTURE.md)** - Detailed component specifications and implementation guide
+- **[COMPONENT_VISUAL_MAP.md](COMPONENT_VISUAL_MAP.md)** - Visual layouts, diagrams, and UI flow charts
+
+### What's Included
+
+#### Config Management Flows
+- ✅ Config List Page - Browse, filter, and create configurations
+- ✅ Config Editor Page - Edit all configuration types with tabs and validation
+- ✅ Config Detail Page - Review, approve, and deploy configurations
+
+#### Component Implementation
+- ✅ Economy Config Form - Complete with currencies, IAP packages, daily rewards
+- 🔄 Ad Config Form - Network and placement configuration (TODO)
+- 🔄 Notification Config Form - Push and local notifications (TODO)
+- 🔄 Booster Config Form - Power-up configuration (TODO)
+- 🔄 Shop Config Form - In-game shop management (TODO)
+
+#### Design Patterns
+- Collapsible item pattern for array management
+- Nested field arrays for complex structures
+- Real-time validation with Zod
+- React Hook Form integration
+- React Query for API state management
+
+#### Visual Reference
+- Mobile/tablet/desktop responsive layouts
+- Component hierarchy and dependencies
+- Data flow diagrams
+- State transition workflows
+- Error handling flows
+
+---
+
 **Document Version**: 1.0  
 **Last Updated**: 2025-11-25  
 **Owner**: Engineering & Product Teams  
-**Status**: Planning Phase
+**Status**: Planning Phase - Implementation Roadmap Ready

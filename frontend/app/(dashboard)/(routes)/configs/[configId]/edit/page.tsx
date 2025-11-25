@@ -8,6 +8,8 @@ import {
   useSubmitForReview,
 } from '@/hooks/useConfigs';
 import { EconomyConfigForm } from '@/components/config/EconomyConfigForm';
+import { ShopConfigForm } from '@/components/config/ShopConfigForm';
+import { JsonEditor } from '@/components/config/JsonEditor';
 import {
   Card,
   CardContent,
@@ -20,6 +22,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import { toast } from 'sonner';
 import { Save, Send, Loader2 } from 'lucide-react';
 import type { EconomyConfig } from '@/lib/validations/economyConfig';
+import type { ShopConfig } from '@/lib/validations/shopConfig';
+import { shopConfigSchema } from '@/lib/validations/shopConfig';
+import { economyConfigSchema } from '@/lib/validations/economyConfig';
+import type { ConfigType } from '@/lib/configTemplates';
 
 export default function ConfigEditorPage() {
   const params = useParams();
@@ -30,6 +36,13 @@ export default function ConfigEditorPage() {
   const submitForReview = useSubmitForReview();
 
   const [activeTab, setActiveTab] = useState('economy');
+  const [viewMode, setViewMode] = useState<Record<string, 'form' | 'json'>>({
+    economy: 'form',
+    shop: 'form',
+    ads: 'json',
+    notifications: 'json',
+    boosters: 'json',
+  });
   const [isSaving, setIsSaving] = useState(false);
 
   const handleSaveEconomy = async (data: EconomyConfig) => {
@@ -46,6 +59,54 @@ export default function ConfigEditorPage() {
       toast.success('Economy config saved');
     } catch (error) {
       toast.error('Failed to save economy config');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleSaveShop = async (data: ShopConfig) => {
+    if (!configId || !config) return;
+
+    setIsSaving(true);
+    try {
+      await updateConfig.mutateAsync({
+        data: {
+          ...config.data,
+          shop: data as any,
+        },
+      });
+      toast.success('Shop config saved');
+    } catch (error) {
+      toast.error('Failed to save shop config');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleSaveJsonConfig = async (configType: ConfigType, data: any) => {
+    if (!configId || !config) return;
+
+    setIsSaving(true);
+    try {
+      const configKey = configType === 'economy' ? 'economy' : 
+                       configType === 'shop' ? 'shop' :
+                       configType === 'ads' ? 'ad' :
+                       configType === 'notifications' ? 'notification' :
+                       configType === 'boosters' ? 'booster' :
+                       configType === 'chapter_reward' ? 'chapter_reward' :
+                       configType === 'game_core' ? 'game_core' :
+                       configType === 'analytics' ? 'analytics' :
+                       'ux';
+
+      await updateConfig.mutateAsync({
+        data: {
+          ...config.data,
+          [configKey]: data,
+        },
+      });
+      toast.success(`${configType} config saved`);
+    } catch (error) {
+      toast.error(`Failed to save ${configType} config`);
     } finally {
       setIsSaving(false);
     }
@@ -138,82 +199,112 @@ export default function ConfigEditorPage() {
         </TabsList>
 
         <TabsContent value="economy" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Economy Config</CardTitle>
-              <CardDescription>
-                Configure currencies, IAP packages, and daily rewards
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <EconomyConfigForm
-                initialData={config.data?.economy as unknown as EconomyConfig}
-                onSubmit={handleSaveEconomy}
+          <Tabs
+            value={viewMode.economy}
+            onValueChange={(v) => setViewMode({ ...viewMode, economy: v as 'form' | 'json' })}
+            className="space-y-4"
+          >
+            <TabsList>
+              <TabsTrigger value="form">Form View</TabsTrigger>
+              <TabsTrigger value="json">JSON Editor</TabsTrigger>
+            </TabsList>
+            <TabsContent value="form">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Economy Config</CardTitle>
+                  <CardDescription>
+                    Configure currencies, IAP packages, and daily rewards
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <EconomyConfigForm
+                    initialData={config.data?.economy as unknown as EconomyConfig}
+                    onSubmit={handleSaveEconomy}
+                  />
+                </CardContent>
+              </Card>
+            </TabsContent>
+            <TabsContent value="json">
+              <JsonEditor
+                configType="economy"
+                initialValue={config.data?.economy}
+                onSave={(data) => handleSaveJsonConfig('economy', data)}
+                schema={economyConfigSchema}
+                title="Economy Configuration"
+                description="Edit economy configuration using JSON editor with change comparison"
               />
-            </CardContent>
-          </Card>
+            </TabsContent>
+          </Tabs>
         </TabsContent>
 
         <TabsContent value="ads" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Ad Config</CardTitle>
-              <CardDescription>
-                Configure ad networks and placements
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-12 text-muted-foreground">
-                Ad Config form coming soon
-              </div>
-            </CardContent>
-          </Card>
+          <JsonEditor
+            configType="ads"
+            initialValue={config.data?.ad}
+            onSave={(data) => handleSaveJsonConfig('ads', data)}
+            title="Ad Configuration"
+            description="Configure ad networks and placements using JSON editor"
+          />
         </TabsContent>
 
         <TabsContent value="notifications" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Notification Config</CardTitle>
-              <CardDescription>
-                Configure notification strategies and channels
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-12 text-muted-foreground">
-                Notification Config form coming soon
-              </div>
-            </CardContent>
-          </Card>
+          <JsonEditor
+            configType="notifications"
+            initialValue={config.data?.notification}
+            onSave={(data) => handleSaveJsonConfig('notifications', data)}
+            title="Notification Configuration"
+            description="Configure notification strategies and channels using JSON editor"
+          />
         </TabsContent>
 
         <TabsContent value="boosters" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Booster Config</CardTitle>
-              <CardDescription>Configure booster items</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-12 text-muted-foreground">
-                Booster Config form coming soon
-              </div>
-            </CardContent>
-          </Card>
+          <JsonEditor
+            configType="boosters"
+            initialValue={config.data?.booster}
+            onSave={(data) => handleSaveJsonConfig('boosters', data)}
+            title="Booster Configuration"
+            description="Configure booster items using JSON editor"
+          />
         </TabsContent>
 
         <TabsContent value="shop" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Shop Config</CardTitle>
-              <CardDescription>
-                Configure shop items and bundles
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-12 text-muted-foreground">
-                Shop Config form coming soon
-              </div>
-            </CardContent>
-          </Card>
+          <Tabs
+            value={viewMode.shop}
+            onValueChange={(v) => setViewMode({ ...viewMode, shop: v as 'form' | 'json' })}
+            className="space-y-4"
+          >
+            <TabsList>
+              <TabsTrigger value="form">Form View</TabsTrigger>
+              <TabsTrigger value="json">JSON Editor</TabsTrigger>
+            </TabsList>
+            <TabsContent value="form">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Shop Config</CardTitle>
+                  <CardDescription>
+                    Configure shop items and bundles
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ShopConfigForm
+                    initialData={config.data?.shop as unknown as ShopConfig}
+                    onSubmit={handleSaveShop}
+                    configId={configId}
+                  />
+                </CardContent>
+              </Card>
+            </TabsContent>
+            <TabsContent value="json">
+              <JsonEditor
+                configType="shop"
+                initialValue={config.data?.shop}
+                onSave={(data) => handleSaveJsonConfig('shop', data)}
+                schema={shopConfigSchema}
+                title="Shop Configuration"
+                description="Edit shop configuration using JSON editor with change comparison"
+              />
+            </TabsContent>
+          </Tabs>
         </TabsContent>
       </Tabs>
 

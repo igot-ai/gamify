@@ -20,7 +20,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     useEffect(() => {
         // Check for existing session token
-        const token = localStorage.getItem('auth_token');
+        const token = localStorage.getItem('firebase_token');
         if (token) {
             // Mock user for testing - in production, validate token with backend
             setUser({
@@ -44,7 +44,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 photoURL: null,
                 role: 'admin'
             });
-            localStorage.setItem('auth_token', 'mock-token-for-testing');
+            localStorage.setItem('firebase_token', 'mock-token-for-testing');
             return;
         }
         throw new Error('Invalid credentials');
@@ -56,7 +56,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     const logout = async () => {
-        localStorage.removeItem('auth_token');
+        localStorage.removeItem('firebase_token');
         setUser(null);
     };
 
