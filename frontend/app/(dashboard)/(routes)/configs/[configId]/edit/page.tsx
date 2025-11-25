@@ -51,10 +51,7 @@ export default function ConfigEditorPage() {
     setIsSaving(true);
     try {
       await updateConfig.mutateAsync({
-        data: {
-          ...config.data,
-          economy: data as any,
-        },
+        economy_config: data as any,
       });
       toast.success('Economy config saved');
     } catch (error) {
@@ -70,10 +67,7 @@ export default function ConfigEditorPage() {
     setIsSaving(true);
     try {
       await updateConfig.mutateAsync({
-        data: {
-          ...config.data,
-          shop: data as any,
-        },
+        shop_config: data as any,
       });
       toast.success('Shop config saved');
     } catch (error) {
@@ -88,21 +82,18 @@ export default function ConfigEditorPage() {
 
     setIsSaving(true);
     try {
-      const configKey = configType === 'economy' ? 'economy' : 
-                       configType === 'shop' ? 'shop' :
-                       configType === 'ads' ? 'ad' :
-                       configType === 'notifications' ? 'notification' :
-                       configType === 'boosters' ? 'booster' :
-                       configType === 'chapter_reward' ? 'chapter_reward' :
-                       configType === 'game_core' ? 'game_core' :
-                       configType === 'analytics' ? 'analytics' :
-                       'ux';
+      const configKey = configType === 'economy' ? 'economy_config' : 
+                       configType === 'shop' ? 'shop_config' :
+                       configType === 'ads' ? 'ad_config' :
+                       configType === 'notifications' ? 'notification_config' :
+                       configType === 'boosters' ? 'booster_config' :
+                       configType === 'chapter_reward' ? 'chapter_reward_config' :
+                       configType === 'game_core' ? 'game_core_config' :
+                       configType === 'analytics' ? 'analytics_config' :
+                       'ux_config';
 
       await updateConfig.mutateAsync({
-        data: {
-          ...config.data,
-          [configKey]: data,
-        },
+        [configKey]: data,
       });
       toast.success(`${configType} config saved`);
     } catch (error) {
@@ -273,7 +264,7 @@ export default function ConfigEditorPage() {
                 </CardHeader>
                 <CardContent>
                   <EconomyConfigForm
-                    initialData={config.data?.economy as unknown as EconomyConfig}
+                    initialData={config.economy_config as unknown as EconomyConfig}
                     onSubmit={handleSaveEconomy}
                   />
                 </CardContent>
@@ -282,7 +273,7 @@ export default function ConfigEditorPage() {
             <TabsContent value="json">
               <JsonEditor
                 configType="economy"
-                initialValue={config.data?.economy}
+                initialValue={config.economy_config}
                 onSave={(data) => handleSaveJsonConfig('economy', data)}
                 schema={economyConfigSchema}
                 title="Economy Configuration"
@@ -295,7 +286,7 @@ export default function ConfigEditorPage() {
         <TabsContent value="ads" className="space-y-4">
           <JsonEditor
             configType="ads"
-            initialValue={config.data?.ad}
+            initialValue={config.ad_config}
             onSave={(data) => handleSaveJsonConfig('ads', data)}
             title="Ad Configuration"
             description="Configure ad networks and placements using JSON editor"
@@ -305,7 +296,7 @@ export default function ConfigEditorPage() {
         <TabsContent value="notifications" className="space-y-4">
           <JsonEditor
             configType="notifications"
-            initialValue={config.data?.notification}
+            initialValue={config.notification_config}
             onSave={(data) => handleSaveJsonConfig('notifications', data)}
             title="Notification Configuration"
             description="Configure notification strategies and channels using JSON editor"
@@ -315,7 +306,7 @@ export default function ConfigEditorPage() {
         <TabsContent value="boosters" className="space-y-4">
           <JsonEditor
             configType="boosters"
-            initialValue={config.data?.booster}
+            initialValue={config.booster_config}
             onSave={(data) => handleSaveJsonConfig('boosters', data)}
             title="Booster Configuration"
             description="Configure booster items using JSON editor"
@@ -344,7 +335,7 @@ export default function ConfigEditorPage() {
             </TabsList>
             <TabsContent value="form" className="mt-0">
               <ShopConfigForm
-                initialData={config.data?.shop as unknown as ShopConfig}
+                initialData={config.shop_config as unknown as ShopConfig}
                 onSubmit={handleSaveShop}
                 configId={configId}
               />
@@ -352,7 +343,7 @@ export default function ConfigEditorPage() {
             <TabsContent value="json" className="mt-0">
               <JsonEditor
                 configType="shop"
-                initialValue={config.data?.shop}
+                initialValue={config.shop_config}
                 onSave={(data) => handleSaveJsonConfig('shop', data)}
                 schema={shopConfigSchema}
                 title="Shop Configuration"

@@ -57,7 +57,7 @@ export function ShopConfigForm({
   const { data: config } = useConfig(configId || '');
   const availableCurrencies = useMemo(() => {
     // Access economy config - it may be in different formats
-    const economy = config?.data?.economy as any;
+    const economy = config?.economy_config as any;
     if (economy?.currencies && Array.isArray(economy.currencies)) {
       return economy.currencies.map((c: any) => ({
         id: c.id,

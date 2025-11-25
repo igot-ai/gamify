@@ -161,24 +161,24 @@ export default function ConfigDetailPage() {
             <div className="flex justify-between">
               <span className="text-muted-foreground">Created:</span>
               <span className="font-medium">
-                {new Date(config.createdAt).toLocaleDateString()}
+                {new Date(config.created_at).toLocaleDateString()}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Created By:</span>
-              <span className="font-medium">{config.createdBy}</span>
+              <span className="font-medium">{config.created_by}</span>
             </div>
-            {config.approvedBy && (
+            {config.approved_by && (
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Approved By:</span>
-                <span className="font-medium">{config.approvedBy}</span>
+                <span className="font-medium">{config.approved_by}</span>
               </div>
             )}
-            {config.deployedAt && (
+            {config.deployed_at && (
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Deployed At:</span>
                 <span className="font-medium">
-                  {new Date(config.deployedAt).toLocaleDateString()}
+                  {new Date(config.deployed_at).toLocaleDateString()}
                 </span>
               </div>
             )}
@@ -193,13 +193,13 @@ export default function ConfigDetailPage() {
             <div className="flex justify-between">
               <span className="text-muted-foreground">Economy Config:</span>
               <span className="font-medium">
-                {config.data?.economy ? '✓ Configured' : 'Not configured'}
+                {config.economy_config ? '✓ Configured' : 'Not configured'}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Ad Config:</span>
               <span className="font-medium">
-                {config.data?.ads ? '✓ Configured' : 'Not configured'}
+                {config.ad_config ? '✓ Configured' : 'Not configured'}
               </span>
             </div>
             <div className="flex justify-between">
@@ -207,7 +207,7 @@ export default function ConfigDetailPage() {
                 Notification Config:
               </span>
               <span className="font-medium">
-                {config.data?.notifications ? '✓ Configured' : 'Not configured'}
+                {config.notification_config ? '✓ Configured' : 'Not configured'}
               </span>
             </div>
           </CardContent>
@@ -215,7 +215,7 @@ export default function ConfigDetailPage() {
       </div>
 
       {/* Config Preview */}
-      {config.data?.economy && (
+      {config.economy_config && (
         <Card>
           <CardHeader>
             <CardTitle>Economy Configuration</CardTitle>
@@ -223,7 +223,7 @@ export default function ConfigDetailPage() {
           </CardHeader>
           <CardContent>
             <pre className="bg-muted p-4 rounded-lg overflow-auto text-sm">
-              {JSON.stringify(config.data?.economy, null, 2)}
+              {JSON.stringify(config.economy_config, null, 2)}
             </pre>
           </CardContent>
         </Card>

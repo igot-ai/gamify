@@ -30,22 +30,31 @@ export interface Game {
 
 export interface Config {
   id: string;
-  gameId: string;
-  name: string;
-  description: string | null;
-  status: 'draft' | 'in_review' | 'approved' | 'deployed';
+  game_id: string;
+  environment_id?: string;
   version: number;
-  data: ConfigData;
-  createdAt: string;
-  updatedAt: string;
-  createdBy: string;
-  approvedBy?: string;
-  approvedAt?: string;
-  rejectionReason?: string;
-  deployedAt?: string;
-  deployedBy?: string;
+  status: 'draft' | 'in_review' | 'approved' | 'deployed';
+  game_core_config?: any;
+  economy_config?: any;
+  ad_config?: any;
+  notification_config?: any;
+  booster_config?: any;
+  chapter_reward_config?: any;
+  shop_config?: any;
+  analytics_config?: any;
+  ux_config?: any;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+  updated_by?: string;
+  reviewed_by?: string;
+  reviewed_at?: string;
+  approved_by?: string;
+  approved_at?: string;
+  deployed_at?: string;
 }
 
+// Legacy interface for backwards compatibility
 export interface ConfigData {
   economy?: EconomyConfig;
   ads?: AdConfig;

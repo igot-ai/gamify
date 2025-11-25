@@ -118,15 +118,15 @@ export default function ConfigsPage() {
         // Create new version based on latest config
         // Copy all config data from latest version
         const configData = {
-          game_core_config: latestConfig.data?.game_core || null,
-          economy_config: latestConfig.data?.economy || null,
-          ad_config: latestConfig.data?.ad || null,
-          notification_config: latestConfig.data?.notifications || null,
-          booster_config: latestConfig.data?.boosters || null,
-          chapter_reward_config: latestConfig.data?.chapter_reward || null,
-          shop_config: latestConfig.data?.shop || null,
-          analytics_config: latestConfig.data?.analytics || null,
-          ux_config: latestConfig.data?.ux || null,
+          game_core_config: latestConfig.game_core_config || null,
+          economy_config: latestConfig.economy_config || null,
+          ad_config: latestConfig.ad_config || null,
+          notification_config: latestConfig.notification_config || null,
+          booster_config: latestConfig.booster_config || null,
+          chapter_reward_config: latestConfig.chapter_reward_config || null,
+          shop_config: latestConfig.shop_config || null,
+          analytics_config: latestConfig.analytics_config || null,
+          ux_config: latestConfig.ux_config || null,
         };
 
         newConfig = await createConfig.mutateAsync({
@@ -330,10 +330,10 @@ export default function ConfigsPage() {
                       <StatusBadge status={config.status} />
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
-                      {new Date(config.createdAt).toLocaleDateString()}
+                      {new Date(config.created_at).toLocaleDateString()}
                     </TableCell>
                     <TableCell className="text-sm">
-                      {config.createdBy}
+                      {config.created_by}
                     </TableCell>
                     <TableCell className="flex gap-2">
                       <Button

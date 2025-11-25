@@ -8,15 +8,15 @@ export const frequencyCapSchema = z.object({
 
 // Ad Placement schema
 export const adPlacementSchema = z.object({
-  enabled: z.boolean().default(true),
+  enabled: z.boolean(),
   frequency_cap: frequencyCapSchema,
-  reward: z.record(z.string(), z.any()).default({}),
+  reward: z.record(z.string(), z.any()),
 });
 
 // Ad Network schema
 export const adNetworkSchema = z.object({
   id: z.string().min(1, 'Network ID is required'),
-  enabled: z.boolean().default(true),
+  enabled: z.boolean(),
   app_id: z.string().min(1, 'App ID is required'),
   priority: z.number().int().min(1, 'Priority must be at least 1'),
 });
@@ -27,7 +27,7 @@ export const adConfigSchema = z.object({
   interstitial: adPlacementSchema,
   rewarded: adPlacementSchema,
   banner: adPlacementSchema,
-  remove_ads_product_id: z.string().default(''),
+  remove_ads_product_id: z.string(),
 });
 
 export type FrequencyCap = z.infer<typeof frequencyCapSchema>;

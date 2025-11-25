@@ -51,10 +51,13 @@ export default {
             backgroundImage: {
                 'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
                 'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
-                'gradient-primary': 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 50%, #6D28D9 100%)',
-                'gradient-secondary': 'linear-gradient(135deg, #3B82F6 0%, #2563EB 50%, #1D4ED8 100%)',
-                'gradient-accent': 'linear-gradient(135deg, #C026D3 0%, #A21CAF 50%, #86198F 100%)',
-                'gradient-hero': 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 25%, #3B82F6 50%, #2563EB 75%, #C026D3 100%)',
+                'gradient-primary': 'linear-gradient(135deg, #A855F7 0%, #9333EA 50%, #7E22CE 100%)',
+                'gradient-secondary': 'linear-gradient(135deg, #00D9FF 0%, #00B8E6 50%, #0099CC 100%)',
+                'gradient-accent': 'linear-gradient(135deg, #A855F7 0%, #D946EF 50%, #EC4899 100%)',
+                'gradient-hero': 'linear-gradient(135deg, #A855F7 0%, #00D9FF 25%, #7C3AED 50%, #D946EF 75%, #EC4899 100%)',
+                'gradient-success': 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                'gradient-warning': 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+                'gradient-danger': 'linear-gradient(135deg, #EF4444 0%, #DC2626 100%)',
             },
             keyframes: {
                 "accordion-down": {
@@ -74,8 +77,8 @@ export default {
                     "100%": { backgroundPosition: "1000px 0" },
                 },
                 "pulse-glow": {
-                    "0%, 100%": { boxShadow: "0 0 20px rgba(139, 92, 246, 0.4)" },
-                    "50%": { boxShadow: "0 0 30px rgba(139, 92, 246, 0.6)" },
+                    "0%, 100%": { boxShadow: "0 0 20px rgba(168, 85, 247, 0.4)" },
+                    "50%": { boxShadow: "0 0 30px rgba(168, 85, 247, 0.6)" },
                 },
                 "slide-up": {
                     from: { opacity: "0", transform: "translateY(20px)" },
