@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "gamify-config-api"
 version = "0.1.0"
-package-mode = false
+description = "Gamify Config Management API"
 authors = ["Sunstudio Team <dev@sunstudio.com>"]
 readme = "README.md"
 

@@ -1,0 +1,16 @@
+# Frontend .dockerignore
+node_modules
+dist
+.DS_Store
+*.log
+.env
+.env.local
+.env.*.local
+coverage
+.nyc_output
+cypress/videos
+cypress/screenshots
+reports
+.git
+.gitignore
+

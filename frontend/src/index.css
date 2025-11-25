@@ -1,10 +1,125 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 @import "tailwindcss";
 
 @layer base {
+  :root {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    
+    --card: 222.2 84% 6%;
+    --card-foreground: 210 40% 98%;
+    
+    --popover: 222.2 84% 5%;
+    --popover-foreground: 210 40% 98%;
+    
+    --primary: 262.1 83.3% 57.8%;
+    --primary-foreground: 210 40% 98%;
+    
+    --secondary: 217.2 91.2% 59.8%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    
+    --accent: 280 89% 65%;
+    --accent-foreground: 210 40% 98%;
+    
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 262.1 83.3% 57.8%;
+    
+    --radius: 0.5rem;
+    
+    /* Gaming theme gradients */
+    --gradient-primary: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 50%, #6D28D9 100%);
+    --gradient-secondary: linear-gradient(135deg, #3B82F6 0%, #2563EB 50%, #1D4ED8 100%);
+    --gradient-accent: linear-gradient(135deg, #C026D3 0%, #A21CAF 50%, #86198F 100%);
+    --gradient-success: linear-gradient(135deg, #10B981 0%, #059669 50%, #047857 100%);
+    --gradient-hero: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 25%, #3B82F6 50%, #2563EB 75%, #C026D3 100%);
+  }
+
   body {
     font-family: 'Inter', system-ui, sans-serif;
+    background: var(--background);
+    color: var(--foreground);
+  }
+  
+  code, pre {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+@layer components {
+  /* Gaming Theme - Input */
+  .input-gaming {
+    @apply h-11 w-full rounded-lg border-2 bg-background px-4 py-2.5 text-sm font-medium text-foreground;
+    @apply transition-all duration-300 shadow-sm backdrop-blur-sm;
+    @apply placeholder:text-muted-foreground placeholder:font-normal;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2;
+    @apply disabled:cursor-not-allowed disabled:opacity-50;
+    border-color: hsl(var(--primary) / 0.2);
+    background-color: hsl(var(--background) / 0.5);
+  }
+  
+  .input-gaming:hover {
+    border-color: hsl(var(--primary) / 0.4);
+    background-color: hsl(var(--background) / 0.7);
+  }
+  
+  .input-gaming:focus-visible {
+    border-color: hsl(var(--primary));
+    box-shadow: 0 0 0 2px hsl(var(--primary) / 0.5), 0 10px 15px -3px hsl(var(--primary) / 0.2);
+  }
+
+  /* Gaming Theme - Buttons */
+  .btn-gaming-primary {
+    @apply bg-gradient-to-r from-primary via-primary to-purple-600;
+    @apply text-white shadow-lg;
+    box-shadow: 0 4px 14px 0 hsl(var(--primary) / 0.25);
+  }
+  
+  .btn-gaming-primary:hover {
+    box-shadow: 0 6px 20px 0 hsl(var(--primary) / 0.4);
+    @apply scale-[1.02];
+  }
+  
+  .btn-gaming-primary:active {
+    @apply scale-[0.98];
+  }
+
+  .btn-gaming-destructive {
+    @apply bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg;
+    box-shadow: 0 4px 14px 0 rgb(220 38 38 / 0.25);
+  }
+  
+  .btn-gaming-destructive:hover {
+    box-shadow: 0 6px 20px 0 rgb(220 38 38 / 0.4);
+    @apply scale-[1.02];
+  }
+
+  .btn-gaming-outline {
+    @apply border-2 bg-background backdrop-blur-sm;
+    border-color: hsl(var(--primary) / 0.3);
+    background-color: hsl(var(--background) / 0.5);
+  }
+  
+  .btn-gaming-outline:hover {
+    border-color: hsl(var(--primary) / 0.6);
+    background-color: hsl(var(--primary) / 0.1);
+    box-shadow: 0 4px 14px 0 hsl(var(--primary) / 0.2);
+  }
+
+  /* Standard Theme - Input */
+  .input-standard {
+    @apply h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm;
+    @apply placeholder:text-muted-foreground;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
+    @apply disabled:cursor-not-allowed disabled:opacity-50;
   }
 }
 
@@ -15,6 +130,56 @@
 
   .animate-shimmer {
     animation: shimmer 2s infinite linear;
+  }
+  
+  .animate-pulse-glow {
+    animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  
+  .animate-slide-up {
+    animation: slide-up 0.5s ease-out;
+  }
+  
+  .animate-gradient {
+    animation: gradient 3s ease infinite;
+    background-size: 200% 200%;
+  }
+  
+  .gradient-primary {
+    background: var(--gradient-primary);
+  }
+  
+  .gradient-secondary {
+    background: var(--gradient-secondary);
+  }
+  
+  .gradient-accent {
+    background: var(--gradient-accent);
+  }
+  
+  .gradient-hero {
+    background: var(--gradient-hero);
+    background-size: 400% 400%;
+  }
+  
+  .glass-effect {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .glow-effect {
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.3),
+                0 0 40px rgba(139, 92, 246, 0.2),
+                0 0 60px rgba(139, 92, 246, 0.1);
+  }
+  
+  .text-gradient {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 }
 
@@ -37,5 +202,37 @@
 
   100% {
     background-position: 1000px 0;
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(139, 92, 246, 0.6);
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
   }
 }

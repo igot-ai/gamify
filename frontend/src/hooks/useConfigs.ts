@@ -25,7 +25,7 @@ export function useConfigs(filters: ConfigFilters = {}) {
 
             const response = await apiClient.get<ApiResponse<ConfigListResponse>>(`/configs?${params.toString()}`);
             // Backend returns {configs: [], total: number} wrapped in ApiResponse
-            return response.data.data.configs;
+            return response.data.data?.configs || [];
         },
     });
 }
@@ -47,8 +47,24 @@ export function useCreateConfig() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async (data: Partial<GameConfig>) => {
-            const response = await apiClient.post<ApiResponse<GameConfig>>('/configs', data);
+        mutationFn: async (data: { game_id: string; environment_id?: string }) => {
+            // TODO: Get created_by from auth context when implemented
+            const payload = {
+                game_id: data.game_id,
+                environment_id: data.environment_id,
+                created_by: 'system', // Temporary until auth is implemented
+                // Initialize empty config sections
+                game_core_config: null,
+                economy_config: null,
+                ad_config: null,
+                notification_config: null,
+                booster_config: null,
+                chapter_reward_config: null,
+                shop_config: null,
+                analytics_config: null,
+                ux_config: null,
+            };
+            const response = await apiClient.post<ApiResponse<GameConfig>>('/configs', payload);
             return response.data.data;
         },
         onSuccess: () => {
@@ -63,7 +79,12 @@ export function useUpdateConfig(configId: string) {
 
     return useMutation({
         mutationFn: async (data: Partial<GameConfig>) => {
-            const response = await apiClient.patch<ApiResponse<GameConfig>>(`/configs/${configId}`, data);
+            // TODO: Get updated_by from auth context when implemented
+            const payload = {
+                ...data,
+                updated_by: 'system', // Temporary until auth is implemented
+            };
+            const response = await apiClient.patch<ApiResponse<GameConfig>>(`/configs/${configId}`, payload);
             return response.data.data;
         },
         onSuccess: () => {

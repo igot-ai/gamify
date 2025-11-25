@@ -11,9 +11,12 @@ class GameBase(BaseModel):
     description: Optional[str] = None
 
 
-class GameCreate(GameBase):
+class GameCreate(BaseModel):
     """Schema for creating a new game"""
-    pass
+    name: str
+    firebase_project_id: str
+    description: Optional[str] = None
+    slug: Optional[str] = None  # Auto-generated from name if not provided
 
 
 class GameUpdate(BaseModel):

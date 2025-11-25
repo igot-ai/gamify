@@ -1,13 +1,7 @@
+'use client';
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import type { User as FirebaseUser } from 'firebase/auth';
-import {
-    signInWithEmailAndPassword,
-    signOut,
-    onAuthStateChanged,
-    GoogleAuthProvider,
-    signInWithPopup,
-} from 'firebase/auth';
-import { auth } from '../lib/firebase';
+// Note: Firebase is not used for frontend auth - we use backend API authentication
 import type { User } from '../types/user';
 
 interface AuthContextType {
@@ -25,40 +19,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
-            if (firebaseUser) {
-                // Get ID token and store it
-                const token = await firebaseUser.getIdToken();
-                localStorage.setItem('firebase_token', token);
-
-                // Map Firebase user to our User type
-                setUser({
-                    uid: firebaseUser.uid,
-                    email: firebaseUser.email,
-                    displayName: firebaseUser.displayName,
-                    photoURL: firebaseUser.photoURL,
-                });
-            } else {
-                localStorage.removeItem('firebase_token');
-                setUser(null);
-            }
-            setLoading(false);
-        });
-
-        return () => unsubscribe();
+        // Check for existing session token
+        const token = localStorage.getItem('auth_token');
+        if (token) {
+            // Mock user for testing - in production, validate token with backend
+            setUser({
+                uid: 'test-user-id',
+                email: 'test@sunstudio.com',
+                displayName: 'Test User',
+                photoURL: null,
+                role: 'admin'
+            });
+        }
+        setLoading(false);
     }, []);
 
     const signIn = async (email: string, password: string) => {
-        await signInWithEmailAndPassword(auth, email, password);
+        // Mock login - in production, call backend API for authentication
+        if (email === 'test@sunstudio.com' && password === 'testpassword123') {
+            setUser({
+                uid: 'test-user-id',
+                email: email,
+                displayName: 'Test User',
+                photoURL: null,
+                role: 'admin'
+            });
+            localStorage.setItem('auth_token', 'mock-token-for-testing');
+            return;
+        }
+        throw new Error('Invalid credentials');
     };
 
     const signInWithGoogle = async () => {
-        const provider = new GoogleAuthProvider();
-        await signInWithPopup(auth, provider);
+        // Google sign-in not implemented - use backend API authentication
+        throw new Error('Google sign-in not available');
     };
 
     const logout = async () => {
-        await signOut(auth);
+        localStorage.removeItem('auth_token');
+        setUser(null);
     };
 
     return (

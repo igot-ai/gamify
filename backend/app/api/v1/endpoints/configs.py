@@ -5,13 +5,17 @@ from sqlalchemy import select, desc
 
 from app.core.database import get_db
 from app.core.response import ApiResponse, create_response
+from app.core.auth import get_current_user, require_role, CurrentUser
 from app.models.config import Config, ConfigStatus
+from app.models.user import UserRole
+from app.models.audit_log import AuditAction
 from app.schemas.config import ConfigCreate, ConfigUpdate, ConfigResponse, ConfigListResponse
+from app.services.audit_service import AuditService
 
 router = APIRouter()
 
 
-@router.get("/", response_model=ApiResponse[ConfigListResponse])
+@router.get("", response_model=ApiResponse[ConfigListResponse])
 async def list_configs(
     game_id: str = Query(..., description="Game ID filter"),
     environment_id: Optional[str] = Query(None),
@@ -55,10 +59,11 @@ async def get_config(
     return create_response(config)
 
 
-@router.post("/", response_model=ApiResponse[ConfigResponse], status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=ApiResponse[ConfigResponse], status_code=status.HTTP_201_CREATED)
 async def create_config(
     config_in: ConfigCreate,
     db: AsyncSession = Depends(get_db),
+    current_user: CurrentUser = Depends(get_current_user),
 ):
     """Create a new configuration draft"""
     # Get next version number
@@ -75,12 +80,23 @@ async def create_config(
     config_data = config_in.dict()
     config = Config(
         version=next_version,
+        created_by=current_user.uid,
         **config_data
     )
     
     db.add(config)
     await db.commit()
     await db.refresh(config)
+    
+    # Log audit trail
+    audit_service = AuditService(db)
+    await audit_service.log_config_created(
+        config_id=config.id,
+        user_id=current_user.uid,
+        game_id=config.game_id,
+        environment_id=config.environment_id or ""
+    )
+    await db.commit()
     
     return create_response(config)
 
@@ -90,6 +106,7 @@ async def update_config(
     config_id: str,
     config_update: ConfigUpdate,
     db: AsyncSession = Depends(get_db),
+    current_user: CurrentUser = Depends(get_current_user),
 ):
     """Update a configuration (only in DRAFT status)"""
     result = await db.execute(select(Config).where(Config.id == config_id))
@@ -104,13 +121,32 @@ async def update_config(
             detail="Can only edit configs in DRAFT status"
         )
     
+    # Store old values for audit
+    old_values = {
+        "economy_config": config.economy_config,
+        "ad_config": config.ad_config,
+        "notification_config": config.notification_config,
+    }
+    
     # Update fields
     update_data = config_update.dict(exclude_unset=True)
     for field, value in update_data.items():
         setattr(config, field, value)
     
+    config.updated_by = current_user.uid
+    
     await db.commit()
     await db.refresh(config)
+    
+    # Log audit trail
+    changes = {k: {"old": old_values.get(k), "new": getattr(config, k)} for k in update_data.keys()}
+    audit_service = AuditService(db)
+    await audit_service.log_config_updated(
+        config_id=config.id,
+        user_id=current_user.uid,
+        changes=changes
+    )
+    await db.commit()
     
     return create_response(config)
 
@@ -119,6 +155,7 @@ async def update_config(
 async def submit_for_review(
     config_id: str,
     db: AsyncSession = Depends(get_db),
+    current_user: CurrentUser = Depends(get_current_user),
 ):
     """Submit configuration for review"""
     result = await db.execute(select(Config).where(Config.id == config_id))
@@ -130,9 +167,20 @@ async def submit_for_review(
     if config.status != ConfigStatus.DRAFT:
         raise HTTPException(status_code=400, detail="Can only submit DRAFT configs for review")
     
+    old_status = config.status
     config.status = ConfigStatus.IN_REVIEW
     await db.commit()
     await db.refresh(config)
+    
+    # Log audit trail
+    audit_service = AuditService(db)
+    await audit_service.log_config_status_change(
+        config_id=config.id,
+        user_id=current_user.uid,
+        old_status=old_status,
+        new_status=config.status
+    )
+    await db.commit()
     
     return create_response(config)
 
@@ -141,9 +189,11 @@ async def submit_for_review(
 async def approve_config(
     config_id: str,
     db: AsyncSession = Depends(get_db),
-    # TODO: Add current_user dependency with role check
+    current_user: CurrentUser = Depends(require_role(UserRole.LEAD_DESIGNER)),
 ):
     """Approve a configuration (requires LEAD_DESIGNER or higher)"""
+    from datetime import datetime
+    
     result = await db.execute(select(Config).where(Config.id == config_id))
     config = result.scalar_one_or_none()
     
@@ -153,12 +203,23 @@ async def approve_config(
     if config.status != ConfigStatus.IN_REVIEW:
         raise HTTPException(status_code=400, detail="Can only approve IN_REVIEW configs")
     
+    old_status = config.status
     config.status = ConfigStatus.APPROVED
-    # config.approved_by = current_user.id  # TODO: Add after auth
-    # config.approved_at = datetime.utcnow()
+    config.approved_by = current_user.uid
+    config.approved_at = datetime.utcnow()
     
     await db.commit()
     await db.refresh(config)
+    
+    # Log audit trail
+    audit_service = AuditService(db)
+    await audit_service.log_config_status_change(
+        config_id=config.id,
+        user_id=current_user.uid,
+        old_status=old_status,
+        new_status=config.status
+    )
+    await db.commit()
     
     return create_response(config)
 
@@ -167,7 +228,7 @@ async def approve_config(
 async def deploy_config(
     config_id: str,
     db: AsyncSession = Depends(get_db),
-    # TODO: Add current_user dependency with role check
+    current_user: CurrentUser = Depends(require_role(UserRole.PRODUCT_MANAGER)),
 ):
     """Deploy configuration to Firebase Remote Config"""
     from app.services.firebase_service import get_firebase_service
@@ -211,11 +272,21 @@ async def deploy_config(
         result = await firebase_service.update_template(firebase_params)
         
         # Update config status
+        old_status = config.status
         config.status = ConfigStatus.DEPLOYED
         config.deployed_at = datetime.utcnow()
         
         await db.commit()
         await db.refresh(config)
+        
+        # Log audit trail
+        audit_service = AuditService(db)
+        await audit_service.log_config_deployed(
+            config_id=config.id,
+            user_id=current_user.uid,
+            firebase_version=result.get("version_number", "unknown")
+        )
+        await db.commit()
         
         return create_response(config)
     except Exception as e:

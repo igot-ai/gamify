@@ -12,7 +12,7 @@ from app.schemas.audit_log import AuditLogResponse
 router = APIRouter()
 
 
-@router.get("/", response_model=ApiResponse[List[AuditLogResponse]])
+@router.get("", response_model=ApiResponse[List[AuditLogResponse]])
 async def list_audit_logs(
     entity_type: str = Query(None, description="Filter by entity type"),
     entity_id: str = Query(None, description="Filter by entity ID"),

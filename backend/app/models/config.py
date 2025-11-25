@@ -47,7 +47,8 @@ class Config(BaseModel):
     # Relationships
     game = relationship("Game", back_populates="configs")
     environment = relationship("Environment", back_populates="configs")
-    audit_logs = relationship("AuditLog", back_populates="config", foreign_keys="AuditLog.entity_id")
+    # Audit logs queried separately due to generic entity_id
+    # audit_logs = relationship("AuditLog", back_populates="config", foreign_keys="AuditLog.entity_id")
     
     # Indexes for performance
     __table_args__ = (

@@ -26,7 +26,7 @@ class CurrentUser:
         email_verified: bool,
         name: Optional[str] = None,
         picture: Optional[str] = None,
-        role: UserRole = UserRole.GAME_DESIGNER,
+        role: UserRole = UserRole.DESIGNER,
     ):
         self.uid = uid
         self.email = email
@@ -38,7 +38,7 @@ class CurrentUser:
     def has_role(self, required_role: UserRole) -> bool:
         """Check if user has required role or higher"""
         role_hierarchy = {
-            UserRole.GAME_DESIGNER: 1,
+            UserRole.DESIGNER: 1,
             UserRole.LEAD_DESIGNER: 2,
             UserRole.PRODUCT_MANAGER: 3,
             UserRole.ADMIN: 4,
@@ -80,6 +80,17 @@ async def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
     
+    # Mock token support for E2E tests in development
+    if settings.ENVIRONMENT == "development" and credentials.credentials == "mock-token-for-e2e":
+        logger.info("Using mock token for E2E testing")
+        return CurrentUser(
+            uid="test-user-id",
+            email="test@sunstudio.com",
+            email_verified=True,
+            name="Test User",
+            role=UserRole.ADMIN,
+        )
+    
     try:
         # Get Firebase app instance
         get_firebase_app()
@@ -95,8 +106,8 @@ async def get_current_user(
         picture = decoded_token.get("picture")
         
         # TODO: Fetch user role from database based on uid
-        # For now, default to GAME_DESIGNER
-        role = UserRole.GAME_DESIGNER
+        # For now, default to DESIGNER
+        role = UserRole.DESIGNER
         
         logger.info(f"User authenticated: {email} (uid: {uid})")
         

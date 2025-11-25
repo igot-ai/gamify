@@ -18,6 +18,7 @@ app = FastAPI(
     title="Sunstudio Config Management API",
     version="1.0.0",
     description="Configuration management portal for game configs",
+    redirect_slashes=False,  # Prevent 307 redirects for trailing slashes
 )
 
 # CORS middleware

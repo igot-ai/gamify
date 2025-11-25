@@ -24,14 +24,10 @@ import { toast } from 'sonner';
 
 export function GamesPage() {
   const { data: games, isLoading } = useGames();
-  const createGame = useCreateGame();
-  const updateGame = useUpdateGame('');
   const deleteGame = useDeleteGame();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   const filteredGames = games?.filter((g) =>
     g.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -41,7 +37,6 @@ export function GamesPage() {
     try {
       await deleteGame.mutateAsync(gameId);
       toast.success('Game deleted successfully');
-      setDeleteConfirmId(null);
     } catch {
       toast.error('Failed to delete game');
     }
@@ -139,7 +134,6 @@ export function GamesPage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => setEditingId(game.id)}
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
@@ -148,7 +142,6 @@ export function GamesPage() {
                           <GameForm
                             game={game}
                             onSuccess={() => {
-                              setEditingId(null);
                               toast.success('Game updated successfully');
                             }}
                           />

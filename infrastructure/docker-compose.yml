@@ -1,6 +1,5 @@
-version: '3.8'
-
 services:
+  # Database
   postgres:
     image: postgres:15-alpine
     container_name: gamify_config_db
@@ -8,27 +7,83 @@ services:
       POSTGRES_DB: gamify_config
       POSTGRES_USER: dev
       POSTGRES_PASSWORD: devpass
-    ports:
-      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U dev"]
+      test: ["CMD-SHELL", "pg_isready -U dev -d gamify_config"]
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - gamify_network
 
+  # Redis
   redis:
     image: redis:7-alpine
     container_name: gamify_config_redis
-    ports:
-      - "6379:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 3s
       retries: 5
+    networks:
+      - gamify_network
 
+  # Backend API
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: gamify_config_backend
+    environment:
+      DATABASE_URL: postgresql+asyncpg://dev:devpass@postgres:5432/gamify_config
+      REDIS_URL: redis://redis:6379/0
+      ENVIRONMENT: production
+      DEBUG: "false"
+      SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
+      FIREBASE_SERVICE_ACCOUNT_PATH: /app/firebase-service-account.json
+      FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:-your-project-id}
+      # Allow CORS from nginx proxy and common development URLs
+      BACKEND_CORS_ORIGINS: '["http://localhost","http://localhost:8866","http://localhost:3000","http://localhost:5173"]'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - gamify_network
+    restart: unless-stopped
+
+  # Frontend (Next.js standalone server)
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    container_name: gamify_config_frontend
+    environment:
+      - NODE_ENV=production
+      # Don't set NEXT_PUBLIC_API_URL as full URL - use relative path for nginx proxy
+      # The frontend will use /api/v1 which nginx will proxy to backend
+    networks:
+      - gamify_network
+    restart: unless-stopped
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: gamify_config_nginx
+    ports:
+      - "8866:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - gamify_network
+    restart: unless-stopped
+
+  # PgAdmin (optional - for database management)
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: gamify_config_pgadmin
@@ -39,6 +94,12 @@ services:
       - "5050:80"
     depends_on:
       - postgres
+    networks:
+      - gamify_network
+
+networks:
+  gamify_network:
+    driver: bridge
 
 volumes:
   postgres_data:

@@ -1,135 +1,284 @@
 # Sunstudio Config Portal - Frontend
 
-Modern, premium React application for managing game configurations with Firebase Remote Config integration.
+Modern configuration management portal built with **Next.js 15 App Router** and **Radix UI**.
 
-## Tech Stack
-
-- **Framework**: React 18 + TypeScript + Vite
-- **UI Components**: shadcn/ui + Radix UI + TailwindCSS
-- **State Management**: TanStack Query (React Query)
-- **Forms**: React Hook Form + Zod
-- **Routing**: React Router v6
-- **Authentication**: Firebase Auth
-- **API Client**: Axios
-
-## Features
-
-- 🔐 **Authentication**: Firebase Auth with Email/Password and Google OAuth
-- 🎨 **Premium UI**: Dark mode with vibrant gradients and smooth animations
-- 📱 **Responsive**: Mobile-first design
-- ⚡ **Fast**: Optimized with Vite and TanStack Query caching
-- 🔄 **Real-time**: Auto-sync with backend API
-- 🎯 **Type-safe**: Full TypeScript coverage
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js 18+ and npm
-- Firebase project with Auth enabled
-
-### Installation
+## 🚀 Quick Start
 
 ```bash
 # Install dependencies
 npm install
 
-# Copy environment variables
-cp .env.example .env.local
+# Start development server
+npm run dev
 
-# Edit .env.local with your Firebase credentials
+# Open browser
+http://localhost:3000
 ```
+
+## 📋 Table of Contents
+
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Available Scripts](#available-scripts)
+- [Architecture](#architecture)
+- [Development](#development)
+- [Testing](#testing)
+- [Deployment](#deployment)
+
+## 🛠️ Tech Stack
+
+### Core
+- **Framework**: [Next.js 15](https://nextjs.org/) (App Router)
+- **Language**: [TypeScript](https://www.typescriptlang.org/)
+- **React**: 19.1.0
+
+### UI & Styling
+- **UI Components**: [Radix UI](https://www.radix-ui.com/)
+- **Styling**: [Tailwind CSS 4](https://tailwindcss.com/)
+- **Icons**: [Lucide React](https://lucide.dev/)
+- **Animations**: [Motion](https://motion.dev/)
+
+### State Management
+- **Data Fetching**: [TanStack Query](https://tanstack.com/query)
+- **State**: [Zustand](https://zustand-demo.pmnd.rs/)
+- **Forms**: [React Hook Form](https://react-hook-form.com/) + [Zod](https://zod.dev/)
+
+### Authentication
+- **Auth**: [Firebase](https://firebase.google.com/)
+
+### Testing
+- **E2E**: [Cypress](https://www.cypress.io/)
+- **Unit**: [Vitest](https://vitest.dev/)
+
+## 📁 Project Structure
+
+```
+frontend/
+├── app/                          # Next.js App Router
+│   ├── (auth)/                   # Authentication routes
+│   │   ├── layout.tsx
+│   │   └── login/
+│   │       └── page.tsx
+│   ├── (dashboard)/              # Protected dashboard routes
+│   │   ├── layout.tsx
+│   │   └── (routes)/
+│   │       ├── dashboard/        # Main dashboard
+│   │       ├── games/            # Games management
+│   │       │   └── [gameId]/     # Dynamic game routes
+│   │       └── configs/          # Config management
+│   │           └── [configId]/   # Dynamic config routes
+│   ├── layout.tsx                # Root layout
+│   ├── page.tsx                  # Root page
+│   ├── providers.tsx             # Client providers
+│   └── not-found.tsx             # 404 page
+├── middleware.ts                 # Route middleware
+├── public/                       # Static assets
+└── src/                          # Shared source code
+    ├── components/               # React components
+    │   ├── config/               # Config-specific components
+    │   ├── layout/               # Layout components
+    │   └── ui/                   # UI primitives (Radix)
+    ├── contexts/                 # React contexts
+    ├── hooks/                    # Custom hooks
+    ├── lib/                      # Utilities
+    │   ├── firebase.ts           # Firebase config
+    │   ├── queryClient.ts        # React Query client
+    │   └── validations/          # Zod schemas
+    └── types/                    # TypeScript types
+```
+
+## 📜 Available Scripts
+
+### Development
+```bash
+npm run dev              # Start dev server (port 3000)
+npm run build            # Build for production
+npm run start            # Start production server
+```
+
+### Code Quality
+```bash
+npm run lint             # Run ESLint
+npm run lint:fix         # Fix ESLint issues
+npm run format           # Format with Prettier
+npm run type-check       # TypeScript type checking
+```
+
+### Testing
+```bash
+npm run test             # Run unit tests
+npm run test:ui          # Open Vitest UI
+npm run test:coverage    # Generate coverage report
+npm run cypress:open     # Open Cypress
+npm run cypress:run      # Run Cypress headless
+```
+
+## 🏗️ Architecture
+
+### Next.js App Router
+
+This project uses the **Next.js 15 App Router** with:
+
+- **File-based routing**: Routes defined by folder structure
+- **Server Components**: Default rendering on server
+- **Client Components**: Marked with `'use client'` directive
+- **Route Groups**: `(auth)` and `(dashboard)` for organization
+- **Dynamic Routes**: `[gameId]` and `[configId]` for parameters
+- **Loading States**: Automatic with `loading.tsx` files
+- **Error Boundaries**: Per-route with `error.tsx` files
+
+### Route Groups
+
+#### `(auth)` - Authentication
+- Centered layout design
+- No authentication required
+- Routes: `/login`
+
+#### `(dashboard)` - Protected Dashboard
+- Header + Sidebar layout
+- Authentication required
+- Routes: `/dashboard`, `/games`, `/configs`
+
+### Component Strategy
+
+```tsx
+// Server Component (default) - Static content
+export default function Page() {
+  return <div>Static content</div>;
+}
+
+// Client Component - Interactive
+'use client';
+export default function Page() {
+  const [state, setState] = useState();
+  return <div>Interactive content</div>;
+}
+```
+
+## 🔧 Development
 
 ### Environment Variables
 
-Create a `.env.local` file:
-
-```env
-VITE_API_URL=http://localhost:8000/api/v1
-VITE_FIREBASE_API_KEY=your-api-key
-VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=your-project-id
-VITE_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
-VITE_FIREBASE_MESSAGING_SENDER_ID=your-sender-id
-VITE_FIREBASE_APP_ID=your-app-id
-```
-
-### Development
+Create `.env.local`:
 
 ```bash
-# Start dev server
-npm run dev
+# Firebase
+NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_domain
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_bucket
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
 
-# Open http://localhost:5173
+# API
+NEXT_PUBLIC_API_URL=http://localhost:8000
 ```
+
+### Adding a New Page
+
+1. Create route folder in appropriate group:
+```bash
+mkdir -p app/(dashboard)/(routes)/new-page
+```
+
+2. Create page file:
+```tsx
+// app/(dashboard)/(routes)/new-page/page.tsx
+'use client';
+
+export default function NewPage() {
+  return <div>New Page Content</div>;
+}
+```
+
+3. Add loading state (optional):
+```tsx
+// app/(dashboard)/(routes)/new-page/loading.tsx
+export default function Loading() {
+  return <div>Loading...</div>;
+}
+```
+
+4. Add error boundary (optional):
+```tsx
+// app/(dashboard)/(routes)/new-page/error.tsx
+'use client';
+
+export default function Error({ error, reset }) {
+  return <div>Error: {error.message}</div>;
+}
+```
+
+### Adding a UI Component
+
+Using Radix UI patterns:
+
+```tsx
+// src/components/ui/new-component.tsx
+'use client';
+
+import * as React from 'react';
+import * as NewPrimitive from '@radix-ui/react-new';
+import { cn } from '@/lib/utils';
+
+export const NewComponent = React.forwardRef<
+  React.ElementRef<typeof NewPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof NewPrimitive.Root>
+>(({ className, ...props }, ref) => (
+  <NewPrimitive.Root
+    ref={ref}
+    className={cn('base-styles', className)}
+    {...props}
+  />
+));
+NewComponent.displayName = 'NewComponent';
+```
+
+## 🧪 Testing
+
+### Unit Tests (Vitest)
+
+```tsx
+// src/components/__tests__/Button.test.tsx
+import { render, screen } from '@testing-library/react';
+import { Button } from '../ui/Button';
+
+describe('Button', () => {
+  it('renders children', () => {
+    render(<Button>Click me</Button>);
+    expect(screen.getByText('Click me')).toBeInTheDocument();
+  });
+});
+```
+
+### E2E Tests (Cypress)
+
+```tsx
+// cypress/e2e/login.cy.ts
+describe('Login', () => {
+  it('should login successfully', () => {
+    cy.visit('/login');
+    cy.get('[name="email"]').type('test@sunstudio.com');
+    cy.get('[name="password"]').type('testpassword123');
+    cy.get('button[type="submit"]').click();
+    cy.url().should('include', '/dashboard');
+  });
+});
+```
+
+## 🚢 Deployment
 
 ### Build
 
 ```bash
-# Build for production
 npm run build
-
-# Preview production build
-npm run preview
 ```
 
-## Project Structure
+Output will be in `.next/` directory.
 
-```
-src/
-├── components/          # Reusable UI components
-│   ├── ui/             # shadcn/ui components (Button, Card, Input)
-│   ├── layout/         # Layout components (Header, Layout)
-│   └── config/         # Config-specific components (StatusBadge)
-├── pages/              # Page components
-│   ├── LoginPage.tsx
-│   └── DashboardPage.tsx
-├── hooks/              # Custom React hooks
-│   ├── useGames.ts
-│   └── useConfigs.ts
-├── lib/                # Utilities
-│   ├── api.ts          # Axios instance
-│   ├── firebase.ts     # Firebase config
-│   ├── utils.ts        # Helper functions
-│   └── queryClient.ts  # TanStack Query config
-├── types/              # TypeScript types
-│   ├── api.ts          # API response types
-│   └── user.ts         # User types
-├── contexts/           # React contexts
-│   └── AuthContext.tsx
-├── App.tsx             # Main app component
-├── main.tsx            # Entry point
-└── index.css           # Global styles
-```
+### Environment Variables
 
-## Design System
-
-### Colors
-
-- **Primary**: Purple gradient (#8B5CF6)
-- **Accent**: Electric Blue (#3B82F6)
-- **Background**: Dark mode (#0A0E1A)
-- **Foreground**: Light text (#E2E8F0)
-
-### Typography
-
-- **Font**: Inter (Google Fonts)
-- **Weights**: 400, 500, 600, 700
-
-## API Integration
-
-The frontend communicates with the backend API documented in `../BACKEND.md`.
-
-### Key Endpoints
-
-- `GET /games` - List all games
-- `GET /configs` - List configs with filters
-- `POST /configs` - Create config draft
-- `POST /configs/{id}/submit-review` - Submit for review
-- `POST /configs/{id}/approve` - Approve config
-- `POST /configs/{id}/deploy` - Deploy to Firebase
-
-## Deployment
+Ensure all required environment variables are set in your deployment platform.
 
 ### Vercel (Recommended)
 
@@ -141,7 +290,148 @@ npm i -g vercel
 vercel
 ```
 
+### Docker
+
+```bash
+# Build image
+docker build -t config-portal-frontend .
+
+# Run container
+docker run -p 3000:3000 config-portal-frontend
+```
+
+## 📚 Key Documentation
+
+- [NEXTJS_ARCHITECTURE.md](../NEXTJS_ARCHITECTURE.md) - Complete architecture guide
+- [FRONTEND_MIGRATION_GUIDE.md](../FRONTEND_MIGRATION_GUIDE.md) - Migration from Vite
+- [FRONTEND_REFACTORING_COMPLETE.md](../FRONTEND_REFACTORING_COMPLETE.md) - Refactoring summary
+
+## 🎨 UI Components
+
+All UI components are built with Radix UI for:
+- ✅ Accessibility (ARIA compliant)
+- ✅ Keyboard navigation
+- ✅ Focus management
+- ✅ Screen reader support
+
+Available components:
+- `Button`, `Card`, `Dialog`, `Input`, `Select`
+- `Table`, `Tabs`, `Form`, `Checkbox`
+- `Dropdown Menu`, `Popover`, `Tooltip`
+- And more...
+
+## 🔒 Authentication
+
+Firebase Authentication with:
+- Email/Password login
+- Google OAuth
+- Protected routes
+- Role-based access control
+
+## 📊 State Management
+
+### React Query (TanStack Query)
+
+```tsx
+import { useQuery, useMutation } from '@tanstack/react-query';
+
+// Fetch data
+const { data, isLoading } = useQuery({
+  queryKey: ['games'],
+  queryFn: fetchGames,
+});
+
+// Mutate data
+const mutation = useMutation({
+  mutationFn: createGame,
+  onSuccess: () => {
+    queryClient.invalidateQueries(['games']);
+  },
+});
+```
+
+### Forms with React Hook Form + Zod
+
+```tsx
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+
+const schema = z.object({
+  name: z.string().min(1),
+  email: z.string().email(),
+});
+
+const form = useForm({
+  resolver: zodResolver(schema),
+});
+```
+
+## 🐛 Troubleshooting
+
+### Hydration Errors
+Ensure server and client render the same initial content. Check for browser-only APIs in server components.
+
+### "useRouter is not a function"
+Import from `'next/navigation'`, not `'next/router'`.
+
+### Module Not Found: @/
+Check `tsconfig.json` has proper path mapping.
+
+### Build Errors
+Run `npm run type-check` to identify TypeScript issues.
+
+## 🤝 Contributing
+
+1. Create a new branch
+2. Make your changes
+3. Run tests: `npm run test`
+4. Run linting: `npm run lint`
+5. Build to verify: `npm run build`
+6. Create a pull request
+
+## 📝 Code Style
+
+- **TypeScript**: Strict mode enabled
+- **ESLint**: Next.js recommended config
+- **Prettier**: Consistent formatting
+- **Naming**: PascalCase for components, camelCase for functions
+- **Files**: kebab-case for files, PascalCase for component files
+
+## 🎯 Performance
+
+- **Server Components**: Reduced JavaScript bundle
+- **Code Splitting**: Automatic per-route
+- **Loading States**: Instant feedback
+- **Error Boundaries**: Graceful error handling
+- **Image Optimization**: Next.js Image (when used)
+
+## 📱 Responsive Design
+
+- **Mobile-first**: Tailwind CSS approach
+- **Breakpoints**: sm, md, lg, xl, 2xl
+- **Mobile menu**: Sidebar drawer on mobile
+- **Touch-friendly**: Proper touch targets
+
+## ♿ Accessibility
+
+- **Radix UI**: ARIA-compliant primitives
+- **Keyboard Navigation**: Full support
+- **Focus Management**: Proper focus trapping
+- **Screen Readers**: Semantic HTML
+
+## 🔗 Useful Links
+
+- [Next.js Docs](https://nextjs.org/docs)
+- [React Docs](https://react.dev)
+- [Radix UI](https://www.radix-ui.com)
+- [Tailwind CSS](https://tailwindcss.com)
+- [TypeScript](https://www.typescriptlang.org)
+
+## 📄 License
+
+[Your License Here]
+
 ---
 
-**Last Updated**: 2025-11-25  
-**Version**: 1.0.0
+**Built with** ❤️ **using Next.js 15 and Radix UI**

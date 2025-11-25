@@ -38,7 +38,7 @@ def upgrade() -> None:
     sa.Column('firebase_uid', sa.String(), nullable=True),
     sa.Column('role', sa.Enum('DESIGNER', 'LEAD_DESIGNER', 'PRODUCT_MANAGER', 'ADMIN', name='userrole'), nullable=False),
     sa.Column('game_access', sa.JSON(), nullable=False),
-    sa.Column('is_active', sa.String(), nullable=False),
+    sa.Column('is_active', sa.Boolean(), nullable=False),
     sa.Column('id', sa.String(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.Column('updated_at', sa.DateTime(), nullable=False),
@@ -131,7 +131,6 @@ def upgrade() -> None:
     sa.Column('id', sa.String(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.Column('updated_at', sa.DateTime(), nullable=False),
-    sa.ForeignKeyConstraint(['entity_id'], ['configs.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index('idx_audit_entity_timestamp', 'audit_logs', ['entity_id', 'created_at'], unique=False)

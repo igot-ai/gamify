@@ -7,7 +7,7 @@ interface StatusBadgeProps {
 }
 
 export function StatusBadge({ status, className }: StatusBadgeProps) {
-    const variants = {
+    const variants: Record<ConfigStatus, string> = {
         draft: 'bg-gray-500/10 text-gray-500 border-gray-500/20',
         in_review: 'bg-blue-500/10 text-blue-500 border-blue-500/20',
         approved: 'bg-green-500/10 text-green-500 border-green-500/20',
@@ -15,7 +15,7 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
         archived: 'bg-gray-400/10 text-gray-400 border-gray-400/20',
     };
 
-    const labels = {
+    const labels: Record<ConfigStatus, string> = {
         draft: 'Draft',
         in_review: 'In Review',
         approved: 'Approved',

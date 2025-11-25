@@ -9,6 +9,8 @@ import { LoginPage } from './pages/LoginPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { GamesPage } from './pages/GamesPage';
 import { ConfigsPage } from './pages/ConfigsPage';
+import { ConfigEditorPage } from './pages/ConfigEditorPage';
+import { ConfigDetailPage } from './pages/ConfigDetailPage';
 import './index.css';
 
 // Protected Route wrapper
@@ -85,7 +87,7 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <Layout>
-              <div>Config Detail Page (TODO)</div>
+              <ConfigDetailPage />
             </Layout>
           </ProtectedRoute>
         }
@@ -95,7 +97,7 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <Layout>
-              <div>Config Editor Page (TODO)</div>
+              <ConfigEditorPage />
             </Layout>
           </ProtectedRoute>
         }

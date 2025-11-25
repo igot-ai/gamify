@@ -1,4 +1,5 @@
 from typing import List
+import re
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -12,7 +13,22 @@ from app.schemas.game import GameCreate, GameUpdate, GameResponse, GameWithEnvir
 router = APIRouter()
 
 
-@router.get("/", response_model=ApiResponse[List[GameResponse]])
+def slugify(text: str) -> str:
+    """Convert text to slug format"""
+    # Convert to lowercase
+    text = text.lower()
+    # Replace spaces and underscores with hyphens
+    text = re.sub(r'[\s_]+', '-', text)
+    # Remove any characters that aren't alphanumeric or hyphens
+    text = re.sub(r'[^a-z0-9-]', '', text)
+    # Remove multiple consecutive hyphens
+    text = re.sub(r'-+', '-', text)
+    # Strip hyphens from start and end
+    text = text.strip('-')
+    return text
+
+
+@router.get("", response_model=ApiResponse[List[GameResponse]])
 async def list_games(
     skip: int = 0,
     limit: int = 100,
@@ -26,14 +42,29 @@ async def list_games(
     return create_response(games)
 
 
-@router.post("/", response_model=ApiResponse[GameResponse], status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=ApiResponse[GameResponse], status_code=status.HTTP_201_CREATED)
 async def create_game(
     game_in: GameCreate,
     db: AsyncSession = Depends(get_db),
 ):
     """Create a new game with default environments"""
+    # Auto-generate slug from name if not provided
+    game_data = game_in.dict()
+    if not game_data.get('slug'):
+        game_data['slug'] = slugify(game_data['name'])
+    
+    # Check if slug already exists
+    existing = await db.execute(
+        select(Game).where(Game.slug == game_data['slug'])
+    )
+    if existing.scalar_one_or_none():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Game with slug '{game_data['slug']}' already exists"
+        )
+    
     # Create game
-    game = Game(**game_in.dict())
+    game = Game(**game_data)
     db.add(game)
     await db.flush()
     

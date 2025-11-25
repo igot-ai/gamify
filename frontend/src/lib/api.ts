@@ -1,6 +1,22 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+// Use relative path for production (nginx proxy) or full URL for development
+// In production, nginx will proxy /api/* to backend
+// In development, use full URL if NEXT_PUBLIC_API_URL is set, otherwise use relative path
+const getApiBaseUrl = (): string => {
+    const envUrl = process.env.NEXT_PUBLIC_API_URL;
+    
+    // If NEXT_PUBLIC_API_URL is set and is a full URL (starts with http), use it (dev mode)
+    if (envUrl && envUrl.startsWith('http')) {
+        return envUrl;
+    }
+    
+    // Otherwise use relative path (production mode with nginx proxy)
+    // This allows nginx to handle routing /api/* to backend
+    return '/api/v1';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 export const apiClient = axios.create({
     baseURL: API_BASE_URL,

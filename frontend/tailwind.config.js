@@ -3,6 +3,7 @@ export default {
     darkMode: ["class"],
     content: [
         "./index.html",
+        "./app/**/*.{js,ts,jsx,tsx}",
         "./src/**/*.{js,ts,jsx,tsx}",
     ],
     theme: {
@@ -47,6 +48,14 @@ export default {
                 md: "calc(var(--radius) - 2px)",
                 sm: "calc(var(--radius) - 4px)",
             },
+            backgroundImage: {
+                'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+                'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
+                'gradient-primary': 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 50%, #6D28D9 100%)',
+                'gradient-secondary': 'linear-gradient(135deg, #3B82F6 0%, #2563EB 50%, #1D4ED8 100%)',
+                'gradient-accent': 'linear-gradient(135deg, #C026D3 0%, #A21CAF 50%, #86198F 100%)',
+                'gradient-hero': 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 25%, #3B82F6 50%, #2563EB 75%, #C026D3 100%)',
+            },
             keyframes: {
                 "accordion-down": {
                     from: { height: "0" },
@@ -64,12 +73,28 @@ export default {
                     "0%": { backgroundPosition: "-1000px 0" },
                     "100%": { backgroundPosition: "1000px 0" },
                 },
+                "pulse-glow": {
+                    "0%, 100%": { boxShadow: "0 0 20px rgba(139, 92, 246, 0.4)" },
+                    "50%": { boxShadow: "0 0 30px rgba(139, 92, 246, 0.6)" },
+                },
+                "slide-up": {
+                    from: { opacity: "0", transform: "translateY(20px)" },
+                    to: { opacity: "1", transform: "translateY(0)" },
+                },
+                gradient: {
+                    "0%": { backgroundPosition: "0% 50%" },
+                    "50%": { backgroundPosition: "100% 50%" },
+                    "100%": { backgroundPosition: "0% 50%" },
+                },
             },
             animation: {
                 "accordion-down": "accordion-down 0.2s ease-out",
                 "accordion-up": "accordion-up 0.2s ease-out",
                 "fade-in": "fade-in 0.3s ease-out",
                 shimmer: "shimmer 2s infinite linear",
+                "pulse-glow": "pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+                "slide-up": "slide-up 0.5s ease-out",
+                gradient: "gradient 3s ease infinite",
             },
         },
     },
