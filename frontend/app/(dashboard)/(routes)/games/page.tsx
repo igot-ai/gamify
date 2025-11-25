@@ -68,31 +68,31 @@ export default function GamesPage() {
   }
 
   return (
-    <div className="p-8 space-y-8 animate-slide-up">
-      <div className="space-y-3">
-        <h1 className="text-5xl font-extrabold bg-gradient-hero bg-clip-text text-transparent animate-gradient bg-[length:200%_200%]">
+    <div className="p-6 space-y-6 max-w-7xl mx-auto">
+      <div className="space-y-1">
+        <h1 className="text-3xl font-bold tracking-tight">
           Games
         </h1>
-        <p className="text-muted-foreground text-lg">
+        <p className="text-muted-foreground">
           Manage all your games and their configurations
         </p>
       </div>
 
-      <div className="flex gap-4 flex-wrap">
+      <div className="flex gap-3 flex-wrap items-center">
         <Input
-          placeholder="🔍 Search games..."
+          placeholder="Search games..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-md bg-card/50 border-primary/20 focus:border-primary transition-all duration-300"
+          className="max-w-sm"
         />
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-gradient-primary hover:shadow-lg hover:shadow-primary/50 transition-all duration-300 hover:scale-105">
+            <Button>
               <Plus className="mr-2 h-4 w-4" />
               New Game
             </Button>
           </DialogTrigger>
-          <DialogContent className="glass-effect">
+          <DialogContent>
             <GameForm
               onSuccess={() => {
                 setIsCreateOpen(false);
@@ -104,18 +104,18 @@ export default function GamesPage() {
         </Dialog>
       </div>
 
-      <Card className="bg-card/50 backdrop-blur-sm border-primary/10 shadow-xl shadow-primary/5">
-        <CardHeader className="border-b border-primary/10">
-          <CardTitle className="text-2xl text-gradient">Games List</CardTitle>
-          <CardDescription className="text-base">
+      <Card>
+        <CardHeader>
+          <CardTitle>Games</CardTitle>
+          <CardDescription>
             {filteredGames.length} game{filteredGames.length !== 1 ? 's' : ''}
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-6">
           {filteredGames.length === 0 ? (
-            <div className="text-center py-16">
-              <AlertCircle className="mx-auto h-16 w-16 text-primary/50 mb-4" />
-              <p className="text-muted-foreground text-lg">
+            <div className="text-center py-12">
+              <AlertCircle className="mx-auto h-12 w-12 text-muted-foreground mb-3" />
+              <p className="text-muted-foreground text-sm">
                 {games?.length === 0
                   ? 'No games yet. Create your first game to get started.'
                   : 'No games match your search.'}
@@ -201,7 +201,7 @@ function EditGameDialog({ game }: EditGameDialogProps) {
           <Edit className="h-4 w-4" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="glass-effect">
+      <DialogContent>
         <GameForm
           game={game}
           onSuccess={() => {
@@ -260,7 +260,7 @@ function GameForm({ game, onSuccess, onCancel }: GameFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }

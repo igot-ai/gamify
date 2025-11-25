@@ -102,14 +102,14 @@ export function EconomyConfigForm({ initialData, onSubmit, onCancel }: EconomyCo
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         {/* Currencies Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Currencies</CardTitle>
-            <CardDescription>Define game currencies (soft, hard, premium)</CardDescription>
+        <Card className="border-border/30 shadow-stripe-sm transition-all hover:shadow-stripe-md">
+          <CardHeader className="pb-5">
+            <CardTitle className="text-lg font-semibold tracking-tight">Currencies</CardTitle>
+            <CardDescription className="text-sm mt-1.5">Define game currencies (soft, hard, premium)</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {currencyFields.map((field, index) => (
-              <div key={field.id} className="border rounded-lg p-4 space-y-4" data-testid="currency-item">
+              <div key={field.id} className="nested-card space-y-4 shadow-stripe-xs hover:shadow-stripe-sm" data-testid="currency-item">
                 {editingCurrencyIndex === index ? (
                   <div className="space-y-4">
                     <FormField
@@ -227,7 +227,7 @@ export function EconomyConfigForm({ initialData, onSubmit, onCancel }: EconomyCo
                 )}
               </div>
             ))}
-            <Button type="button" variant="outline" onClick={handleAddCurrency}>
+            <Button type="button" variant="outline" onClick={handleAddCurrency} className="shadow-stripe-xs transition-all hover:shadow-stripe-sm">
               <Plus className="mr-2 h-4 w-4" />
               Add Currency
             </Button>
@@ -238,14 +238,14 @@ export function EconomyConfigForm({ initialData, onSubmit, onCancel }: EconomyCo
         </Card>
 
         {/* IAP Packages Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle>IAP Packages</CardTitle>
-            <CardDescription>In-App Purchase packages</CardDescription>
+        <Card className="border-border/30 shadow-stripe-sm transition-all hover:shadow-stripe-md">
+          <CardHeader className="pb-5">
+            <CardTitle className="text-lg font-semibold tracking-tight">IAP Packages</CardTitle>
+            <CardDescription className="text-sm mt-1.5">In-App Purchase packages</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {iapFields.map((field, index) => (
-              <div key={field.id} className="border rounded-lg p-4">
+              <div key={field.id} className="nested-card space-y-4 shadow-stripe-xs hover:shadow-stripe-sm">
                 <FormField
                   control={form.control}
                   name={`iap_packages.${index}.id`}
@@ -302,7 +302,7 @@ export function EconomyConfigForm({ initialData, onSubmit, onCancel }: EconomyCo
                 </Button>
               </div>
             ))}
-            <Button type="button" variant="outline" onClick={handleAddIAP}>
+            <Button type="button" variant="outline" onClick={handleAddIAP} className="shadow-stripe-xs transition-all hover:shadow-stripe-sm">
               <Plus className="mr-2 h-4 w-4" />
               Add IAP Package
             </Button>
@@ -310,13 +310,13 @@ export function EconomyConfigForm({ initialData, onSubmit, onCancel }: EconomyCo
         </Card>
 
         {/* Action Buttons */}
-        <div className="flex gap-4 justify-end">
+        <div className="flex gap-3 justify-end pt-6 border-t border-border/30">
           {onCancel && (
-            <Button type="button" variant="outline" onClick={onCancel}>
+            <Button type="button" variant="outline" onClick={onCancel} className="h-9 px-4 shadow-stripe-xs transition-all hover:shadow-stripe-sm">
               Cancel
             </Button>
           )}
-          <Button type="submit">Save Economy Config</Button>
+          <Button type="submit" className="h-9 px-6 shadow-stripe-sm transition-all hover:shadow-stripe-md hover:-translate-y-0.5">Save Economy Config</Button>
         </div>
       </form>
     </Form>

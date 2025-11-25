@@ -78,9 +78,10 @@ async def create_config(
     
     # Create config
     config_data = config_in.dict()
+    # Override created_by with current user regardless of what frontend sends
+    config_data['created_by'] = current_user.uid
     config = Config(
         version=next_version,
-        created_by=current_user.uid,
         **config_data
     )
     

@@ -140,7 +140,7 @@ export function ShopConfigForm({
   const handleRemoveItem = (categoryIndex: number, itemIndex: number) => {
     const items = form.getValues(`categories.${categoryIndex}.items`) || [];
     const itemId = items[itemIndex]?.id;
-    
+
     // Remove from featured items if it was featured
     if (itemId && featuredItems.includes(itemId)) {
       form.setValue(
@@ -148,7 +148,7 @@ export function ShopConfigForm({
         featuredItems.filter((id) => id !== itemId)
       );
     }
-    
+
     items.splice(itemIndex, 1);
     form.setValue(`categories.${categoryIndex}.items`, items);
     setEditingItemIndex(null);
@@ -168,23 +168,23 @@ export function ShopConfigForm({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         {/* Shop Settings Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Shop Settings</CardTitle>
-            <CardDescription>
+        <Card className="border-border/30 shadow-stripe-sm transition-all hover:shadow-stripe-md">
+          <CardHeader className="pb-5">
+            <CardTitle className="text-lg font-semibold tracking-tight">Shop Settings</CardTitle>
+            <CardDescription className="text-sm text-muted-foreground mt-1.5">
               Configure global shop behavior and featured items
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-6 pt-0">
             <FormField
               control={form.control}
               name="rotation_enabled"
               render={({ field }) => (
-                <FormItem className="flex items-center justify-between rounded-lg border p-4">
-                  <div className="space-y-0.5">
-                    <FormLabel>Rotation Enabled</FormLabel>
+                <FormItem className="switch-container">
+                  <div className="space-y-0.5 flex-1 pr-4">
+                    <FormLabel className="text-sm font-medium">Rotation Enabled</FormLabel>
                     <div className="text-sm text-muted-foreground">
                       Enable automatic rotation of shop items
                     </div>
@@ -196,17 +196,21 @@ export function ShopConfigForm({
               )}
             />
 
-            <div className="space-y-2">
-              <FormLabel>Featured Items</FormLabel>
-              <div className="text-sm text-muted-foreground mb-4">
-                Select items to feature prominently in the shop
+            <div className="space-y-3">
+              <div>
+                <FormLabel className="text-sm font-medium">Featured Items</FormLabel>
+                <div className="text-sm text-muted-foreground mt-1">
+                  Select items to feature prominently in the shop
+                </div>
               </div>
               {allItemIds.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  Add items to categories first to feature them
-                </p>
+                <div className="empty-state">
+                  <p className="text-sm text-muted-foreground">
+                    Add items to categories first to feature them
+                  </p>
+                </div>
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <div className="flex flex-wrap gap-2">
                     {allItemIds.map((itemId) => {
                       const categories = form.watch('categories') || [];
@@ -215,30 +219,27 @@ export function ShopConfigForm({
                       const isFeatured = (featuredItems || []).includes(itemId);
 
                       return (
-                        <div
+                        <button
                           key={itemId}
-                          className={`flex items-center gap-2 rounded-md border px-3 py-1 ${
-                            isFeatured ? 'bg-primary/10 border-primary' : 'bg-muted'
-                          }`}
+                          type="button"
+                          onClick={() => handleToggleFeaturedItem(itemId)}
+                          className={`group flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium shadow-stripe-xs transition-all hover:shadow-stripe-sm ${isFeatured
+                              ? 'bg-primary/10 border-primary/40 text-primary hover:bg-primary/15 hover:border-primary/60'
+                              : 'bg-muted/20 border-border/30 text-foreground hover:bg-muted/40 hover:border-border/50'
+                            }`}
                         >
-                          <span className="text-sm">{item?.name || itemId}</span>
-                          <button
-                            type="button"
-                            onClick={() => handleToggleFeaturedItem(itemId)}
-                            className="text-xs"
-                          >
-                            {isFeatured ? (
-                              <X className="h-3 w-3" />
-                            ) : (
-                              <Plus className="h-3 w-3" />
-                            )}
-                          </button>
-                        </div>
+                          <span>{item?.name || itemId}</span>
+                          {isFeatured ? (
+                            <X className="h-3.5 w-3.5 opacity-70 group-hover:opacity-100" />
+                          ) : (
+                            <Plus className="h-3.5 w-3.5 opacity-70 group-hover:opacity-100" />
+                          )}
+                        </button>
                       );
                     })}
                   </div>
                   {form.formState.errors.featured_items && (
-                    <FormMessage>
+                    <FormMessage className="text-xs">
                       {form.formState.errors.featured_items.message}
                     </FormMessage>
                   )}
@@ -249,14 +250,27 @@ export function ShopConfigForm({
         </Card>
 
         {/* Shop Categories Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Shop Categories</CardTitle>
-            <CardDescription>
-              Organize shop items into categories
-            </CardDescription>
+        <Card className="border-border/30 shadow-stripe-sm transition-all hover:shadow-stripe-md">
+          <CardHeader className="pb-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-lg font-semibold tracking-tight">Shop Categories</CardTitle>
+                <CardDescription className="text-sm text-muted-foreground mt-1.5">
+                  Organize shop items into categories
+                </CardDescription>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleAddCategory}
+                className="h-9 px-4 shadow-stripe-xs transition-all hover:shadow-stripe-sm"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Add Category
+              </Button>
+            </div>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-4 pt-0">
             {categoryFields.map((categoryField, categoryIndex) => {
               const category = form.watch(`categories.${categoryIndex}`);
               const isEditingCategory = editingCategoryIndex === categoryIndex;
@@ -265,7 +279,7 @@ export function ShopConfigForm({
               return (
                 <div
                   key={categoryField.id}
-                  className="border rounded-lg p-4 space-y-4"
+                  className="nested-card space-y-5 shadow-stripe-xs hover:shadow-stripe-sm"
                   data-testid="category-item"
                 >
                   {isEditingCategory ? (
@@ -315,16 +329,22 @@ export function ShopConfigForm({
                       />
 
                       {/* Items in Category */}
-                      <div className="space-y-4 border-t pt-4">
+                      <div className="space-y-4 border-t border-border/30 pt-5">
                         <div className="flex items-center justify-between">
-                          <FormLabel>Items in Category ({items.length})</FormLabel>
+                          <FormLabel className="text-sm font-medium">
+                            Items in Category
+                            <span className="ml-2 text-xs font-normal text-muted-foreground">
+                              ({items.length})
+                            </span>
+                          </FormLabel>
                           <Button
                             type="button"
                             variant="outline"
                             size="sm"
                             onClick={() => handleAddItem(categoryIndex)}
+                            className="h-8 px-3"
                           >
-                            <Plus className="mr-2 h-4 w-4" />
+                            <Plus className="mr-2 h-3.5 w-3.5" />
                             Add Item
                           </Button>
                         </div>
@@ -337,7 +357,7 @@ export function ShopConfigForm({
                           return (
                             <div
                               key={itemIndex}
-                              className="border rounded p-4 space-y-4 bg-muted/50"
+                              className="border border-border/25 rounded-lg p-4 space-y-4 bg-muted/15 shadow-stripe-xs transition-all hover:bg-muted/25 hover:shadow-stripe-sm"
                             >
                               {isEditingItem ? (
                                 <ShopItemEditor
@@ -351,15 +371,14 @@ export function ShopConfigForm({
                                 />
                               ) : (
                                 <div className="flex justify-between items-center">
-                                  <div>
-                                    <p className="font-medium">{item.name || 'Unnamed Item'}</p>
-                                    <p className="text-sm text-muted-foreground">
-                                      ID: {item.id} | Price: {item.price?.amount}{' '}
-                                      {item.price?.currency_id} | Rewards: {item.rewards?.length}
-                                      {item.limited_time && ' | Limited Time'}
+                                  <div className="flex-1 min-w-0">
+                                    <p className="font-medium text-sm">{item.name || 'Unnamed Item'}</p>
+                                    <p className="text-xs text-muted-foreground mt-1 truncate">
+                                      ID: {item.id} • Price: {item.price?.amount} {item.price?.currency_id} • Rewards: {item.rewards?.length}
+                                      {item.limited_time && ' • Limited Time'}
                                     </p>
                                   </div>
-                                  <div className="flex gap-2">
+                                  <div className="flex gap-1.5 ml-4">
                                     <Button
                                       type="button"
                                       variant="ghost"
@@ -367,16 +386,18 @@ export function ShopConfigForm({
                                       onClick={() =>
                                         setEditingItemIndex({ categoryIndex, itemIndex })
                                       }
+                                      className="h-8 w-8 p-0"
                                     >
-                                      <Edit className="h-4 w-4" />
+                                      <Edit className="h-3.5 w-3.5" />
                                     </Button>
                                     <Button
                                       type="button"
                                       variant="ghost"
                                       size="sm"
                                       onClick={() => handleRemoveItem(categoryIndex, itemIndex)}
+                                      className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
                                     >
-                                      <Trash2 className="h-4 w-4" />
+                                      <Trash2 className="h-3.5 w-3.5" />
                                     </Button>
                                   </div>
                                 </div>
@@ -407,28 +428,30 @@ export function ShopConfigForm({
                     </div>
                   ) : (
                     <div className="flex justify-between items-center">
-                      <div>
-                        <p className="font-medium">{category?.name || 'Unnamed Category'}</p>
-                        <p className="text-sm text-muted-foreground">
-                          ID: {category?.id || 'N/A'} | Items: {items?.length || 0}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm">{category?.name || 'Unnamed Category'}</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          ID: {category?.id || 'N/A'} • Items: {items?.length || 0}
                         </p>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex gap-1.5 ml-4">
                         <Button
                           type="button"
                           variant="ghost"
                           size="sm"
                           onClick={() => setEditingCategoryIndex(categoryIndex)}
+                          className="h-8 w-8 p-0"
                         >
-                          <Edit className="h-4 w-4" />
+                          <Edit className="h-3.5 w-3.5" />
                         </Button>
                         <Button
                           type="button"
                           variant="ghost"
                           size="sm"
                           onClick={() => removeCategory(categoryIndex)}
+                          className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-3.5 w-3.5" />
                         </Button>
                       </div>
                     </div>
@@ -437,10 +460,13 @@ export function ShopConfigForm({
               );
             })}
 
-            <Button type="button" variant="outline" onClick={handleAddCategory}>
-              <Plus className="mr-2 h-4 w-4" />
-              Add Category
-            </Button>
+            {categoryFields.length === 0 && (
+              <div className="empty-state">
+                <p className="text-sm text-muted-foreground mb-1">No categories yet</p>
+                <p className="text-xs text-muted-foreground/70">Add your first category to get started</p>
+              </div>
+            )}
+
             {form.formState.errors.categories && (
               <p className="text-sm text-destructive">
                 {form.formState.errors.categories.message}
@@ -450,13 +476,15 @@ export function ShopConfigForm({
         </Card>
 
         {/* Action Buttons */}
-        <div className="flex gap-4 justify-end">
+        <div className="flex gap-3 justify-end pt-6 border-t border-border/30">
           {onCancel && (
-            <Button type="button" variant="outline" onClick={onCancel}>
+            <Button type="button" variant="outline" onClick={onCancel} className="h-9 px-4 shadow-stripe-xs transition-all hover:shadow-stripe-sm">
               Cancel
             </Button>
           )}
-          <Button type="submit">Save Shop Config</Button>
+          <Button type="submit" className="h-9 px-6 shadow-stripe-sm transition-all hover:shadow-stripe-md hover:-translate-y-0.5">
+            Save Shop Config
+          </Button>
         </div>
       </form>
     </Form>
@@ -487,45 +515,51 @@ function ShopItemEditor({
   const limitedTime = form.watch(`categories.${categoryIndex}.items.${itemIndex}.limited_time`);
 
   return (
-    <div className="space-y-4">
-      <FormField
-        control={form.control}
-        name={`categories.${categoryIndex}.items.${itemIndex}.id`}
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Item ID *</FormLabel>
-            <FormControl>
-              <Input placeholder="50_gems" {...field} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+    <div className="space-y-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <FormField
+          control={form.control}
+          name={`categories.${categoryIndex}.items.${itemIndex}.id`}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-sm font-medium">Item ID *</FormLabel>
+              <FormControl>
+                <Input placeholder="50_gems" {...field} className="h-9" />
+              </FormControl>
+              <FormMessage className="text-xs" />
+            </FormItem>
+          )}
+        />
 
-      <FormField
-        control={form.control}
-        name={`categories.${categoryIndex}.items.${itemIndex}.name`}
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Item Name *</FormLabel>
-            <FormControl>
-              <Input placeholder="50 Gems" {...field} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+        <FormField
+          control={form.control}
+          name={`categories.${categoryIndex}.items.${itemIndex}.name`}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-sm font-medium">Item Name *</FormLabel>
+              <FormControl>
+                <Input placeholder="50 Gems" {...field} className="h-9" />
+              </FormControl>
+              <FormMessage className="text-xs" />
+            </FormItem>
+          )}
+        />
+      </div>
 
       <FormField
         control={form.control}
         name={`categories.${categoryIndex}.items.${itemIndex}.description`}
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Description *</FormLabel>
+            <FormLabel className="text-sm font-medium">Description *</FormLabel>
             <FormControl>
-              <Textarea placeholder="Get 50 premium gems" {...field} />
+              <Textarea
+                placeholder="Get 50 premium gems"
+                {...field}
+                className="min-h-[80px] resize-none"
+              />
             </FormControl>
-            <FormMessage />
+            <FormMessage className="text-xs" />
           </FormItem>
         )}
       />
@@ -535,26 +569,31 @@ function ShopItemEditor({
         name={`categories.${categoryIndex}.items.${itemIndex}.icon_url`}
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Icon URL</FormLabel>
+            <FormLabel className="text-sm font-medium">Icon URL</FormLabel>
             <FormControl>
-              <Input placeholder="https://example.com/icon.png" {...field} value={field.value || ''} />
+              <Input
+                placeholder="https://example.com/icon.png"
+                {...field}
+                value={field.value || ''}
+                className="h-9"
+              />
             </FormControl>
-            <FormMessage />
+            <FormMessage className="text-xs" />
           </FormItem>
         )}
       />
 
       {/* Price */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <FormField
           control={form.control}
           name={`categories.${categoryIndex}.items.${itemIndex}.price.currency_id`}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Price Currency/Product ID *</FormLabel>
+              <FormLabel className="text-sm font-medium">Price Currency/Product ID *</FormLabel>
               <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-9">
                     <SelectValue placeholder="Select currency or IAP" />
                   </SelectTrigger>
                 </FormControl>
@@ -566,7 +605,7 @@ function ShopItemEditor({
                   ))}
                 </SelectContent>
               </Select>
-              <FormMessage />
+              <FormMessage className="text-xs" />
             </FormItem>
           )}
         />
@@ -576,7 +615,7 @@ function ShopItemEditor({
           name={`categories.${categoryIndex}.items.${itemIndex}.price.amount`}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Price Amount *</FormLabel>
+              <FormLabel className="text-sm font-medium">Price Amount *</FormLabel>
               <FormControl>
                 <Input
                   type="number"
@@ -584,78 +623,88 @@ function ShopItemEditor({
                   placeholder="4.99"
                   {...field}
                   onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                  className="h-9"
                 />
               </FormControl>
-              <FormMessage />
+              <FormMessage className="text-xs" />
             </FormItem>
           )}
         />
       </div>
 
       {/* Rewards */}
-      <div className="space-y-2">
-        <FormLabel>Rewards *</FormLabel>
-        {rewards.map((_reward: any, rewardIndex: number) => (
-          <div key={rewardIndex} className="flex gap-2 items-end">
-            <FormField
-              control={form.control}
-              name={`categories.${categoryIndex}.items.${itemIndex}.rewards.${rewardIndex}.currency_id`}
-              render={({ field }) => (
-                <FormItem className="flex-1">
-                  <FormControl>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Currency" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {availableCurrencies.map((currency) => (
-                          <SelectItem key={currency.id} value={currency.id}>
-                            {currency.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name={`categories.${categoryIndex}.items.${itemIndex}.rewards.${rewardIndex}.amount`}
-              render={({ field }) => (
-                <FormItem className="flex-1">
-                  <FormControl>
-                    <Input
-                      type="number"
-                      placeholder="Amount"
-                      {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                const currentRewards = form.getValues(
-                  `categories.${categoryIndex}.items.${itemIndex}.rewards`
-                );
-                currentRewards.splice(rewardIndex, 1);
-                form.setValue(
-                  `categories.${categoryIndex}.items.${itemIndex}.rewards`,
-                  currentRewards
-                );
-              }}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
-        ))}
+      <div className="space-y-3">
+        <div>
+          <FormLabel className="text-sm font-medium">Rewards *</FormLabel>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Configure what players receive when purchasing this item
+          </p>
+        </div>
+        <div className="space-y-3">
+          {rewards.map((_reward: any, rewardIndex: number) => (
+            <div key={rewardIndex} className="flex gap-3 items-end p-3 rounded-lg border border-border/30 bg-muted/10">
+              <FormField
+                control={form.control}
+                name={`categories.${categoryIndex}.items.${itemIndex}.rewards.${rewardIndex}.currency_id`}
+                render={({ field }) => (
+                  <FormItem className="flex-1">
+                    <FormControl>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger className="h-9">
+                          <SelectValue placeholder="Select currency" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {availableCurrencies.map((currency) => (
+                            <SelectItem key={currency.id} value={currency.id}>
+                              {currency.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage className="text-xs" />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name={`categories.${categoryIndex}.items.${itemIndex}.rewards.${rewardIndex}.amount`}
+                render={({ field }) => (
+                  <FormItem className="flex-1">
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="Amount"
+                        {...field}
+                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                        className="h-9"
+                      />
+                    </FormControl>
+                    <FormMessage className="text-xs" />
+                  </FormItem>
+                )}
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  const currentRewards = form.getValues(
+                    `categories.${categoryIndex}.items.${itemIndex}.rewards`
+                  );
+                  currentRewards.splice(rewardIndex, 1);
+                  form.setValue(
+                    `categories.${categoryIndex}.items.${itemIndex}.rewards`,
+                    currentRewards
+                  );
+                }}
+                className="h-9 w-9 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          ))}
+        </div>
         <Button
           type="button"
           variant="outline"
@@ -669,8 +718,9 @@ function ShopItemEditor({
               { currency_id: '', amount: 0 },
             ]);
           }}
+          className="h-9 px-4"
         >
-          <Plus className="mr-2 h-4 w-4" />
+          <Plus className="mr-2 h-3.5 w-3.5" />
           Add Reward
         </Button>
       </div>
@@ -680,9 +730,9 @@ function ShopItemEditor({
         control={form.control}
         name={`categories.${categoryIndex}.items.${itemIndex}.limited_time`}
         render={({ field }) => (
-          <FormItem className="flex items-center justify-between rounded-lg border p-4">
-            <div className="space-y-0.5">
-              <FormLabel>Limited Time Offer</FormLabel>
+          <FormItem className="flex items-center justify-between rounded-lg border border-border/40 bg-muted/20 p-5 transition-colors hover:bg-muted/30">
+            <div className="space-y-0.5 flex-1 pr-4">
+              <FormLabel className="text-sm font-medium">Limited Time Offer</FormLabel>
               <div className="text-sm text-muted-foreground">
                 Enable time-limited availability
               </div>
@@ -695,13 +745,13 @@ function ShopItemEditor({
       />
 
       {limitedTime && (
-        <>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 p-4 rounded-lg border border-border/30 bg-muted/10">
           <FormField
             control={form.control}
             name={`categories.${categoryIndex}.items.${itemIndex}.expires_at`}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Expires At *</FormLabel>
+                <FormLabel className="text-sm font-medium">Expires At *</FormLabel>
                 <FormControl>
                   <Input
                     type="datetime-local"
@@ -711,9 +761,10 @@ function ShopItemEditor({
                       const date = e.target.value ? new Date(e.target.value).toISOString() : '';
                       field.onChange(date);
                     }}
+                    className="h-9"
                   />
                 </FormControl>
-                <FormMessage />
+                <FormMessage className="text-xs" />
               </FormItem>
             )}
           />
@@ -723,7 +774,7 @@ function ShopItemEditor({
             name={`categories.${categoryIndex}.items.${itemIndex}.purchase_limit`}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Purchase Limit *</FormLabel>
+                <FormLabel className="text-sm font-medium">Purchase Limit *</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
@@ -731,24 +782,25 @@ function ShopItemEditor({
                     {...field}
                     onChange={(e) => field.onChange(parseInt(e.target.value) || undefined)}
                     value={field.value || ''}
+                    className="h-9"
                   />
                 </FormControl>
-                <FormMessage />
+                <FormMessage className="text-xs" />
               </FormItem>
             )}
           />
-        </>
+        </div>
       )}
 
-      <div className="flex gap-2">
-        <Button type="button" onClick={onSave}>
+      <div className="flex gap-3 pt-2 border-t border-border/30">
+        <Button type="button" onClick={onSave} className="h-9 px-4">
           Save Item
         </Button>
-        <Button type="button" variant="outline" onClick={onCancel}>
+        <Button type="button" variant="outline" onClick={onCancel} className="h-9 px-4">
           Cancel
         </Button>
-        <Button type="button" variant="destructive" onClick={onRemove}>
-          <Trash2 className="mr-2 h-4 w-4" />
+        <Button type="button" variant="destructive" onClick={onRemove} className="h-9 px-4">
+          <Trash2 className="mr-2 h-3.5 w-3.5" />
           Remove
         </Button>
       </div>

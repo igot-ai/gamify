@@ -65,3 +65,4 @@ Set in `infrastructure/.env` or docker-compose.yml:
 4. **Scalable**: Easy to add more backend instances behind nginx
 5. **Secure**: Backend not directly exposed to internet
 
+

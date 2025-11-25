@@ -231,3 +231,4 @@ The new version will start as a draft and inherit all settings from v3.
 The UI now properly enforces one config per game with clear versioning. Users can easily see version history and create new versions based on the latest configuration.
 
 
+

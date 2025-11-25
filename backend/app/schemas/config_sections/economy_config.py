@@ -13,7 +13,7 @@ class Currency(BaseModel):
     """Currency schema"""
     id: str = Field(..., min_length=1, description="Unique currency identifier")
     name: str = Field(..., min_length=1)
-    icon_url: Optional[HttpUrl] = None
+    icon_url: Optional[str] = Field(default="", description="Icon URL (can be empty)")
     type: CurrencyType
     starting_amount: int = Field(ge=0, description="Starting amount for new players")
     

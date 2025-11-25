@@ -81,7 +81,7 @@ async def get_current_user(
         )
     
     # Mock token support for E2E tests in development
-    if settings.ENVIRONMENT == "development" and credentials.credentials == "mock-token-for-e2e":
+    if settings.ENVIRONMENT == "development" and credentials.credentials in ["mock-token-for-e2e", "mock-token-for-testing"]:
         logger.info("Using mock token for E2E testing")
         return CurrentUser(
             uid="test-user-id",

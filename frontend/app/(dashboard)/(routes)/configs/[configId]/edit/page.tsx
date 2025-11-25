@@ -179,24 +179,79 @@ export default function ConfigEditorPage() {
   }
 
   return (
-    <div className="p-8 space-y-8">
-      <div className="space-y-2">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-          Edit Configuration
-        </h1>
-        <p className="text-muted-foreground">
-          Version {config.version} - {config.status}
-        </p>
+    <div className="min-h-screen bg-background">
+      {/* Elegant Header Section */}
+      <div className="border-b border-border/40 bg-card/30 backdrop-blur-sm">
+        <div className="max-w-7xl mx-auto px-8 py-8">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <h1 className="text-3xl font-semibold tracking-tight text-foreground">
+                Configuration Editor
+              </h1>
+              <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                <span className="font-medium">Version {config.version}</span>
+                <span className="text-border">•</span>
+                <span className="capitalize">{config.status}</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <Button 
+                variant="outline" 
+                onClick={handleSaveDraft} 
+                disabled={isSaving}
+                className="h-9 px-4"
+              >
+                <Save className="mr-2 h-4 w-4" />
+                Save Draft
+              </Button>
+              <Button
+                onClick={handleSubmitForReview}
+                disabled={isSaving || submitForReview.isPending}
+                className="h-9 px-4"
+              >
+                <Send className="mr-2 h-4 w-4" />
+                Submit for Review
+              </Button>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="economy">Economy</TabsTrigger>
-          <TabsTrigger value="ads">Ads</TabsTrigger>
-          <TabsTrigger value="notifications">Notifications</TabsTrigger>
-          <TabsTrigger value="boosters">Boosters</TabsTrigger>
-          <TabsTrigger value="shop">Shop</TabsTrigger>
-        </TabsList>
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-8 py-8">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
+          <TabsList className="inline-flex h-10 items-center justify-center rounded-lg bg-muted/50 p-1 text-muted-foreground border border-border/40">
+            <TabsTrigger 
+              value="economy" 
+              className="rounded-md px-4 py-1.5 text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+            >
+              Economy
+            </TabsTrigger>
+            <TabsTrigger 
+              value="ads"
+              className="rounded-md px-4 py-1.5 text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+            >
+              Ads
+            </TabsTrigger>
+            <TabsTrigger 
+              value="notifications"
+              className="rounded-md px-4 py-1.5 text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+            >
+              Notifications
+            </TabsTrigger>
+            <TabsTrigger 
+              value="boosters"
+              className="rounded-md px-4 py-1.5 text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+            >
+              Boosters
+            </TabsTrigger>
+            <TabsTrigger 
+              value="shop"
+              className="rounded-md px-4 py-1.5 text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+            >
+              Shop
+            </TabsTrigger>
+          </TabsList>
 
         <TabsContent value="economy" className="space-y-4">
           <Tabs
@@ -267,34 +322,34 @@ export default function ConfigEditorPage() {
           />
         </TabsContent>
 
-        <TabsContent value="shop" className="space-y-4">
+        <TabsContent value="shop" className="space-y-6">
           <Tabs
             value={viewMode.shop}
             onValueChange={(v) => setViewMode({ ...viewMode, shop: v as 'form' | 'json' })}
-            className="space-y-4"
+            className="space-y-6"
           >
-            <TabsList>
-              <TabsTrigger value="form">Form View</TabsTrigger>
-              <TabsTrigger value="json">JSON Editor</TabsTrigger>
+            <TabsList className="inline-flex h-9 items-center justify-center rounded-lg bg-muted/30 p-1 text-muted-foreground border border-border/30">
+              <TabsTrigger 
+                value="form"
+                className="rounded-md px-3 py-1 text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+              >
+                Form View
+              </TabsTrigger>
+              <TabsTrigger 
+                value="json"
+                className="rounded-md px-3 py-1 text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+              >
+                JSON Editor
+              </TabsTrigger>
             </TabsList>
-            <TabsContent value="form">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Shop Config</CardTitle>
-                  <CardDescription>
-                    Configure shop items and bundles
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ShopConfigForm
-                    initialData={config.data?.shop as unknown as ShopConfig}
-                    onSubmit={handleSaveShop}
-                    configId={configId}
-                  />
-                </CardContent>
-              </Card>
+            <TabsContent value="form" className="mt-0">
+              <ShopConfigForm
+                initialData={config.data?.shop as unknown as ShopConfig}
+                onSubmit={handleSaveShop}
+                configId={configId}
+              />
             </TabsContent>
-            <TabsContent value="json">
+            <TabsContent value="json" className="mt-0">
               <JsonEditor
                 configType="shop"
                 initialValue={config.data?.shop}
@@ -307,20 +362,6 @@ export default function ConfigEditorPage() {
           </Tabs>
         </TabsContent>
       </Tabs>
-
-      {/* Action Buttons */}
-      <div className="flex gap-4 justify-end border-t pt-6">
-        <Button variant="outline" onClick={handleSaveDraft} disabled={isSaving}>
-          <Save className="mr-2 h-4 w-4" />
-          Save Draft
-        </Button>
-        <Button
-          onClick={handleSubmitForReview}
-          disabled={isSaving || submitForReview.isPending}
-        >
-          <Send className="mr-2 h-4 w-4" />
-          Submit for Review
-        </Button>
       </div>
     </div>
   );

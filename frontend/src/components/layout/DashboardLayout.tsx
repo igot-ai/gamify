@@ -27,20 +27,19 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       <Header onMenuClick={() => setSidebarOpen(true)} />
       <div className="flex">
         {/* Desktop Sidebar */}
-        <aside className="hidden md:block w-64 border-r border-border bg-card/30 backdrop-blur-xl p-4 space-y-4 fixed h-[calc(100vh-4rem)] overflow-y-auto">
-          <nav className="space-y-2">
+        <aside className="hidden md:block w-56 border-r bg-card p-3 space-y-1 fixed h-[calc(100vh-3.5rem)] overflow-y-auto">
+          <nav className="space-y-1">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.path || pathname?.startsWith(item.path + '/');
               return (
                 <Button
                   key={item.path}
-                  variant={isActive ? 'default' : 'ghost'}
-                  className={`w-full justify-start transition-all duration-300 ${
-                    isActive 
-                      ? 'bg-gradient-primary text-white shadow-lg shadow-primary/50' 
-                      : 'hover:bg-muted/50 hover:translate-x-1'
-                  }`}
+                  variant={isActive ? 'secondary' : 'ghost'}
+                  className={`w-full justify-start text-sm font-normal ${isActive
+                      ? 'bg-secondary border-l-2 border-primary font-medium'
+                      : 'hover:bg-muted'
+                    }`}
                   onClick={() => router.push(item.path)}
                 >
                   <Icon className="mr-2 h-4 w-4" />
@@ -53,10 +52,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
         {/* Mobile Sidebar */}
         {sidebarOpen && (
-          <aside className="fixed inset-0 z-40 md:hidden bg-background/80 backdrop-blur-md">
-            <div className="w-64 h-full glass-effect border-r border-border p-4 space-y-4">
+          <aside className="fixed inset-0 z-40 md:hidden bg-background/80 backdrop-blur-sm">
+            <div className="w-64 h-full bg-card border-r p-4 space-y-4">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="font-bold text-gradient">Menu</h2>
+                <h2 className="font-semibold">Menu</h2>
                 <Button
                   variant="ghost"
                   size="icon"
@@ -65,19 +64,18 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                   <X className="h-4 w-4" />
                 </Button>
               </div>
-              <nav className="space-y-2">
+              <nav className="space-y-1">
                 {navItems.map((item) => {
                   const Icon = item.icon;
                   const isActive = pathname === item.path || pathname?.startsWith(item.path + '/');
                   return (
                     <Button
                       key={item.path}
-                      variant={isActive ? 'default' : 'ghost'}
-                      className={`w-full justify-start transition-all duration-300 ${
-                        isActive 
-                          ? 'bg-gradient-primary text-white shadow-lg shadow-primary/50' 
-                          : 'hover:bg-muted/50'
-                      }`}
+                      variant={isActive ? 'secondary' : 'ghost'}
+                      className={`w-full justify-start text-sm ${isActive
+                          ? 'bg-secondary border-l-2 border-primary'
+                          : 'hover:bg-muted'
+                        }`}
                       onClick={() => {
                         router.push(item.path);
                         setSidebarOpen(false);
@@ -94,7 +92,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         )}
 
         {/* Main Content */}
-        <main className="flex-1 md:ml-64 bg-gradient-to-br from-background via-background to-card/20 min-h-[calc(100vh-4rem)]">
+        <main className="flex-1 md:ml-56">
           <div className="animate-fade-in">
             {children}
           </div>

@@ -80,8 +80,8 @@ class NotificationConfig(BaseModel):
         serialization_alias="Strategies"
     )
     channels: List[NotificationChannel] = Field(
-        min_length=1,
-        description="At least one notification channel required",
+        default_factory=list,
+        description="Notification channels",
         serialization_alias="Channels"
     )
     
