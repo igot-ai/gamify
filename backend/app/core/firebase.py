@@ -3,7 +3,8 @@
 import logging
 from typing import Optional
 import firebase_admin
-from firebase_admin import credentials, remote_config
+from firebase_admin import credentials
+from google.auth.transport.requests import AuthorizedSession
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -47,15 +48,15 @@ def get_firebase_app() -> firebase_admin.App:
         raise
 
 
-def get_remote_config_client():
-    """
-    Get Firebase Remote Config client.
-    
-    Returns:
-        Remote Config client instance
-    """
-    get_firebase_app()  # Ensure app is initialized
-    return remote_config
+def get_authorized_session(scopes: list[str]) -> AuthorizedSession:
+    """Return an authorized Google API session for the configured Firebase app."""
+    app = get_firebase_app()
+    credential = app.credential.get_credential()
+    if hasattr(credential, "with_scopes"):
+        scoped_cred = credential.with_scopes(scopes)
+    else:
+        scoped_cred = credential
+    return AuthorizedSession(scoped_cred)
 
 
 def shutdown_firebase():

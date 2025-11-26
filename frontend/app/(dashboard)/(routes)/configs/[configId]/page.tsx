@@ -80,7 +80,7 @@ export default function ConfigDetailPage() {
       user?.role === 'product_manager' ||
       user?.role === 'admin');
   const canDeploy =
-    config.status === 'approved' &&
+    (config.status === 'approved' || config.status === 'in_review') &&
     (user?.role === 'product_manager' || user?.role === 'admin');
 
   return (
