@@ -32,7 +32,7 @@ export function EconomyConfigForm({ initialData, onSubmit, onCancel }: EconomyCo
   const [editingCurrencyIndex, setEditingCurrencyIndex] = useState<number | null>(null);
 
   const form = useForm<EconomyConfig>({
-    resolver: zodResolver(economyConfigSchema),
+    resolver: zodResolver(economyConfigSchema) as any,
     defaultValues: initialData || {
       currencies: [],
       iap_packages: [],

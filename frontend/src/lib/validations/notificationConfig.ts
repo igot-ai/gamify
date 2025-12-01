@@ -1,81 +1,84 @@
 import { z } from 'zod';
 
-// Notification Mode enum
-export const NotificationModeEnum = z.enum(['0', '1']); // DELAY = 0, FIXED_TIME = 1
+// Notification Mode enum (0 = DELAY, 1 = FIXED_TIME)
+export const NotificationModeEnum = z.union([z.literal(0), z.literal(1)]);
+export type NotificationMode = z.infer<typeof NotificationModeEnum>;
 
-// Repeat Policy enum
-export const RepeatPolicyEnum = z.enum(['0', '2']); // NO_REPEAT = 0, DAILY = 2
+// Repeat Policy enum (0 = NO_REPEAT, 2 = DAILY)
+export const RepeatPolicyEnum = z.union([z.literal(0), z.literal(2)]);
+export type RepeatPolicy = z.infer<typeof RepeatPolicyEnum>;
 
-// Scheduling Mode enum
-export const SchedulingModeEnum = z.enum(['0', '1']); // RANDOM = 0, SEQUENTIAL = 1
+// Scheduling Mode enum (0 = RANDOM, 1 = SEQUENTIAL)
+export const SchedulingModeEnum = z.union([z.literal(0), z.literal(1)]);
+export type SchedulingMode = z.infer<typeof SchedulingModeEnum>;
 
 // Notification Message schema
 export const notificationMessageSchema = z.object({
-  Title: z.string().min(1, 'Title is required'),
-  Body: z.string().min(1, 'Body is required'),
-  Payload: z.string().default(''),
-  AndroidChannelId: z.string().default(''),
-  IosCategory: z.string().default(''),
-  OffsetSeconds: z.number().int().min(0).default(0),
+  title: z.string().min(1, 'Title is required'),
+  body: z.string().min(1, 'Body is required'),
+  payload: z.string().default(''),
+  androidChannelId: z.string().default(''),
+  iosCategory: z.string().default(''),
+  offsetSeconds: z.number().int().min(0).default(0),
 });
 
 // Notification Strategy schema
 export const notificationStrategySchema = z.object({
-  Id: z.string().min(1, 'Strategy ID is required'),
-  Name: z.string().min(1, 'Strategy name is required'),
-  Mode: NotificationModeEnum,
-  DelaySeconds: z.number().int().min(0).default(0),
-  FixedHour: z.number().int().min(0).max(23).default(0),
-  FixedMinute: z.number().int().min(0).max(59).default(0),
-  FixedDaysOffset: z.number().int().min(0).default(0),
-  RepeatPolicy: RepeatPolicyEnum,
-  RepeatSeconds: z.number().int().min(0).default(0),
-  Active: z.boolean().default(true),
-  AutoScheduled: z.boolean().default(true),
-  SchedulingMode: SchedulingModeEnum,
-  DefaultChannelId: z.string().min(1, 'Default channel ID is required'),
-  Notifications: z.array(notificationMessageSchema).min(1, 'At least one notification is required'),
+  id: z.string().min(1, 'Strategy ID is required'),
+  name: z.string().min(1, 'Strategy name is required'),
+  mode: NotificationModeEnum,
+  delaySeconds: z.number().int().min(0).default(0),
+  fixedHour: z.number().int().min(0).max(23).default(0),
+  fixedMinute: z.number().int().min(0).max(59).default(0),
+  fixedDaysOffset: z.number().int().min(0).default(0),
+  repeatPolicy: RepeatPolicyEnum,
+  repeatSeconds: z.number().int().min(0).default(0),
+  active: z.boolean().default(true),
+  autoScheduled: z.boolean().default(true),
+  schedulingMode: SchedulingModeEnum,
+  defaultChannelId: z.string().min(1, 'Default channel ID is required'),
+  notifications: z.array(notificationMessageSchema).min(1, 'At least one notification is required'),
 });
 
 // Notification Channel schema
 export const notificationChannelSchema = z.object({
-  Id: z.string().min(1, 'Channel ID is required'),
-  Name: z.string().min(1, 'Channel name is required'),
-  Description: z.string().default(''),
-  DefaultBadge: z.number().int().min(0).default(1),
-  Importance: z.number().int().min(0).max(5).default(3),
-  EnableLights: z.boolean().default(true),
-  EnableVibration: z.boolean().default(true),
-  CanBypassDnd: z.boolean().default(false),
-  CanShowBadge: z.boolean().default(true),
-  LockScreenVisibility: z.number().int().min(-1).max(1).default(0),
+  id: z.string().min(1, 'Channel ID is required'),
+  name: z.string().min(1, 'Channel name is required'),
+  description: z.string().default(''),
+  defaultBadge: z.number().int().min(0).default(1),
+  importance: z.number().int().min(0).max(5).default(3),
+  enableLights: z.boolean().default(true),
+  enableVibration: z.boolean().default(true),
+  canBypassDnd: z.boolean().default(false),
+  canShowBadge: z.boolean().default(true),
+  lockScreenVisibility: z.number().int().min(-1).max(1).default(0),
 });
 
 // Notification Config schema
 export const notificationConfigSchema = z
   .object({
-    Enable: z.boolean().default(true),
-    Strategies: z.array(notificationStrategySchema).default([]),
-    Channels: z.array(notificationChannelSchema).min(1, 'At least one channel is required'),
+    enable: z.boolean().default(true),
+    strategies: z.array(notificationStrategySchema).default([]),
+    channels: z.array(notificationChannelSchema).min(1, 'At least one channel is required'),
   })
   .refine(
     (data) => {
-      const ids = data.Strategies.map((s) => s.Id);
+      const ids = data.strategies.map((s) => s.id);
       return ids.length === new Set(ids).size;
     },
     {
       message: 'Strategy IDs must be unique',
-      path: ['Strategies'],
+      path: ['strategies'],
     }
   )
   .refine(
     (data) => {
-      const ids = data.Channels.map((c) => c.Id);
+      const ids = data.channels.map((c) => c.id);
       return ids.length === new Set(ids).size;
     },
     {
       message: 'Channel IDs must be unique',
-      path: ['Channels'],
+      path: ['channels'],
     }
   );
 
@@ -84,3 +87,58 @@ export type NotificationStrategy = z.infer<typeof notificationStrategySchema>;
 export type NotificationChannel = z.infer<typeof notificationChannelSchema>;
 export type NotificationConfig = z.infer<typeof notificationConfigSchema>;
 
+// Default notification message
+export const defaultMessage: NotificationMessage = {
+  title: '',
+  body: '',
+  payload: '',
+  androidChannelId: '',
+  iosCategory: '',
+  offsetSeconds: 0,
+};
+
+// Default notification channel
+export const defaultChannel: NotificationChannel = {
+  id: '',
+  name: '',
+  description: '',
+  defaultBadge: 1,
+  importance: 3, // Default importance
+  enableLights: true,
+  enableVibration: true,
+  canBypassDnd: false,
+  canShowBadge: true,
+  lockScreenVisibility: 0, // Private
+};
+
+// Default notification strategy
+export const defaultStrategy: NotificationStrategy = {
+  id: '',
+  name: '',
+  mode: 0, // DELAY
+  delaySeconds: 0,
+  fixedHour: 8,
+  fixedMinute: 0,
+  fixedDaysOffset: 0,
+  repeatPolicy: 0, // NO_REPEAT
+  repeatSeconds: 0,
+  active: true,
+  autoScheduled: true,
+  schedulingMode: 0, // RANDOM
+  defaultChannelId: 'default_channel',
+  notifications: [{ ...defaultMessage, title: 'NOTIFICATION_TITLE', body: 'NOTIFICATION_BODY' }],
+};
+
+// Default notification config
+export const defaultNotificationConfig: NotificationConfig = {
+  enable: true,
+  strategies: [],
+  channels: [
+    {
+      ...defaultChannel,
+      id: 'default_channel',
+      name: 'Default',
+      description: 'Default notification channel',
+    },
+  ],
+};

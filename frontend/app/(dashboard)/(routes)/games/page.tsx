@@ -1,19 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import {
-  useGames,
-  useCreateGame,
-  useUpdateGame,
-  useDeleteGame,
-} from '@/hooks/useGames';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/Card';
+import { useRouter } from 'next/navigation';
+import { useGames, useCreateGame, useUpdateGame, useDeleteGame } from '@/hooks/useGames';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import {
@@ -32,20 +22,20 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/Table';
-import { Plus, Edit, Trash2, AlertCircle } from 'lucide-react';
+import { Plus, Edit, Trash2, AlertCircle, Gamepad2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function GamesPage() {
+  const router = useRouter();
   const { data: games, isLoading } = useGames();
   const deleteGame = useDeleteGame();
-
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
 
-  const filteredGames =
-    games?.filter((g) =>
-      g.name.toLowerCase().includes(searchTerm.toLowerCase())
-    ) || [];
+  const filteredGames = games?.filter((g) =>
+    g.name.toLowerCase().includes(searchTerm.toLowerCase())
+  ) || [];
 
   const handleDeleteConfirm = async (gameId: string) => {
     try {
@@ -68,9 +58,9 @@ export default function GamesPage() {
   }
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto">
-      <div className="space-y-1">
-        <h1 className="text-3xl font-bold tracking-tight">
+    <div className="p-8 space-y-8">
+      <div className="space-y-2">
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
           Games
         </h1>
         <p className="text-muted-foreground">
@@ -78,12 +68,12 @@ export default function GamesPage() {
         </p>
       </div>
 
-      <div className="flex gap-3 flex-wrap items-center">
+      <div className="flex gap-4">
         <Input
           placeholder="Search games..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-sm"
+          className="max-w-md"
         />
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
           <DialogTrigger asChild>
@@ -98,7 +88,6 @@ export default function GamesPage() {
                 setIsCreateOpen(false);
                 toast.success('Game created successfully');
               }}
-              onCancel={() => setIsCreateOpen(false)}
             />
           </DialogContent>
         </Dialog>
@@ -106,16 +95,16 @@ export default function GamesPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Games</CardTitle>
+          <CardTitle>Games List</CardTitle>
           <CardDescription>
             {filteredGames.length} game{filteredGames.length !== 1 ? 's' : ''}
           </CardDescription>
         </CardHeader>
-        <CardContent className="pt-6">
+        <CardContent>
           {filteredGames.length === 0 ? (
             <div className="text-center py-12">
-              <AlertCircle className="mx-auto h-12 w-12 text-muted-foreground mb-3" />
-              <p className="text-muted-foreground text-sm">
+              <Gamepad2 className="mx-auto h-12 w-12 text-muted-foreground mb-2" />
+              <p className="text-muted-foreground">
                 {games?.length === 0
                   ? 'No games yet. Create your first game to get started.'
                   : 'No games match your search.'}
@@ -125,7 +114,7 @@ export default function GamesPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
+                  <TableHead>Game</TableHead>
                   <TableHead>Firebase Project</TableHead>
                   <TableHead>Environments</TableHead>
                   <TableHead>Created</TableHead>
@@ -134,17 +123,55 @@ export default function GamesPage() {
               </TableHeader>
               <TableBody>
                 {filteredGames.map((game) => (
-                  <TableRow key={game.id}>
-                    <TableCell className="font-medium">{game.name}</TableCell>
+                  <TableRow 
+                    key={game.id}
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => router.push(`/sections/economy?gameId=${game.id}`)}
+                  >
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        {game.avatar_url ? (
+                          <img
+                            src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}${game.avatar_url}`}
+                            alt={game.name}
+                            className="h-8 w-8 rounded-full object-cover border border-border"
+                          />
+                        ) : (
+                          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                            <span className="text-primary font-medium text-sm">
+                              {game.name[0].toUpperCase()}
+                            </span>
+                          </div>
+                        )}
+                        <span className="font-medium">{game.name}</span>
+                      </div>
+                    </TableCell>
                     <TableCell className="font-mono text-xs">
                       {game.firebase_project_id}
                     </TableCell>
                     <TableCell>{game.environments?.length || 0}</TableCell>
                     <TableCell className="text-sm text-muted-foreground">
-                      {new Date(game.createdAt).toLocaleDateString()}
+                      {game.created_at ? new Date(game.created_at).toLocaleDateString() : ''}
                     </TableCell>
-                    <TableCell className="flex gap-2">
-                      <EditGameDialog game={game} />
+                    <TableCell className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <GameForm
+                            game={game}
+                            onSuccess={() => {
+                              toast.success('Game updated successfully');
+                            }}
+                          />
+                        </DialogContent>
+                      </Dialog>
                       <Dialog>
                         <DialogTrigger asChild>
                           <Button
@@ -159,8 +186,7 @@ export default function GamesPage() {
                           <DialogHeader>
                             <DialogTitle>Delete Game</DialogTitle>
                             <DialogDescription>
-                              Are you sure you want to delete "{game.name}"?
-                              This action cannot be undone.
+                              Are you sure you want to delete "{game.name}"? This action cannot be undone.
                             </DialogDescription>
                           </DialogHeader>
                           <div className="flex gap-4 justify-end">
@@ -187,193 +213,133 @@ export default function GamesPage() {
   );
 }
 
-interface EditGameDialogProps {
-  game: any;
-}
-
-function EditGameDialog({ game }: EditGameDialogProps) {
-  const [isOpen, setIsOpen] = useState(false);
-
-  return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button variant="ghost" size="sm">
-          <Edit className="h-4 w-4" />
-        </Button>
-      </DialogTrigger>
-      <DialogContent>
-        <GameForm
-          game={game}
-          onSuccess={() => {
-            setIsOpen(false);
-            toast.success('Game updated successfully');
-          }}
-          onCancel={() => setIsOpen(false)}
-        />
-      </DialogContent>
-    </Dialog>
-  );
-}
-
 interface GameFormProps {
   game?: any;
   onSuccess?: () => void;
-  onCancel?: () => void;
 }
 
-function GameForm({ game, onSuccess, onCancel }: GameFormProps) {
+function GameForm({ game, onSuccess }: GameFormProps) {
   const [formData, setFormData] = useState({
     name: game?.name || '',
     description: game?.description || '',
     firebase_project_id: game?.firebase_project_id || '',
   });
-
-  const [errors, setErrors] = useState({
-    name: '',
-    firebase_project_id: '',
-  });
+  const [avatar, setAvatar] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(
+    game?.avatar_url ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}${game.avatar_url}` : null
+  );
 
   const createGame = useCreateGame();
   const updateGameMutation = useUpdateGame(game?.id || '');
 
-  const validateForm = () => {
-    const newErrors = {
-      name: '',
-      firebase_project_id: '',
-    };
-
-    if (!formData.name.trim()) {
-      newErrors.name = 'Game name is required';
-    } else if (formData.name.length < 2) {
-      newErrors.name = 'Game name must be at least 2 characters';
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setAvatar(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAvatarPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
-
-    if (!formData.firebase_project_id.trim()) {
-      newErrors.firebase_project_id = 'Firebase Project ID is required';
-    } else if (!/^[a-z0-9-]+$/.test(formData.firebase_project_id)) {
-      newErrors.firebase_project_id = 'Only lowercase letters, numbers, and hyphens allowed';
-    }
-
-    setErrors(newErrors);
-    return !newErrors.name && !newErrors.firebase_project_id;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!validateForm()) {
-      return;
-    }
-
     try {
       if (game) {
+        // For updates, use JSON (avatar updates not supported in edit mode for now)
         await updateGameMutation.mutateAsync(formData);
       } else {
-        await createGame.mutateAsync(formData);
+        // For creation, use FormData to support avatar upload
+        const submitData = new FormData();
+        submitData.append('name', formData.name);
+        submitData.append('firebase_project_id', formData.firebase_project_id);
+        if (formData.description) {
+          submitData.append('description', formData.description);
+        }
+        if (avatar) {
+          submitData.append('avatar', avatar);
+        }
+        await createGame.mutateAsync(submitData);
       }
       onSuccess?.();
-    } catch (error: any) {
-      toast.error(error?.message || 'Failed to save game');
+    } catch {
+      toast.error('Failed to save game');
     }
   };
 
-  const isLoading = createGame.isPending || updateGameMutation.isPending;
-
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-4">
       <DialogHeader>
         <DialogTitle>{game ? 'Edit Game' : 'Create New Game'}</DialogTitle>
-        <DialogDescription>
-          {game
-            ? 'Update the game details below.'
-            : 'Add a new game to manage its configurations across different environments.'}
-        </DialogDescription>
       </DialogHeader>
-
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <label htmlFor="name" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-            Name <span className="text-destructive">*</span>
-          </label>
-          <Input
-            id="name"
-            value={formData.name}
-            onChange={(e) => {
-              setFormData({ ...formData, name: e.target.value });
-              if (errors.name) setErrors({ ...errors, name: '' });
-            }}
-            placeholder="e.g., My Awesome Game"
-            disabled={isLoading}
-            className={errors.name ? 'border-destructive focus-visible:ring-destructive' : ''}
-          />
-          {errors.name && (
-            <p className="text-sm text-destructive">{errors.name}</p>
+      
+      {/* Avatar Upload */}
+      <div className="flex flex-col items-center gap-3">
+        <div className="relative">
+          {avatarPreview ? (
+            <img
+              src={avatarPreview}
+              alt="Avatar preview"
+              className="h-20 w-20 rounded-full object-cover border-2 border-border"
+            />
+          ) : (
+            <div className="h-20 w-20 rounded-full bg-muted flex items-center justify-center border-2 border-dashed border-border">
+              <Gamepad2 className="h-8 w-8 text-muted-foreground" />
+            </div>
+          )}
+          {!game && (
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleAvatarChange}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            />
           )}
         </div>
+        <span className="text-xs text-muted-foreground">
+          {game ? 'Avatar cannot be changed after creation' : 'Click to upload avatar'}
+        </span>
+      </div>
 
-        <div className="space-y-2">
-          <label htmlFor="description" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-            Description
-          </label>
+      <div className="space-y-4">
+        <div>
+          <label className="text-sm font-medium">Name *</label>
           <Input
-            id="description"
+            value={formData.name}
+            onChange={(e) =>
+              setFormData({ ...formData, name: e.target.value })
+            }
+            placeholder="Game name"
+            required
+          />
+        </div>
+        <div>
+          <label className="text-sm font-medium">Description</label>
+          <Input
             value={formData.description}
             onChange={(e) =>
               setFormData({ ...formData, description: e.target.value })
             }
-            placeholder="Brief description of your game (optional)"
-            disabled={isLoading}
+            placeholder="Game description"
           />
-          <p className="text-xs text-muted-foreground">
-            Provide a brief description to help identify this game.
-          </p>
         </div>
-
-        <div className="space-y-2">
-          <label htmlFor="firebase_project_id" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-            Firebase Project ID <span className="text-destructive">*</span>
-          </label>
+        <div>
+          <label className="text-sm font-medium">Firebase Project ID *</label>
           <Input
-            id="firebase_project_id"
             value={formData.firebase_project_id}
-            onChange={(e) => {
-              setFormData({ ...formData, firebase_project_id: e.target.value });
-              if (errors.firebase_project_id) setErrors({ ...errors, firebase_project_id: '' });
-            }}
+            onChange={(e) =>
+              setFormData({ ...formData, firebase_project_id: e.target.value })
+            }
             placeholder="your-firebase-project"
-            disabled={isLoading}
-            className={errors.firebase_project_id ? 'border-destructive focus-visible:ring-destructive' : ''}
+            required
           />
-          {errors.firebase_project_id && (
-            <p className="text-sm text-destructive">{errors.firebase_project_id}</p>
-          )}
-          <p className="text-xs text-muted-foreground">
-            Find this in your Firebase Console under Project Settings.
-          </p>
         </div>
       </div>
-
-      <div className="flex gap-3 justify-end">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onCancel}
-          disabled={isLoading}
-        >
-          Cancel
-        </Button>
-        <Button
-          type="submit"
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <>
-              <span className="mr-2">⏳</span>
-              {game ? 'Updating...' : 'Creating...'}
-            </>
-          ) : (
-            game ? 'Update Game' : 'Create Game'
-          )}
+      <div className="flex gap-4 justify-end">
+        <Button type="submit" disabled={createGame.isPending || updateGameMutation.isPending}>
+          {game ? 'Update' : 'Create'}
         </Button>
       </div>
     </form>

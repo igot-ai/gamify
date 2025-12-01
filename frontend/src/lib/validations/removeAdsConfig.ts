@@ -1,16 +1,15 @@
 import { z } from 'zod';
 
 export const removeAdsConfigSchema = z.object({
-  enabled: z.boolean(),
-  min_level: z.number().int().min(1, 'Min level must be at least 1'),
-  ad_watched_trigger: z.number().int().min(0, 'Ad watched trigger must be 0 or greater'),
-  days_played_trigger: z.number().int().min(0, 'Days played trigger must be 0 or greater'),
-  duration_hours: z.number().int().min(1, 'Duration must be at least 1 hour'),
-  max_lifetime_shows: z.number().int().min(0, 'Max lifetime shows must be 0 or greater'),
-  max_session_shows: z.number().int().min(0, 'Max session shows must be 0 or greater'),
-  cooldown_popup_hours: z.number().int().min(0, 'Cooldown popup hours must be 0 or greater'),
-  cooldown_offer_hours: z.number().int().min(0, 'Cooldown offer hours must be 0 or greater'),
+  enabled: z.boolean().default(true),
+  minLevel: z.number({ required_error: 'Min Level is required' }).int().min(1),
+  adWatchedTrigger: z.number({ required_error: 'Ad Watched Trigger is required' }).int().min(0),
+  daysPlayedTrigger: z.number({ required_error: 'Days Played Trigger is required' }).int().min(0),
+  durationHours: z.number({ required_error: 'Duration Hours is required' }).int().min(1),
+  maxLifetimeShows: z.number({ required_error: 'Max Lifetime Shows is required' }).int().min(1),
+  maxSessionShows: z.number({ required_error: 'Max Session Shows is required' }).int().min(1),
+  cooldownPopupHours: z.number({ required_error: 'Cooldown Popup Hours is required' }).int().min(0),
+  cooldownOfferHours: z.number({ required_error: 'Cooldown Offer Hours is required' }).int().min(0),
 });
 
 export type RemoveAdsConfig = z.infer<typeof removeAdsConfigSchema>;
-

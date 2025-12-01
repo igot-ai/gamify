@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Optional
 from datetime import datetime
 from pydantic import BaseModel
 
@@ -9,6 +9,7 @@ class GameBase(BaseModel):
     slug: str
     firebase_project_id: Optional[str] = None
     description: Optional[str] = None
+    avatar_url: Optional[str] = None
 
 
 class GameCreate(BaseModel):
@@ -24,6 +25,7 @@ class GameUpdate(BaseModel):
     name: Optional[str] = None
     firebase_project_id: Optional[str] = None
     description: Optional[str] = None
+    avatar_url: Optional[str] = None
 
 
 class GameResponse(GameBase):
@@ -34,8 +36,3 @@ class GameResponse(GameBase):
     
     class Config:
         from_attributes = True
-
-
-class GameWithEnvironments(GameResponse):
-    """Schema for game with environments"""
-    environments: List[dict]

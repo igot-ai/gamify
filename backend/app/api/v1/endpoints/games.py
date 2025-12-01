@@ -1,16 +1,24 @@
-from typing import List
+from typing import List, Optional
 import re
-from fastapi import APIRouter, Depends, HTTPException, status
+import os
+import uuid
+import shutil
+from pathlib import Path
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from app.core.database import get_db
 from app.core.response import ApiResponse, create_response
 from app.models.game import Game
-from app.models.environment import Environment
-from app.schemas.game import GameCreate, GameUpdate, GameResponse, GameWithEnvironments
+from app.schemas.game import GameCreate, GameUpdate, GameResponse
 
 router = APIRouter()
+
+# Upload directory configuration
+UPLOAD_DIR = Path(__file__).parent.parent.parent.parent / "uploads" / "avatars"
+ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".webp"}
+MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
 
 
 def slugify(text: str) -> str:
@@ -26,6 +34,34 @@ def slugify(text: str) -> str:
     # Strip hyphens from start and end
     text = text.strip('-')
     return text
+
+
+async def save_avatar(file: UploadFile) -> str:
+    """Save uploaded avatar file and return the relative path"""
+    # Ensure upload directory exists
+    UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+    
+    # Validate file extension
+    file_ext = Path(file.filename).suffix.lower() if file.filename else ""
+    if file_ext not in ALLOWED_EXTENSIONS:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"File type not allowed. Allowed types: {', '.join(ALLOWED_EXTENSIONS)}"
+        )
+    
+    # Generate unique filename
+    unique_filename = f"{uuid.uuid4()}{file_ext}"
+    file_path = UPLOAD_DIR / unique_filename
+    
+    # Save file
+    try:
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+    finally:
+        file.file.close()
+    
+    # Return relative path for storage in database
+    return f"/uploads/avatars/{unique_filename}"
 
 
 @router.get("", response_model=ApiResponse[List[GameResponse]])
@@ -44,14 +80,21 @@ async def list_games(
 
 @router.post("", response_model=ApiResponse[GameResponse], status_code=status.HTTP_201_CREATED)
 async def create_game(
-    game_in: GameCreate,
+    name: str = Form(...),
+    firebase_project_id: str = Form(...),
+    description: Optional[str] = Form(None),
+    slug: Optional[str] = Form(None),
+    avatar: Optional[UploadFile] = File(None),
     db: AsyncSession = Depends(get_db),
 ):
-    """Create a new game with default environments"""
-    # Auto-generate slug from name if not provided
-    game_data = game_in.dict()
-    if not game_data.get('slug'):
-        game_data['slug'] = slugify(game_data['name'])
+    """Create a new game with optional avatar"""
+    # Build game data
+    game_data = {
+        "name": name,
+        "firebase_project_id": firebase_project_id,
+        "description": description,
+        "slug": slug if slug else slugify(name),
+    }
     
     # Check if slug already exists
     existing = await db.execute(
@@ -63,44 +106,31 @@ async def create_game(
             detail=f"Game with slug '{game_data['slug']}' already exists"
         )
     
+    # Handle avatar upload
+    if avatar and avatar.filename:
+        game_data["avatar_url"] = await save_avatar(avatar)
+    
     # Create game
     game = Game(**game_data)
     db.add(game)
-    await db.flush()
-    
-    # Create default environments
-    for env_name in ["production", "staging", "development"]:
-        environment = Environment(name=env_name, game_id=game.id)
-        db.add(environment)
-    
     await db.commit()
     await db.refresh(game)
     return create_response(game)
 
 
-@router.get("/{game_id}", response_model=ApiResponse[GameWithEnvironments])
+@router.get("/{game_id}", response_model=ApiResponse[GameResponse])
 async def get_game(
     game_id: str,
     db: AsyncSession = Depends(get_db),
 ):
-    """Get a specific game with its environments"""
+    """Get a specific game"""
     result = await db.execute(select(Game).where(Game.id == game_id))
     game = result.scalar_one_or_none()
     
     if not game:
         raise HTTPException(status_code=404, detail="Game not found")
     
-    # Get environments
-    env_result = await db.execute(
-        select(Environment).where(Environment.game_id == game_id)
-    )
-    environments = env_result.scalars().all()
-    
-    game_data = {
-        **game.__dict__,
-        "environments": [{"id": e.id, "name": e.name} for e in environments]
-    }
-    return create_response(game_data)
+    return create_response(game)
 
 
 @router.patch("/{game_id}", response_model=ApiResponse[GameResponse])

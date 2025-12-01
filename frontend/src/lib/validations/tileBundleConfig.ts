@@ -1,17 +1,16 @@
 import { z } from 'zod';
 
 export const tileBundleConfigSchema = z.object({
-  enabled: z.boolean(),
-  discount: z.number().int().min(0, 'Discount must be 0 or greater').max(100, 'Discount cannot exceed 100'),
-  min_level: z.number().int().min(1, 'Min level must be at least 1'),
-  days_played_trigger: z.number().int().min(0, 'Days played trigger must be 0 or greater'),
-  sessions_played_trigger: z.number().int().min(0, 'Sessions played trigger must be 0 or greater'),
-  duration_hours: z.number().int().min(1, 'Duration must be at least 1 hour'),
-  max_lifetime_shows: z.number().int().min(0, 'Max lifetime shows must be 0 or greater'),
-  max_session_shows: z.number().int().min(0, 'Max session shows must be 0 or greater'),
-  cooldown_popup_hours: z.number().int().min(0, 'Cooldown popup hours must be 0 or greater'),
-  cooldown_offer_hours: z.number().int().min(0, 'Cooldown offer hours must be 0 or greater'),
+  enabled: z.boolean().default(true),
+  discount: z.number({ required_error: 'Discount is required' }).int().min(0).max(100),
+  minLevel: z.number({ required_error: 'Min Level is required' }).int().min(1),
+  daysPlayedTrigger: z.number({ required_error: 'Days Played Trigger is required' }).int().min(0),
+  sessionsPlayedTrigger: z.number({ required_error: 'Sessions Played Trigger is required' }).int().min(0),
+  durationHours: z.number({ required_error: 'Duration Hours is required' }).min(0),
+  maxLifetimeShows: z.number({ required_error: 'Max Lifetime Shows is required' }).int().min(1),
+  maxSessionShows: z.number({ required_error: 'Max Session Shows is required' }).int().min(1),
+  cooldownPopupHours: z.number({ required_error: 'Cooldown Popup Hours is required' }).min(0),
+  cooldownOfferHours: z.number({ required_error: 'Cooldown Offer Hours is required' }).min(0),
 });
 
 export type TileBundleConfig = z.infer<typeof tileBundleConfigSchema>;
-

@@ -6,7 +6,6 @@ from app.core.database import Base
 from app.core.config import settings
 from app.main import app
 from app.models.game import Game
-from app.models.environment import Environment
 
 
 # Test database URL (use a separate test database)
@@ -73,17 +72,11 @@ async def test_game(db_session: AsyncSession):
     """Create a test game."""
     game = Game(
         name="Test Game",
+        slug="test-game",
         description="A game for testing",
         firebase_project_id="test-project-123"
     )
     db_session.add(game)
-    await db_session.flush()
-    
-    # Create default environments
-    for env_name in ["production", "staging", "development"]:
-        environment = Environment(name=env_name, game_id=game.id)
-        db_session.add(environment)
-    
     await db_session.commit()
     await db_session.refresh(game)
     
@@ -94,16 +87,3 @@ async def test_game(db_session: AsyncSession):
 async def test_game_id(test_game: Game) -> str:
     """Get test game ID."""
     return test_game.id
-
-
-@pytest.fixture
-async def test_environment_id(db_session: AsyncSession, test_game_id: str) -> str:
-    """Get test environment ID (production)."""
-    from sqlalchemy import select
-    result = await db_session.execute(
-        select(Environment)
-        .where(Environment.game_id == test_game_id)
-        .where(Environment.name == "production")
-    )
-    env = result.scalar_one()
-    return env.id

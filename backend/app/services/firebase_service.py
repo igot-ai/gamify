@@ -224,6 +224,60 @@ class FirebaseRemoteConfigService:
             "update_time": formatted["version"]["update_time"],
         }
 
+    async def update_single_parameter(
+        self,
+        param_name: str,
+        param_value: str,
+        description: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Update a single parameter in Firebase Remote Config without affecting others.
+        
+        This fetches the current template, updates only the specified parameter,
+        and publishes the updated template.
+        """
+        # Fetch current template
+        template = await self._fetch_raw_template()
+        etag = template.get("etag") or "*"
+        
+        # Get existing parameters and conditions
+        existing_parameters = template.get("parameters", {})
+        existing_conditions = template.get("conditions", [])
+        
+        # Update or add the single parameter
+        timestamp = datetime.utcnow().isoformat()
+        existing_parameters[param_name] = {
+            "defaultValue": {"value": param_value},
+            "description": description or f"Auto-synced from portal at {timestamp}",
+        }
+        
+        # Build payload with all existing parameters plus the updated one
+        payload = {
+            "parameters": existing_parameters,
+            "conditions": existing_conditions,
+        }
+        
+        response = await self._send_request(
+            "PUT",
+            "remoteConfig",
+            action=f"update single parameter {param_name}",
+            headers={"If-Match": etag},
+            json_body=payload,
+        )
+        
+        updated = response.json() if response.content else {}
+        formatted = self._format_template(updated, response.headers.get("ETag"))
+        logger.info(
+            "Remote Config parameter %s updated: version %s",
+            param_name,
+            formatted["version"]["version_number"]
+        )
+        return {
+            "published": True,
+            "parameter_name": param_name,
+            "version_number": formatted["version"]["version_number"],
+            "update_time": formatted["version"]["update_time"],
+        }
+
     async def get_version_history(self, limit: int = 10) -> List[Dict[str, Any]]:
         """Get Remote Config version history."""
         response = await self._send_request(

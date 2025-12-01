@@ -50,9 +50,9 @@ export function ConfigFormSection({
   return (
     <Card className={`border-border/30 shadow-stripe-sm transition-all hover:shadow-stripe-md ${className}`}>
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-        <CardHeader className="cursor-pointer transition-all hover:bg-muted/30 pb-5">
-          <CollapsibleTrigger className="flex w-full items-center justify-between">
-            <div className="flex items-center gap-3">
+        <CardHeader className="pb-5">
+          <div className="flex items-center justify-between">
+            <CollapsibleTrigger className="flex items-center gap-3 cursor-pointer transition-all hover:bg-muted/30 rounded-md -ml-2 pl-2 pr-4 py-1">
               <ChevronDown
                 className={`h-4 w-4 text-muted-foreground transition-all duration-300 ${isOpen ? 'rotate-0' : '-rotate-90'
                   }`}
@@ -61,11 +61,11 @@ export function ConfigFormSection({
                 <CardTitle className="text-lg font-semibold tracking-tight">{title}</CardTitle>
                 {description && <CardDescription className="mt-1.5 text-sm">{description}</CardDescription>}
               </div>
-            </div>
+            </CollapsibleTrigger>
             {headerActions && (
-              <div onClick={(e) => e.stopPropagation()}>{headerActions}</div>
+              <div className="flex items-center gap-2">{headerActions}</div>
             )}
-          </CollapsibleTrigger>
+          </div>
         </CardHeader>
         <CollapsibleContent className="animate-slide-up">
           <CardContent className="pt-0 pb-6">{children}</CardContent>

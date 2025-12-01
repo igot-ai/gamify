@@ -15,7 +15,6 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/Button';
 import { ConfigFormSection } from '../shared/ConfigFormSection';
-import { ConfigActions } from '../shared/ConfigActions';
 import { Plus, Trash2 } from 'lucide-react';
 import {
     adConfigSchema,
@@ -108,7 +107,6 @@ export function AdConfigForm({
         name: 'networks',
     });
 
-    const hasChanges = form.formState.isDirty;
     const isValid = form.formState.isValid;
     const handleSubmit = form.handleSubmit(onSubmit);
 
@@ -533,15 +531,26 @@ export function AdConfigForm({
                     />
                 </ConfigFormSection>
 
-                <ConfigActions
-                    onSave={handleSubmit}
-                    onCancel={onCancel}
-                    hasChanges={hasChanges}
-                    isValid={isValid}
-                    isSaving={isSaving}
-                    showExport={false}
-                    showImport={false}
-                />
+                {/* Bottom Actions */}
+                <div className="flex items-center justify-end gap-3 pt-4 border-t border-border/30">
+                    {onCancel && (
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={onCancel}
+                            disabled={isSaving}
+                        >
+                            Cancel
+                        </Button>
+                    )}
+                    <Button
+                        type="submit"
+                        disabled={!isValid || isSaving}
+                        className="shadow-stripe-sm transition-all hover:shadow-stripe-md hover:-translate-y-0.5"
+                    >
+                        {isSaving ? 'Saving...' : 'Save Changes'}
+                    </Button>
+                </div>
             </form>
         </Form>
     );

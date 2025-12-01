@@ -2,7 +2,6 @@ import pytest
 from httpx import AsyncClient
 from app.main import app
 from app.models.game import Game
-from app.models.environment import Environment
 
 
 @pytest.fixture
@@ -54,22 +53,15 @@ class TestGameEndpoints:
         assert len(data) >= 1
     
     @pytest.mark.asyncio
-    async def test_get_game_with_environments(self, client: AsyncClient, db_session):
-        """Test getting a game with its environments"""
-        # Create a test game with environments
+    async def test_get_game(self, client: AsyncClient, db_session):
+        """Test getting a game"""
+        # Create a test game
         game = Game(
             name="Test Game",
-            slug="test-game-env",
+            slug="test-game-get",
             firebase_project_id="test-project"
         )
         db_session.add(game)
-        await db_session.flush()
-        
-        # Create environments
-        for env_name in ["production", "staging", "development"]:
-            env = Environment(name=env_name, game_id=game.id)
-            db_session.add(env)
-        
         await db_session.commit()
         
         response = await client.get(f"/api/v1/games/{game.id}")
@@ -77,8 +69,6 @@ class TestGameEndpoints:
         
         data = response.json()
         assert data["name"] == "Test Game"
-        assert "environments" in data
-        assert len(data["environments"]) == 3
     
     @pytest.mark.asyncio
     async def test_update_game(self, client: AsyncClient, db_session):

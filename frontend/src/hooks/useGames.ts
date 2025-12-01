@@ -27,12 +27,14 @@ export function useGame(gameId: string) {
     });
 }
 
-// Create game
+// Create game with FormData (supports avatar upload)
 export function useCreateGame() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async (data: { name: string; description?: string; firebase_project_id: string }) => {
+        mutationFn: async (data: FormData) => {
+            // Don't set Content-Type header manually - axios will set it automatically
+            // with the correct boundary for multipart/form-data
             const response = await apiClient.post<ApiResponse<Game>>('/games', data);
             return response.data.data;
         },

@@ -2,6 +2,7 @@
 name = "gamify-config-api"
 version = "0.1.0"
 description = "Gamify Config Management API"
+package-mode = false
 authors = ["Sunstudio Team <dev@sunstudio.com>"]
 readme = "README.md"
 

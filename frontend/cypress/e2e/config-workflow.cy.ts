@@ -2,51 +2,37 @@
  * Config Workflow E2E Tests
  * 
  * BDD Scenarios:
- * - Complete workflow: Draft → Review → Approve → Deploy
- * - User with correct role can approve configs
- * - User can deploy approved configs to Firebase
+ * - Complete workflow: Draft → Deploy
+ * - User can deploy draft configs to Firebase
  * - Workflow state transitions are enforced
  */
 
-describe('Config Workflow', () => {
+describe('Section Config Workflow', () => {
   beforeEach(() => {
     // Given: User is logged in
     cy.login('test@sunstudio.com', 'testpassword123');
   });
 
   describe('Feature: Complete Workflow Journey', () => {
-    it('Scenario: User can complete full config workflow', () => {
-      // Given: User creates a new config
-      cy.visit('/games/test-game-id/configs');
-      cy.contains('New Config').click();
+    it('Scenario: User can complete full config workflow (draft → deploy)', () => {
+      // Given: User creates a new section config
+      cy.visit('/sections/economy');
+      cy.contains('New Version').click();
       cy.url().should('include', '/edit');
 
-      // When: User fills in config and saves as draft
-      cy.contains('Economy').click();
+      // When: User fills in config and saves
       cy.contains('Add Currency').click();
       cy.get('input[name*="currency.id"]').type('coins');
       cy.get('input[name*="currency.name"]').type('Coins');
       cy.get('select[name*="currency.type"]').select('soft');
       cy.get('input[name*="currency.starting_amount"]').type('1000');
-      cy.contains('Save Draft').click();
+      cy.contains('Save').click();
 
-      // Then: Config is saved as draft
-      cy.contains(/saved|draft/i).should('be.visible');
+      // Then: Config is saved
+      cy.contains(/saved/i).should('be.visible');
 
-      // When: User submits for review
-      cy.contains('Submit for Review').click();
-
-      // Then: Config status is "In Review"
-      cy.contains('In Review').should('be.visible');
-
-      // When: User with LEAD_DESIGNER role approves
-      cy.contains('Approve').click();
-
-      // Then: Config status is "Approved"
-      cy.contains('Approved').should('be.visible');
-
-      // When: User with PRODUCT_MANAGER role deploys
-      cy.contains('Deploy to Firebase').click();
+      // When: User deploys to Firebase
+      cy.contains('Deploy').click();
 
       // Then: Config is deployed
       cy.contains(/deployed|success/i).should('be.visible');
@@ -55,49 +41,34 @@ describe('Config Workflow', () => {
   });
 
   describe('Feature: Workflow State Enforcement', () => {
-    it('Scenario: User cannot edit non-draft configs', () => {
-      // Given: A config is in "In Review" status
-      cy.visit('/configs/review-config-id');
+    it('Scenario: User cannot edit deployed configs', () => {
+      // Given: A config is in "Deployed" status
+      cy.visit('/sections/economy/deployed-config-id');
 
-      // Then: Edit button is not available
+      // Then: Edit leads to view-only state
       cy.contains('Edit').should('not.exist');
     });
 
-    it('Scenario: User cannot approve non-review configs', () => {
-      // Given: A config is in "Draft" status
-      cy.visit('/configs/draft-config-id');
-
-      // Then: Approve button is not available
-      cy.contains('Approve').should('not.exist');
-    });
-
-    it('Scenario: User cannot deploy non-approved configs', () => {
-      // Given: A config is in "In Review" status
-      cy.visit('/configs/review-config-id');
+    it('Scenario: User cannot deploy already deployed configs', () => {
+      // Given: A config is in "Deployed" status
+      cy.visit('/sections/economy/deployed-config-id');
 
       // Then: Deploy button is not available
       cy.contains('Deploy').should('not.exist');
     });
   });
 
-  describe('Feature: Role-Based Actions', () => {
-    it('Scenario: Only LEAD_DESIGNER+ can approve configs', () => {
-      // Given: User with GAME_DESIGNER role
-      // When: User tries to approve
-      cy.visit('/configs/review-config-id');
+  describe('Feature: Section Independence', () => {
+    it('Scenario: User can deploy sections independently', () => {
+      // Given: User has different section configs
+      // When: User deploys economy section
+      cy.visit('/sections/economy');
+      cy.get('table tbody tr').first().find('button[aria-label*="Deploy"]').click();
 
-      // Then: Approve button is disabled or hidden
-      cy.contains('Approve').should('not.exist').or('be.disabled');
-    });
-
-    it('Scenario: Only PRODUCT_MANAGER+ can deploy configs', () => {
-      // Given: User with LEAD_DESIGNER role
-      // When: User tries to deploy
-      cy.visit('/configs/approved-config-id');
-
-      // Then: Deploy button is disabled or hidden
-      cy.contains('Deploy').should('not.exist').or('be.disabled');
+      // Then: Only economy section is deployed, other sections unaffected
+      cy.visit('/sections/ads');
+      // Ads section should still be in its own state
+      cy.get('table tbody tr').should('exist');
     });
   });
 });
-

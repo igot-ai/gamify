@@ -11,8 +11,7 @@ class Game(BaseModel):
     slug = Column(String, unique=True, nullable=False, index=True)
     firebase_project_id = Column(String, nullable=True)
     description = Column(String, nullable=True)
+    avatar_url = Column(String, nullable=True)
     
     # Relationships
-    environments = relationship("Environment", back_populates="game", cascade="all, delete-orphan")
-    configs = relationship("Config", back_populates="game", cascade="all, delete-orphan")
-    experiments = relationship("Experiment", back_populates="game", cascade="all, delete-orphan")
+    section_configs = relationship("SectionConfig", back_populates="game", cascade="all, delete-orphan")

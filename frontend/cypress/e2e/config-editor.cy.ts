@@ -1,27 +1,25 @@
 /**
- * Config Editor Page E2E Tests
+ * Section Config Editor Page E2E Tests
  * 
  * BDD Scenarios:
  * - User can edit Economy config section
  * - User can edit Ad config section
  * - User can edit Notification config section
- * - User can save config as draft
- * - User can submit config for review
+ * - User can save config
+ * - User can deploy config directly
  * - Form validation prevents invalid data
  */
 
-describe('Config Editor Page', () => {
+describe('Section Config Editor Page', () => {
   beforeEach(() => {
-    // Given: User is logged in and editing a config
+    // Given: User is logged in and editing a section config
     cy.login('test@sunstudio.com', 'testpassword123');
-    cy.visit('/configs/test-config-id/edit');
+    cy.visit('/sections/economy/test-config-id/edit');
   });
 
   describe('Feature: Economy Config Editing', () => {
     it('Scenario: User can add a new currency', () => {
-      // Given: User is on Economy config tab
-      cy.contains('Economy').click();
-
+      // Given: User is on Economy config editor
       // When: User clicks "Add Currency" button
       cy.contains('Add Currency').click();
 
@@ -69,10 +67,12 @@ describe('Config Editor Page', () => {
   });
 
   describe('Feature: Ad Config Editing', () => {
-    it('Scenario: User can configure ad networks', () => {
-      // Given: User is on Ad Config tab
-      cy.contains('Ads').click();
+    beforeEach(() => {
+      cy.visit('/sections/ads/test-config-id/edit');
+    });
 
+    it('Scenario: User can configure ad networks', () => {
+      // Given: User is on Ad Config editor
       // When: User adds an ad network
       cy.contains('Add Network').click();
       cy.get('input[name*="network.name"]').type('AdMob');
@@ -85,10 +85,12 @@ describe('Config Editor Page', () => {
   });
 
   describe('Feature: Notification Config Editing', () => {
-    it('Scenario: User can configure notification strategies', () => {
-      // Given: User is on Notification Config tab
-      cy.contains('Notifications').click();
+    beforeEach(() => {
+      cy.visit('/sections/notification/test-config-id/edit');
+    });
 
+    it('Scenario: User can configure notification strategies', () => {
+      // Given: User is on Notification Config editor
       // When: User adds a notification strategy
       cy.contains('Add Strategy').click();
       cy.get('input[name*="strategy.name"]').type('Daily Reminder');
@@ -99,56 +101,31 @@ describe('Config Editor Page', () => {
     });
   });
 
-  describe('Feature: Save and Submit', () => {
-    it('Scenario: User can save config as draft', () => {
+  describe('Feature: Save and Deploy', () => {
+    it('Scenario: User can save config', () => {
       // Given: User has made changes
-      cy.contains('Economy').click();
       cy.contains('Add Currency').click();
       cy.get('input[name*="currency.id"]').type('coins');
       cy.get('input[name*="currency.name"]').type('Coins');
       cy.get('select[name*="currency.type"]').select('soft');
       cy.get('input[name*="currency.starting_amount"]').type('1000');
 
-      // When: User clicks "Save Draft"
-      cy.contains('Save Draft').click();
+      // When: User clicks "Save"
+      cy.contains('Save').click();
 
       // Then: Config is saved and success message appears
-      cy.contains(/saved|draft/i).should('be.visible');
+      cy.contains(/saved/i).should('be.visible');
     });
 
-    it('Scenario: User can submit config for review', () => {
+    it('Scenario: User can deploy config directly', () => {
       // Given: User has completed config
-      // When: User clicks "Submit for Review"
-      cy.contains('Submit for Review').click();
+      // When: User clicks "Deploy"
+      cy.contains('Deploy').click();
 
-      // Then: Config status changes to "In Review"
-      cy.contains(/submitted|in review/i).should('be.visible');
+      // Then: Config is deployed
+      cy.contains(/deployed|success/i).should('be.visible');
       cy.url().should('not.include', '/edit'); // Redirected to detail view
     });
-
-    it('Scenario: User cannot submit invalid config', () => {
-      // Given: Config has validation errors
-      // When: User tries to submit
-      cy.contains('Submit for Review').click();
-
-      // Then: Validation errors are shown and submission is prevented
-      cy.contains(/error|invalid|required/i).should('be.visible');
-    });
   });
 
-  describe('Feature: Tab Navigation', () => {
-    it('Scenario: User can switch between config sections', () => {
-      // Given: User is on config editor
-      // When: User clicks different tabs
-      cy.contains('Economy').click();
-      cy.contains('Economy Config').should('be.visible');
-
-      cy.contains('Ads').click();
-      cy.contains('Ad Config').should('be.visible');
-
-      cy.contains('Notifications').click();
-      cy.contains('Notification Config').should('be.visible');
-    });
-  });
 });
-

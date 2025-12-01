@@ -32,13 +32,13 @@ import {
   type ShopConfig,
 } from '@/lib/validations/shopConfig';
 import { useState, useMemo } from 'react';
-import { useConfig } from '@/hooks/useConfigs';
 
 interface ShopConfigFormProps {
   initialData?: ShopConfig;
   onSubmit: (data: ShopConfig) => void;
   onCancel?: () => void;
-  configId?: string; // To fetch economy config for currency references
+  configId?: string;
+  availableCurrencies?: Array<{ id: string; name: string }>;
 }
 
 export function ShopConfigForm({
@@ -46,6 +46,7 @@ export function ShopConfigForm({
   onSubmit,
   onCancel,
   configId,
+  availableCurrencies: propCurrencies,
 }: ShopConfigFormProps) {
   const [editingCategoryIndex, setEditingCategoryIndex] = useState<number | null>(null);
   const [editingItemIndex, setEditingItemIndex] = useState<{
@@ -53,19 +54,18 @@ export function ShopConfigForm({
     itemIndex: number;
   } | null>(null);
 
-  // Fetch economy config to get available currencies for price/reward references
-  const { data: config } = useConfig(configId || '');
+  // Use passed currencies or default to common currency options
   const availableCurrencies = useMemo(() => {
-    // Access economy config - it may be in different formats
-    const economy = config?.economy_config as any;
-    if (economy?.currencies && Array.isArray(economy.currencies)) {
-      return economy.currencies.map((c: any) => ({
-        id: c.id,
-        name: c.name,
-      }));
+    if (propCurrencies && propCurrencies.length > 0) {
+      return propCurrencies;
     }
-    return [];
-  }, [config]);
+    // Default common currencies if none provided
+    return [
+      { id: 'coins', name: 'Coins' },
+      { id: 'gems', name: 'Gems' },
+      { id: 'usd', name: 'USD (IAP)' },
+    ];
+  }, [propCurrencies]);
 
   const form = useForm({
     resolver: zodResolver(shopConfigSchema),

@@ -55,7 +55,7 @@ export default function DashboardPage() {
             <CardDescription>Manage your game catalog</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">{games?.length || 0}</p>
+            <p className="text-2xl font-bold text-foreground">{games?.length || 0}</p>
             <p className="text-sm text-muted-foreground">Total Games</p>
           </CardContent>
         </Card>
@@ -72,7 +72,7 @@ export default function DashboardPage() {
             <CardDescription>View and manage configs</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">--</p>
+            <p className="text-2xl font-bold text-foreground">--</p>
             <p className="text-sm text-muted-foreground">
               Select a game to view
             </p>
@@ -81,13 +81,13 @@ export default function DashboardPage() {
       </div>
 
       <div>
-        <h2 className="text-2xl font-bold mb-4">Your Games</h2>
+        <h2 className="text-2xl font-bold mb-4 text-foreground">Your Games</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {games?.map((game) => (
             <Card
               key={game.id}
               className="hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer border-border/50 bg-card/50 backdrop-blur-sm"
-              onClick={() => router.push(`/games/${game.id}/configs`)}
+              onClick={() => router.push(`/sections/economy?gameId=${game.id}`)}
             >
               <CardHeader>
                 <CardTitle className="text-xl">{game.name}</CardTitle>
@@ -99,7 +99,7 @@ export default function DashboardPage() {
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Environments:</span>
-                    <span className="font-medium">
+                    <span className="font-medium text-foreground">
                       {game.environments?.length || 0}
                     </span>
                   </div>
@@ -107,7 +107,7 @@ export default function DashboardPage() {
                     <span className="text-muted-foreground">
                       Firebase Project:
                     </span>
-                    <span className="font-mono text-xs">
+                    <span className="font-mono text-xs text-foreground">
                       {game.firebase_project_id}
                     </span>
                   </div>

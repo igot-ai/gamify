@@ -10,7 +10,7 @@ def test_portal_to_firebase_conversion():
     converter = get_config_converter()
     
     portal_config = {
-        "game_core_config": {
+        "game_config": {
             "Version": "1.0.0",
             "BuildNumber": 100
         },
@@ -23,15 +23,15 @@ def test_portal_to_firebase_conversion():
     
     firebase_params = converter.portal_to_firebase(portal_config)
     
-    assert "game_core_config" in firebase_params
+    assert "game_config" in firebase_params
     assert "economy_config" in firebase_params
     
     # Values should be JSON strings
-    assert isinstance(firebase_params["game_core_config"], str)
+    assert isinstance(firebase_params["game_config"], str)
     assert isinstance(firebase_params["economy_config"], str)
     
     # Should be parseable as JSON
-    parsed_game = json.loads(firebase_params["game_core_config"])
+    parsed_game = json.loads(firebase_params["game_config"])
     assert parsed_game["Version"] == "1.0.0"
     assert parsed_game["BuildNumber"] == 100
 
@@ -41,18 +41,18 @@ def test_firebase_to_portal_conversion():
     converter = get_config_converter()
     
     firebase_params = {
-        "game_core_config": '{"Version":"1.0.0","BuildNumber":100}',
+        "game_config": '{"Version":"1.0.0","BuildNumber":100}',
         "economy_config": '{"currencies":[{"id":"coins","name":"Coins"}]}'
     }
     
     portal_config = converter.firebase_to_portal(firebase_params)
     
-    assert "game_core_config" in portal_config
+    assert "game_config" in portal_config
     assert "economy_config" in portal_config
     
     # Should be parsed as dict
-    assert isinstance(portal_config["game_core_config"], dict)
-    assert portal_config["game_core_config"]["Version"] == "1.0.0"
+    assert isinstance(portal_config["game_config"], dict)
+    assert portal_config["game_config"]["Version"] == "1.0.0"
     
     assert isinstance(portal_config["economy_config"], dict)
     assert len(portal_config["economy_config"]["currencies"]) == 1
@@ -63,7 +63,7 @@ def test_validate_portal_config_valid():
     converter = get_config_converter()
     
     config = {
-        "game_core_config": {"Version": "1.0.0"},
+        "game_config": {"Version": "1.0.0"},
         "economy_config": {"currencies": []}
     }
     
@@ -94,7 +94,7 @@ def test_validate_portal_config_invalid_json():
         pass
     
     config = {
-        "game_core_config": {"obj": CustomObject()}
+        "game_config": {"obj": CustomObject()}
     }
     
     is_valid, error_msg = converter.validate_portal_config(config)
@@ -135,14 +135,14 @@ def test_missing_sections_become_none():
     converter = get_config_converter()
     
     firebase_params = {
-        "game_core_config": '{"Version":"1.0.0"}'
+        "game_config": '{"Version":"1.0.0"}'
         # Other sections missing
     }
     
     portal_config = converter.firebase_to_portal(firebase_params)
     
     # Present section should be parsed
-    assert portal_config["game_core_config"] is not None
+    assert portal_config["game_config"] is not None
     
     # Missing sections should be None
     assert portal_config["economy_config"] is None
@@ -154,12 +154,12 @@ def test_invalid_json_in_firebase_params():
     converter = get_config_converter()
     
     firebase_params = {
-        "game_core_config": "invalid json {{"
+        "game_config": "invalid json {{"
     }
     
     portal_config = converter.firebase_to_portal(firebase_params)
     
     # Should set to None on parse error
-    assert portal_config["game_core_config"] is None
+    assert portal_config["game_config"] is None
 
 

@@ -11,6 +11,8 @@ export const boosterConfigSchema = z.object({
   hint: boosterItemSchema,
   shuffle: boosterItemSchema,
   auto_use_after_ads: z.boolean(),
+  time_auto_suggestion: z.number().min(0, 'Time must be 0 or greater'),
+  auto_suggestion_enabled: z.boolean(),
 });
 
 export type BoosterItem = z.infer<typeof boosterItemSchema>;

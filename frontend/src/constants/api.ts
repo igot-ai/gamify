@@ -22,28 +22,15 @@ export const apiEndpoints = {
     delete: (id: string) => `/games/${id}`,
   },
 
-  // Configs
-  configs: {
-    list: (gameId?: string) => (gameId ? `/games/${gameId}/configs` : '/configs'),
-    detail: (id: string) => `/configs/${id}`,
-    create: '/configs',
-    update: (id: string) => `/configs/${id}`,
-    delete: (id: string) => `/configs/${id}`,
-    draft: (id: string) => `/configs/${id}/draft`,
-    submit: (id: string) => `/configs/${id}/submit-review`,
-    approve: (id: string) => `/configs/${id}/approve`,
-    reject: (id: string) => `/configs/${id}/reject`,
-    deploy: (id: string) => `/configs/${id}/deploy`,
-    history: (id: string) => `/configs/${id}/history`,
-  },
-
-  // Environments
-  environments: {
-    list: '/environments',
-    detail: (id: string) => `/environments/${id}`,
-    create: '/environments',
-    update: (id: string) => `/environments/${id}`,
-    delete: (id: string) => `/environments/${id}`,
+  // Section Configs
+  sectionConfigs: {
+    list: '/section-configs',
+    detail: (id: string) => `/section-configs/${id}`,
+    create: '/section-configs',
+    update: (id: string) => `/section-configs/${id}`,
+    delete: (id: string) => `/section-configs/${id}`,
+    deploy: (id: string) => `/section-configs/${id}/deploy`,
+    summary: '/section-configs/summary',
   },
 
   // Users
@@ -94,4 +81,3 @@ export enum HttpStatusCode {
   INTERNAL_SERVER_ERROR = 500,
   SERVICE_UNAVAILABLE = 503,
 }
-

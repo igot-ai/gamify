@@ -168,10 +168,10 @@ class TestEconomyConfigSchema:
         assert len(config.daily_rewards) == 2
     
     def test_empty_currencies(self):
-        """Test that empty currencies list is rejected"""
-        with pytest.raises(ValidationError) as exc_info:
-            EconomyConfig(currencies=[])
-        assert "currencies" in str(exc_info.value)
+        """Test that empty currencies list is now allowed (for new format support)"""
+        # Empty currencies list is allowed to support progressive configuration
+        config = EconomyConfig(currencies=[])
+        assert len(config.currencies) == 0
     
     def test_duplicate_daily_reward_days(self):
         """Test that duplicate daily reward days are rejected"""

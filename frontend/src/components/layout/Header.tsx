@@ -3,6 +3,7 @@
 import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../ui/Button';
 import { LogOut, Menu, Settings2 } from 'lucide-react';
+import { GameSelector } from './GameSelector';
 
 interface HeaderProps {
   onMenuClick?: () => void;
@@ -35,9 +36,12 @@ export function Header({ onMenuClick }: HeaderProps) {
         </div>
 
         <div className="flex items-center gap-3">
+          {/* Game Selector */}
+          <GameSelector />
+          
           {user && (
             <>
-              <div className="hidden sm:flex items-center gap-2 text-sm">
+              <div className="hidden sm:flex items-center gap-2 text-sm border-l border-border pl-3">
                 <div className="text-right">
                   <p className="font-medium text-foreground text-xs">
                     {user.displayName || user.email}

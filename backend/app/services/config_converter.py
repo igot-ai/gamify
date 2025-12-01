@@ -27,12 +27,12 @@ class ConfigConverter:
         Example:
             Input:
                 {
-                    "game_core_config": {"Version": "1.0.0", "BuildNumber": 100},
+                    "game_config": {"Version": "1.0.0", "BuildNumber": 100},
                     "economy_config": {"currencies": [...]},
                 }
             Output:
                 {
-                    "game_core_config": '{"Version": "1.0.0", "BuildNumber": 100}',
+                    "game_config": '{"Version": "1.0.0", "BuildNumber": 100}',
                     "economy_config": '{"currencies": [...]}',
                 }
         """
@@ -40,7 +40,7 @@ class ConfigConverter:
         
         # List of config sections to convert
         config_sections = [
-            "game_core_config",
+            "game_config",
             "economy_config",
             "ad_config",
             "notification_config",
@@ -77,19 +77,19 @@ class ConfigConverter:
         Example:
             Input:
                 {
-                    "game_core_config": '{"Version": "1.0.0", "BuildNumber": 100}',
+                    "game_config": '{"Version": "1.0.0", "BuildNumber": 100}',
                     "economy_config": '{"currencies": [...]}',
                 }
             Output:
                 {
-                    "game_core_config": {"Version": "1.0.0", "BuildNumber": 100},
+                    "game_config": {"Version": "1.0.0", "BuildNumber": 100},
                     "economy_config": {"currencies": [...]},
                 }
         """
         portal_config = {}
         
         config_sections = [
-            "game_core_config",
+            "game_config",
             "economy_config",
             "ad_config",
             "notification_config",
@@ -130,7 +130,7 @@ class ConfigConverter:
         """
         # Check that at least one config section is present
         config_sections = [
-            "game_core_config", "economy_config", "ad_config",
+            "game_config", "economy_config", "ad_config",
             "notification_config", "booster_config", "chapter_reward_config",
             "shop_config", "analytics_config", "ux_config",
         ]

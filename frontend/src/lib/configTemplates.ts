@@ -8,9 +8,12 @@ export type ConfigType =
   | 'notifications'
   | 'boosters'
   | 'chapter_reward'
-  | 'game_core'
+  | 'game'
   | 'analytics'
-  | 'ux';
+  | 'ux'
+  | 'haptic'
+  | 'remove_ads'
+  | 'tile_bundle';
 
 /**
  * Default templates for each config type
@@ -155,24 +158,31 @@ export const configTemplates: Record<ConfigType, any> = {
     ],
   },
 
-  game_core: {
-    version: '1.0.0',
-    game_settings: {
-      starting_level: 1,
-      max_level: 100,
-      energy_system_enabled: true,
-      max_energy: 5,
-      energy_refill_time_minutes: 5,
+  game: {
+    gameLogic: {
+      gameLogicConfig: {
+        matchCount: undefined,
+        countUndoTileRevive: undefined,
+        countShuffleTileRevive: undefined,
+        countSlotHolder: undefined,
+        warningThreshold: undefined,
+      },
+      combo: {
+        matchEffect: undefined,
+        maxNoMatch: undefined,
+      },
     },
-    difficulty_settings: {
-      easy_mode_available: true,
-      difficulty_scaling_factor: 1.0,
-      tutorial_enabled: true,
-    },
-    progression: {
-      xp_per_level: 100,
-      xp_scaling_factor: 1.2,
-      unlock_requirements: [],
+    viewConfig: {
+      gridView: {
+        tileSize: { x: undefined, y: undefined },
+      },
+      holderView: {
+        slotSize: { x: undefined, y: undefined },
+        slotSpace: undefined,
+        ratioBetweenTwoTile: undefined,
+        slotYPadding: undefined,
+        tileInHolderYPadding: undefined,
+      },
     },
   },
 
@@ -186,6 +196,62 @@ export const configTemplates: Record<ConfigType, any> = {
     theme: 'default',
     animations_enabled: true,
     haptic_feedback_enabled: true,
+  },
+
+  haptic: {
+    soft: {
+      android: { duration: 10, amplitude: 40 },
+      ios: { intensity: 0.6, sharpness: 0, duration: 0.01 },
+    },
+    light: {
+      android: { duration: 10, amplitude: 60 },
+      ios: { intensity: 0.4, sharpness: 0.2, duration: 0.01 },
+    },
+    medium: {
+      android: { duration: 20, amplitude: 120 },
+      ios: { intensity: 0.6, sharpness: 0.4, duration: 0.02 },
+    },
+    heavy: {
+      android: { duration: 30, amplitude: 200 },
+      ios: { intensity: 0.8, sharpness: 0.6, duration: 0.03 },
+    },
+    button: {
+      android: { duration: 10, amplitude: 80 },
+      ios: { intensity: 0.5, sharpness: 0.3, duration: 0.01 },
+    },
+    success: {
+      android: { duration: 50, amplitude: 100 },
+      ios: { intensity: 0.7, sharpness: 0.5, duration: 0.05 },
+    },
+    error: {
+      android: { duration: 100, amplitude: 150 },
+      ios: { intensity: 0.9, sharpness: 0.8, duration: 0.1 },
+    },
+  },
+
+  remove_ads: {
+    enabled: true,
+    minLevel: 5,
+    adWatchedTrigger: 4,
+    daysPlayedTrigger: 2,
+    durationHours: 24,
+    maxLifetimeShows: 4,
+    maxSessionShows: 1,
+    cooldownPopupHours: 24,
+    cooldownOfferHours: 24,
+  },
+
+  tile_bundle: {
+    enabled: true,
+    discount: 80,
+    minLevel: 20,
+    daysPlayedTrigger: 2,
+    sessionsPlayedTrigger: 1,
+    durationHours: 24,
+    maxLifetimeShows: 2,
+    maxSessionShows: 1,
+    cooldownPopupHours: 48,
+    cooldownOfferHours: 48,
   },
 };
 

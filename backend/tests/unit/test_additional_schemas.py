@@ -3,7 +3,7 @@ from pydantic import ValidationError
 from app.schemas.config_sections.booster_config import BoosterItem, BoosterConfig
 from app.schemas.config_sections.chapter_reward_config import ChapterRewardConfig
 from app.schemas.config_sections.shop_config import ShopConfig
-from app.schemas.config_sections.game_core_config import GameCoreConfig
+from app.schemas.config_sections.game_config import GameConfig, GameLogic, GameLogicConfig, ComboConfig, ViewConfig, GridView, HolderView, Vector2
 
 
 class TestBoosterItemSchema:
@@ -93,61 +93,84 @@ class TestShopConfigSchema:
         assert "RestoreMinLevel" in str(exc_info.value)
 
 
-class TestGameCoreConfigSchema:
-    """Test GameCoreConfig schema"""
+class TestGameConfigSchema:
+    """Test GameConfig schema"""
     
-    def test_valid_game_core_config(self):
-        """Test creating a valid game core configuration"""
-        config = GameCoreConfig(
-            Version="1.0.0",
-            BuildNumber=100,
-            MinSupportedVersion="1.0.0",
-            ForceUpdate=False,
-            MaintenanceMode=False
-        )
-        assert config.Version == "1.0.0"
-        assert config.BuildNumber == 100
-        assert config.ForceUpdate is False
-    
-    def test_invalid_version_format(self):
-        """Test that invalid version format is rejected"""
-        with pytest.raises(ValidationError) as exc_info:
-            GameCoreConfig(
-                Version="1.0",  # Invalid format
-                BuildNumber=100,
-                MinSupportedVersion="1.0.0"
+    def test_valid_game_config(self):
+        """Test creating a valid game configuration"""
+        config = GameConfig(
+            gameLogic=GameLogic(
+                gameLogicConfig=GameLogicConfig(
+                    matchCount=3,
+                    countUndoTileRevive=5,
+                    countShuffleTileRevive=1,
+                    countSlotHolder=7,
+                    warningThreshold=5
+                ),
+                combo=ComboConfig(
+                    matchEffect=5,
+                    maxNoMatch=4
+                )
+            ),
+            viewConfig=ViewConfig(
+                gridView=GridView(
+                    tileSize=Vector2(x=1.46, y=1.39)
+                ),
+                holderView=HolderView(
+                    slotSize=Vector2(x=1.44, y=1.34),
+                    slotSpace=0,
+                    ratioBetweenTwoTile=0.9358974,
+                    slotYPadding=0.027,
+                    tileInHolderYPadding=0.102
+                )
             )
-        assert "Version" in str(exc_info.value)
-        assert "X.Y.Z" in str(exc_info.value)
+        )
+        assert config.gameLogic.gameLogicConfig.matchCount == 3
+        assert config.gameLogic.combo.matchEffect == 5
+        assert config.viewConfig.gridView.tileSize.x == 1.46
     
-    def test_invalid_min_supported_version(self):
-        """Test that invalid min supported version is rejected"""
+    def test_invalid_match_count(self):
+        """Test that match count < 1 is rejected"""
         with pytest.raises(ValidationError) as exc_info:
-            GameCoreConfig(
-                Version="1.0.0",
-                BuildNumber=100,
-                MinSupportedVersion="invalid"
+            GameLogicConfig(
+                matchCount=0,  # Invalid - must be >= 1
+                countUndoTileRevive=5,
+                countShuffleTileRevive=1,
+                countSlotHolder=7,
+                warningThreshold=5
             )
-        assert "MinSupportedVersion" in str(exc_info.value)
+        assert "matchCount" in str(exc_info.value)
     
-    def test_maintenance_mode(self):
-        """Test maintenance mode configuration"""
-        config = GameCoreConfig(
-            Version="1.0.0",
-            BuildNumber=100,
-            MinSupportedVersion="1.0.0",
-            MaintenanceMode=True,
-            MaintenanceMessage="Server maintenance in progress"
-        )
-        assert config.MaintenanceMode is True
-        assert config.MaintenanceMessage == "Server maintenance in progress"
+    def test_invalid_slot_holder_count(self):
+        """Test that slot holder count < 1 is rejected"""
+        with pytest.raises(ValidationError) as exc_info:
+            GameLogicConfig(
+                matchCount=3,
+                countUndoTileRevive=5,
+                countShuffleTileRevive=1,
+                countSlotHolder=0,  # Invalid - must be >= 1
+                warningThreshold=5
+            )
+        assert "countSlotHolder" in str(exc_info.value)
     
-    def test_force_update(self):
-        """Test force update configuration"""
-        config = GameCoreConfig(
-            Version="2.0.0",
-            BuildNumber=200,
-            MinSupportedVersion="1.5.0",
-            ForceUpdate=True
+    def test_negative_values_rejected(self):
+        """Test that negative values are rejected for non-negative fields"""
+        with pytest.raises(ValidationError) as exc_info:
+            ComboConfig(
+                matchEffect=-1,  # Invalid - must be >= 0
+                maxNoMatch=4
+            )
+        assert "matchEffect" in str(exc_info.value)
+    
+    def test_holder_view_validation(self):
+        """Test holder view configuration validation"""
+        holder = HolderView(
+            slotSize=Vector2(x=1.44, y=1.34),
+            slotSpace=0,
+            ratioBetweenTwoTile=0.9358974,
+            slotYPadding=0.027,
+            tileInHolderYPadding=0.102
         )
-        assert config.ForceUpdate is True
+        assert holder.slotSize.x == 1.44
+        assert holder.slotSpace == 0
+        assert holder.ratioBetweenTwoTile == 0.9358974

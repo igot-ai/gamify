@@ -166,3 +166,7 @@ temp/
 # FastAPI specific
 .pytest_cache/
 __pycache__/
+
+# Uploads directory (user-uploaded files)
+app/uploads/
+uploads/

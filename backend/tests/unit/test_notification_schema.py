@@ -168,10 +168,153 @@ class TestNotificationChannelSchema:
                 importance=6  # Invalid
             )
         assert "importance" in str(exc_info.value).lower()
+    
+    def test_lock_screen_visibility_boundaries(self):
+        """Test lock screen visibility boundaries (-1, 0, 1)"""
+        # Valid: Secret (-1)
+        channel_secret = NotificationChannel(
+            id="secret", name="Secret", description="Secret", importance=3,
+            lock_screen_visibility=-1
+        )
+        assert channel_secret.lock_screen_visibility == -1
+        
+        # Valid: Private (0)
+        channel_private = NotificationChannel(
+            id="private", name="Private", description="Private", importance=3,
+            lock_screen_visibility=0
+        )
+        assert channel_private.lock_screen_visibility == 0
+        
+        # Valid: Public (1)
+        channel_public = NotificationChannel(
+            id="public", name="Public", description="Public", importance=3,
+            lock_screen_visibility=1
+        )
+        assert channel_public.lock_screen_visibility == 1
+        
+        # Invalid: < -1
+        with pytest.raises(ValidationError):
+            NotificationChannel(
+                id="invalid", name="Invalid", description="Invalid", importance=3,
+                lock_screen_visibility=-2
+            )
+        
+        # Invalid: > 1
+        with pytest.raises(ValidationError):
+            NotificationChannel(
+                id="invalid", name="Invalid", description="Invalid", importance=3,
+                lock_screen_visibility=2
+            )
+    
+    def test_default_badge_boundary(self):
+        """Test default badge cannot be negative"""
+        with pytest.raises(ValidationError):
+            NotificationChannel(
+                id="test", name="Test", description="Test", importance=3,
+                default_badge=-1
+            )
 
 
 class TestNotificationConfigSchema:
     """Test NotificationConfig schema"""
+    
+    def test_serialization_aliases(self):
+        """Test that serialization uses camelCase aliases"""
+        channel = NotificationChannel(
+            id="test_channel",
+            name="Test",
+            description="Test Channel",
+            importance=3,
+            enable_lights=True,
+            enable_vibration=False,
+            can_bypass_dnd=True,
+            can_show_badge=False,
+            lock_screen_visibility=-1
+        )
+        # Serialize to dict using aliases
+        data = channel.model_dump(by_alias=True)
+        
+        assert data["Id"] == "test_channel"
+        assert data["Name"] == "Test"
+        assert data["Description"] == "Test Channel"
+        assert data["Importance"] == 3
+        assert data["EnableLights"] is True
+        assert data["EnableVibration"] is False
+        assert data["CanBypassDnd"] is True
+        assert data["CanShowBadge"] is False
+        assert data["LockScreenVisibility"] == -1
+    
+    def test_strategy_serialization_aliases(self):
+        """Test that strategy serialization uses camelCase aliases"""
+        strategy = NotificationStrategy(
+            id="TEST_STRATEGY",
+            name="Test Strategy",
+            mode=NotificationMode.FIXED_TIME,
+            delay_seconds=0,
+            fixed_hour=10,
+            fixed_minute=30,
+            fixed_days_offset=7,
+            repeat_policy=RepeatPolicy.DAILY,
+            repeat_seconds=86400,
+            active=False,
+            auto_scheduled=True,
+            scheduling_mode=SchedulingMode.SEQUENTIAL,
+            default_channel_id="default",
+            notifications=[NotificationMessage(title="T", body="B", offset_seconds=60)]
+        )
+        data = strategy.model_dump(by_alias=True)
+        
+        assert data["Id"] == "TEST_STRATEGY"
+        assert data["Name"] == "Test Strategy"
+        assert data["Mode"] == 1  # FIXED_TIME
+        assert data["DelaySeconds"] == 0
+        assert data["FixedHour"] == 10
+        assert data["FixedMinute"] == 30
+        assert data["FixedDaysOffset"] == 7
+        assert data["RepeatPolicy"] == 2  # DAILY
+        assert data["RepeatSeconds"] == 86400
+        assert data["Active"] is False
+        assert data["AutoScheduled"] is True
+        assert data["SchedulingMode"] == 1  # SEQUENTIAL
+        assert data["DefaultChannelId"] == "default"
+        assert data["Notifications"][0]["Title"] == "T"
+        assert data["Notifications"][0]["OffsetSeconds"] == 60
+    
+    def test_full_config_serialization(self):
+        """Test full config serialization with nested objects"""
+        config = NotificationConfig(
+            enable=True,
+            strategies=[
+                NotificationStrategy(
+                    id="DAILY",
+                    name="Daily",
+                    mode=NotificationMode.DELAY,
+                    delay_seconds=86400,
+                    fixed_hour=12,
+                    fixed_minute=0,
+                    fixed_days_offset=1,
+                    repeat_policy=RepeatPolicy.DAILY,
+                    scheduling_mode=SchedulingMode.RANDOM,
+                    default_channel_id="default_channel",
+                    notifications=[NotificationMessage(title="DAILY_T", body="DAILY_B")]
+                )
+            ],
+            channels=[
+                NotificationChannel(
+                    id="default_channel",
+                    name="Default",
+                    description="Default Channel",
+                    importance=3
+                )
+            ]
+        )
+        data = config.model_dump(by_alias=True)
+        
+        assert data["Enable"] is True
+        assert len(data["Strategies"]) == 1
+        assert data["Strategies"][0]["Id"] == "DAILY"
+        assert len(data["Channels"]) == 1
+        assert data["Channels"][0]["Id"] == "default_channel"
     
     def test_valid_notification_config(self):
         """Test creating a valid notification configuration"""

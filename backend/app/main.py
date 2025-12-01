@@ -1,5 +1,8 @@
-from fastapi import FastAPI
+from pathlib import Path
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from fastapi.exceptions import RequestValidationError
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
@@ -20,6 +23,30 @@ app = FastAPI(
     description="Configuration management portal for game configs",
     redirect_slashes=False,  # Prevent 307 redirects for trailing slashes
 )
+
+# Create uploads directory if it doesn't exist
+# Note: uploads are stored under app/uploads to match the save_avatar helper
+UPLOADS_DIR = Path(__file__).parent / "uploads"
+UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
+
+# Mount static files for uploads (at /api/v1/uploads to match API base URL)
+app.mount(f"{settings.API_V1_PREFIX}/uploads", StaticFiles(directory=str(UPLOADS_DIR)), name="uploads")
+
+# Route handler for /avatars/{filename} - must be before API routes
+AVATARS_DIR = UPLOADS_DIR / "avatars"
+AVATARS_DIR.mkdir(parents=True, exist_ok=True)
+
+@app.get("/avatars/{filename:path}")
+async def serve_avatar(filename: str):
+    """Serve avatar files from the avatars directory"""
+    # Security: prevent directory traversal
+    if ".." in filename or "/" in filename or "\\" in filename:
+        raise HTTPException(status_code=400, detail="Invalid filename")
+    
+    file_path = AVATARS_DIR / filename
+    if not file_path.exists() or not file_path.is_file():
+        raise HTTPException(status_code=404, detail="Avatar not found")
+    return FileResponse(str(file_path))
 
 # CORS middleware
 app.add_middleware(
