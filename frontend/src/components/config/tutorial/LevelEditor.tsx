@@ -17,6 +17,7 @@ import {
   STEP_TYPE_LABELS,
   STEP_TYPE_ICONS,
   getDefaultStepData,
+  generateStepId,
   type TutorialLevel,
   type TutorialStep,
 } from '@/lib/validations/tutorialConfig';
@@ -34,6 +35,27 @@ export function LevelEditor({
   onDelete,
   canDelete,
 }: LevelEditorProps) {
+  // Ref to store generated IDs for steps that don't have one
+  // Maps step content hash to stable ID
+  const generatedIdsRef = React.useRef<Map<string, string>>(new Map());
+  
+  // Generate a stable key for each step
+  const getStepKey = React.useCallback((step: TutorialStep, index: number): string => {
+    // If step has _id, use it directly
+    if (step._id) return step._id;
+    
+    // Create a hash based on step content to identify it
+    const hash = `${step.Type}-${index}-${JSON.stringify(step.Data).slice(0, 50)}`;
+    
+    // Check if we already generated an ID for this hash
+    let id = generatedIdsRef.current.get(hash);
+    if (!id) {
+      id = generateStepId();
+      generatedIdsRef.current.set(hash, id);
+    }
+    return id;
+  }, []);
+
   const handleLevelNumberChange = (newLevel: number) => {
     onChange({ ...level, Level: newLevel });
   };
@@ -43,6 +65,7 @@ export function LevelEditor({
       Type: type,
       Data: getDefaultStepData(type),
       Focus: false,
+      _id: generateStepId(),
     };
     onChange({
       ...level,
@@ -109,7 +132,7 @@ export function LevelEditor({
           <>
             {level.Steps.map((step, index) => (
               <StepEditor
-                key={index}
+                key={getStepKey(step, index)}
                 step={step}
                 stepIndex={index}
                 onChange={(updatedStep) => handleStepChange(index, updatedStep)}
@@ -149,7 +172,10 @@ function AddStepButton({ onAddStep }: AddStepButtonProps) {
           Add Step
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="center">
+      <DropdownMenuContent 
+        align="center"
+        onCloseAutoFocus={(e) => e.preventDefault()}
+      >
         {Object.entries(STEP_TYPE_LABELS).map(([value, label]) => (
           <DropdownMenuItem
             key={value}

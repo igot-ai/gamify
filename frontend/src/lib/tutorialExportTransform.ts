@@ -2,20 +2,14 @@
  * Transform internal TutorialConfig to Unity-compatible export format.
  */
 
-import type { TutorialConfig, TutorialData, TutorialLevel, TutorialStep, Tile } from './validations/tutorialConfig';
+import type { TutorialConfig, TutorialData, TutorialLevel, TutorialStep, GridTile } from './validations/tutorialConfig';
 
 // ============================================
 // EXPORT INTERFACES (Unity format - PascalCase)
 // ============================================
 
-export interface ExportTile {
-  id: number;
-  row: number;
-  col: number;
-  layer: number;
-  ind: number;
-  skin: number;
-}
+// GridTile is exported as [column, -row, skinId] array
+export type ExportGridTile = [number, number, number];
 
 export interface ExportToastModel {
   M: string;
@@ -44,11 +38,9 @@ export interface ExportHintPointInfo {
 
 export interface ExportLoadBoardData {
   Level: number;
-  Adaptive: number;
-  Tiles: ExportTile[];
-  HolderTiles: any[];
-  CanRevive: boolean;
-  TotalTiles: number;
+  Moves: number;
+  GridTiles: ExportGridTile[];
+  HolderTiles: number[];
 }
 
 export interface ExportShowToastData {
@@ -95,24 +87,20 @@ export interface ExportTutorialConfig {
 // TRANSFORM FUNCTIONS
 // ============================================
 
-function transformTile(tile: Tile): ExportTile {
-  return {
-    id: tile.id,
-    row: tile.row,
-    col: tile.col,
-    layer: tile.layer,
-    ind: tile.ind,
-    skin: tile.skin,
-  };
+function transformGridTile(tile: GridTile): ExportGridTile {
+  // GridTile is already in [column, -row, skinId] format
+  return [tile[0], tile[1], tile[2]];
 }
 
 function transformStepData(type: number, data: any): any {
   // Data is already in the correct format (PascalCase from the schema)
-  // Just ensure tiles are properly transformed for LoadBoard
-  if (type === 0 && data.Tiles) {
+  // Just ensure grid tiles are properly transformed for LoadBoard
+  if (type === 0 && data.GridTiles) {
     return {
-      ...data,
-      Tiles: data.Tiles.map(transformTile),
+      Level: data.Level,
+      Moves: data.Moves,
+      GridTiles: data.GridTiles.map(transformGridTile),
+      HolderTiles: data.HolderTiles || [],
     };
   }
   return data;

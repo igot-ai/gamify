@@ -7,7 +7,6 @@ import {
   ChevronDown, 
   X, 
   Package,
-  FolderOpen,
   Layers
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -288,24 +287,13 @@ export function InventoryItemsSection({ onSave, isSaving = false, readOnly = fal
                                 render={({ field }) => (
                                   <FormItem>
                                     <FormLabel className="text-xs">Item Icon Path</FormLabel>
-                                    <div className="flex gap-2">
-                                      <FormControl>
-                                        <Input 
-                                          {...field} 
-                                          placeholder="Assets/Icons/undo.png"
-                                          className="h-9 bg-muted/30 flex-1"
-                                        />
-                                      </FormControl>
-                                      <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        className="h-9 px-3"
-                                      >
-                                        <FolderOpen className="h-4 w-4 mr-1.5" />
-                                        Browse
-                                      </Button>
-                                    </div>
+                                    <FormControl>
+                                      <Input 
+                                        {...field}
+                                        placeholder="Assets/Icons/undo.png"
+                                        className="h-9 bg-muted/30"
+                                      />
+                                    </FormControl>
                                     <FormMessage />
                                   </FormItem>
                                 )}

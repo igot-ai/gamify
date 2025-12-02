@@ -6,9 +6,11 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 import requests  # type: ignore[import]
+from firebase_admin import credentials
+from google.oauth2 import service_account
+from google.auth.transport.requests import AuthorizedSession
 
 from app.core.exceptions import FirebaseError as AppFirebaseError
-from app.core.firebase import get_authorized_session, get_firebase_app
 
 logger = logging.getLogger(__name__)
 
@@ -19,19 +21,41 @@ MAX_ATTEMPTS = 3
 
 
 class FirebaseRemoteConfigService:
-    """Service for interacting with Firebase Remote Config via REST API."""
+    """Service for interacting with Firebase Remote Config via REST API.
+    
+    This service uses per-game Firebase service account credentials.
+    """
 
-    def __init__(self) -> None:
-        self.app = get_firebase_app()
-        self.session = get_authorized_session(REMOTE_CONFIG_SCOPE)
+    def __init__(self, service_account_info: Dict[str, Any]) -> None:
+        """Initialize the service with game-specific service account credentials.
+        
+        Args:
+            service_account_info: The Firebase service account JSON as a dictionary
+        """
+        if not service_account_info:
+            raise AppFirebaseError("initialize Firebase", "Service account info is required")
+        
+        self._project_id = service_account_info.get("project_id")
+        if not self._project_id:
+            raise AppFirebaseError("initialize Firebase", "Service account must contain project_id")
+        
+        # Create credentials from the service account dictionary
+        try:
+            self._credentials = service_account.Credentials.from_service_account_info(
+                service_account_info,
+                scopes=REMOTE_CONFIG_SCOPE
+            )
+            self.session = AuthorizedSession(self._credentials)
+        except Exception as e:
+            raise AppFirebaseError("initialize Firebase credentials", str(e))
 
-    def _project_id(self) -> str:
-        if not self.app.project_id:
+    def _get_project_id(self) -> str:
+        if not self._project_id:
             raise AppFirebaseError("determine project id", "Firebase project ID is not configured")
-        return self.app.project_id
+        return self._project_id
 
     def _build_url(self, path: str) -> str:
-        return f"{REMOTE_CONFIG_BASE_URL}/projects/{self._project_id()}/{path}"
+        return f"{REMOTE_CONFIG_BASE_URL}/projects/{self._get_project_id()}/{path}"
 
     async def _send_request(
         self,
@@ -325,13 +349,13 @@ class FirebaseRemoteConfigService:
         }
 
 
-# Singleton instance
-_firebase_service: Optional[FirebaseRemoteConfigService] = None
-
-
-def get_firebase_service() -> FirebaseRemoteConfigService:
-    """Get or create Firebase Remote Config service instance"""
-    global _firebase_service
-    if _firebase_service is None:
-        _firebase_service = FirebaseRemoteConfigService()
-    return _firebase_service
+def create_firebase_service(service_account_info: Dict[str, Any]) -> FirebaseRemoteConfigService:
+    """Create a Firebase Remote Config service instance with game-specific credentials.
+    
+    Args:
+        service_account_info: The Firebase service account JSON as a dictionary
+        
+    Returns:
+        FirebaseRemoteConfigService instance configured for the specific game
+    """
+    return FirebaseRemoteConfigService(service_account_info)

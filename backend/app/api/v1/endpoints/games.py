@@ -1,17 +1,18 @@
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 import re
-import os
+import json
 import uuid
 import shutil
 from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from pydantic import ValidationError
 
 from app.core.database import get_db
 from app.core.response import ApiResponse, create_response
 from app.models.game import Game
-from app.schemas.game import GameCreate, GameUpdate, GameResponse
+from app.schemas.game import GameUpdate, GameResponse, FirebaseServiceAccountValidation
 
 router = APIRouter()
 
@@ -19,6 +20,51 @@ router = APIRouter()
 UPLOAD_DIR = Path(__file__).parent.parent.parent.parent / "uploads" / "avatars"
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".webp"}
 MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
+
+
+async def parse_and_validate_firebase_service_account(file: UploadFile) -> Dict[str, Any]:
+    """Parse and validate Firebase service account JSON file"""
+    # Check file extension
+    if file.filename and not file.filename.endswith('.json'):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Firebase service account must be a JSON file"
+        )
+    
+    # Read file content
+    try:
+        content = await file.read()
+        service_account_data = json.loads(content.decode('utf-8'))
+    except json.JSONDecodeError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid JSON format in Firebase service account file"
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Failed to read Firebase service account file: {str(e)}"
+        )
+    finally:
+        await file.seek(0)  # Reset file pointer
+    
+    # Validate structure using Pydantic schema
+    try:
+        FirebaseServiceAccountValidation(**service_account_data)
+    except ValidationError as e:
+        errors = e.errors()
+        missing_fields = [err['loc'][0] for err in errors if err['type'] == 'missing']
+        if missing_fields:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Firebase service account JSON is missing required fields: {', '.join(missing_fields)}"
+            )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid Firebase service account JSON: {errors[0]['msg']}"
+        )
+    
+    return service_account_data
 
 
 def slugify(text: str) -> str:
@@ -81,17 +127,20 @@ async def list_games(
 @router.post("", response_model=ApiResponse[GameResponse], status_code=status.HTTP_201_CREATED)
 async def create_game(
     name: str = Form(...),
-    firebase_project_id: str = Form(...),
+    firebase_service_account: UploadFile = File(..., description="Firebase service account JSON file"),
     description: Optional[str] = Form(None),
     slug: Optional[str] = Form(None),
     avatar: Optional[UploadFile] = File(None),
     db: AsyncSession = Depends(get_db),
 ):
-    """Create a new game with optional avatar"""
+    """Create a new game with Firebase service account JSON file and optional avatar"""
+    # Parse and validate Firebase service account JSON
+    service_account_data = await parse_and_validate_firebase_service_account(firebase_service_account)
+    
     # Build game data
     game_data = {
         "name": name,
-        "firebase_project_id": firebase_project_id,
+        "firebase_service_account": service_account_data,
         "description": description,
         "slug": slug if slug else slugify(name),
     }
@@ -150,6 +199,29 @@ async def update_game(
     update_data = game_update.dict(exclude_unset=True)
     for field, value in update_data.items():
         setattr(game, field, value)
+    
+    await db.commit()
+    await db.refresh(game)
+    return create_response(game)
+
+
+@router.patch("/{game_id}/firebase-service-account", response_model=ApiResponse[GameResponse])
+async def update_firebase_service_account(
+    game_id: str,
+    firebase_service_account: UploadFile = File(..., description="Firebase service account JSON file"),
+    db: AsyncSession = Depends(get_db),
+):
+    """Update a game's Firebase service account"""
+    result = await db.execute(select(Game).where(Game.id == game_id))
+    game = result.scalar_one_or_none()
+    
+    if not game:
+        raise HTTPException(status_code=404, detail="Game not found")
+    
+    # Parse and validate Firebase service account JSON
+    service_account_data = await parse_and_validate_firebase_service_account(firebase_service_account)
+    
+    game.firebase_service_account = service_account_data
     
     await db.commit()
     await db.refresh(game)

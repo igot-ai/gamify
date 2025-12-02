@@ -29,19 +29,17 @@ export const STEP_TYPE_ICONS: Record<ETutorialStep, string> = {
 };
 
 // ============================================
-// TILE SCHEMA (for LoadBoard step)
+// GRID TILE SCHEMA (for LoadBoard step)
+// Format: [column, -row, skinId]
 // ============================================
 
-export const tileSchema = z.object({
-  id: z.number().int().min(0, 'Tile ID must be 0 or greater'),
-  row: z.number(),
-  col: z.number(),
-  layer: z.number().int().min(0, 'Layer must be 0 or greater'),
-  ind: z.number().int().min(0, 'Index must be 0 or greater'),
-  skin: z.number().int().min(0, 'Skin must be 0 or greater'),
-});
+export const gridTileSchema = z.tuple([
+  z.number(), // column
+  z.number(), // -row (negative row)
+  z.number().int().min(0), // skinId
+]);
 
-export type Tile = z.infer<typeof tileSchema>;
+export type GridTile = z.infer<typeof gridTileSchema>;
 
 // ============================================
 // TOAST MODEL SCHEMA (for ShowToast step)
@@ -93,11 +91,9 @@ export type HintPointInfo = z.infer<typeof hintPointInfoSchema>;
 // LoadBoard step data
 export const loadBoardDataSchema = z.object({
   Level: z.number().int().min(1, 'Level must be at least 1'),
-  Adaptive: z.number().int().min(0, 'Adaptive must be 0 or greater'),
-  Tiles: z.array(tileSchema),
-  HolderTiles: z.array(z.any()).default([]),
-  CanRevive: z.boolean(),
-  TotalTiles: z.number().int().min(0, 'Total tiles must be 0 or greater'),
+  Moves: z.number().int().min(0, 'Moves must be 0 or greater'),
+  GridTiles: z.array(gridTileSchema),
+  HolderTiles: z.array(z.number().int().min(0)), // Array of skinId integers
 });
 
 export type LoadBoardData = z.infer<typeof loadBoardDataSchema>;
@@ -148,9 +144,15 @@ export const tutorialStepSchema = z.object({
   Type: z.nativeEnum(ETutorialStep),
   Data: z.any(), // Validated at runtime based on Type
   Focus: z.boolean(),
+  _id: z.string().optional(), // Internal ID for React key (stripped on export)
 });
 
 export type TutorialStep = z.infer<typeof tutorialStepSchema>;
+
+// Generate unique ID for steps
+export const generateStepId = (): string => {
+  return `step_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+};
 
 // ============================================
 // TUTORIAL LEVEL SCHEMA
@@ -189,14 +191,7 @@ export type TutorialConfig = z.infer<typeof tutorialConfigSchema>;
 // DEFAULT VALUES
 // ============================================
 
-export const defaultTile: Tile = {
-  id: 0,
-  row: 0,
-  col: 0,
-  layer: 0,
-  ind: 0,
-  skin: 0,
-};
+export const defaultGridTile: GridTile = [0, 0, 0]; // [column, -row, skinId]
 
 export const defaultToastModel: ToastModel = {
   M: '',
@@ -225,11 +220,9 @@ export const defaultHintPointInfo: HintPointInfo = {
 
 export const defaultLoadBoardData: LoadBoardData = {
   Level: 1,
-  Adaptive: 0,
-  Tiles: [],
+  Moves: 10,
+  GridTiles: [],
   HolderTiles: [],
-  CanRevive: false,
-  TotalTiles: 0,
 };
 
 export const defaultShowPopupData: ShowPopupData = {
@@ -278,6 +271,7 @@ export const defaultTutorialStep: TutorialStep = {
   Type: ETutorialStep.LoadBoard,
   Data: defaultLoadBoardData,
   Focus: false,
+  _id: '', // Will be generated when creating
 };
 
 export const defaultTutorialLevel: TutorialLevel = {

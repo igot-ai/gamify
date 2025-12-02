@@ -9,7 +9,7 @@ from app.core.database import get_db
 from app.core.response import ApiResponse, create_response
 from app.models.game import Game
 from app.models.section_config import SectionConfig
-from app.services.firebase_service import get_firebase_service
+from app.services.firebase_service import create_firebase_service
 from app.services.config_converter import get_config_converter
 
 router = APIRouter()
@@ -26,16 +26,19 @@ async def import_from_firebase(
     This will fetch the current Remote Config template from Firebase
     and return it in portal format (not saved to database yet).
     """
-    # Verify game exists
+    # Verify game exists and has Firebase configured
     result = await db.execute(select(Game).where(Game.id == game_id))
     game = result.scalar_one_or_none()
     
     if not game:
         raise HTTPException(status_code=404, detail="Game not found")
     
+    if not game.firebase_service_account:
+        raise HTTPException(status_code=400, detail="Game does not have Firebase service account configured")
+    
     try:
-        # Get Firebase service and converter
-        firebase_service = get_firebase_service()
+        # Get Firebase service with game-specific credentials and converter
+        firebase_service = create_firebase_service(game.firebase_service_account)
         converter = get_config_converter()
         
         # Fetch current template from Firebase
@@ -81,9 +84,12 @@ async def get_firebase_status(
     if not game:
         raise HTTPException(status_code=404, detail="Game not found")
     
+    if not game.firebase_service_account:
+        raise HTTPException(status_code=400, detail="Game does not have Firebase service account configured")
+    
     try:
-        # Get Firebase template
-        firebase_service = get_firebase_service()
+        # Get Firebase template using game-specific credentials
+        firebase_service = create_firebase_service(game.firebase_service_account)
         firebase_template = await firebase_service.get_current_template()
         
         # Get published section configs from database
@@ -136,8 +142,11 @@ async def get_firebase_version_history(
     if not game:
         raise HTTPException(status_code=404, detail="Game not found")
     
+    if not game.firebase_service_account:
+        raise HTTPException(status_code=400, detail="Game does not have Firebase service account configured")
+    
     try:
-        firebase_service = get_firebase_service()
+        firebase_service = create_firebase_service(game.firebase_service_account)
         versions = await firebase_service.get_version_history(limit=limit)
         
         return create_response({

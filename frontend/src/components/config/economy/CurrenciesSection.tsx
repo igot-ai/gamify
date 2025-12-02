@@ -6,8 +6,7 @@ import { useFormContext, useFieldArray } from 'react-hook-form';
 import { 
   ChevronDown, 
   X, 
-  Coins,
-  FolderOpen 
+  Coins
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -290,24 +289,13 @@ export function CurrenciesSection({ onSave, isSaving = false, readOnly = false }
                                 render={({ field }) => (
                                   <FormItem>
                                     <FormLabel className="text-xs">Currency Icon Path</FormLabel>
-                                    <div className="flex gap-2">
-                                      <FormControl>
-                                        <Input 
-                                          {...field} 
-                                          placeholder="Assets/Icons/coin.png"
-                                          className="h-9 bg-muted/30 flex-1"
-                                        />
-                                      </FormControl>
-                                      <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        className="h-9 px-3"
-                                      >
-                                        <FolderOpen className="h-4 w-4 mr-1.5" />
-                                        Browse
-                                      </Button>
-                                    </div>
+                                    <FormControl>
+                                      <Input 
+                                        {...field}
+                                        placeholder="Assets/Icons/coin.png"
+                                        className="h-9 bg-muted/30"
+                                      />
+                                    </FormControl>
                                     <FormMessage />
                                   </FormItem>
                                 )}

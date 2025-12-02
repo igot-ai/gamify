@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { ChevronDown, Plus, Search, Gamepad2 } from 'lucide-react';
+import { ChevronDown, Plus, Search, Gamepad2, FileJson, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useGames, useCreateGame } from '@/hooks/useGames';
 import { useGame } from '@/contexts/GameContext';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -49,18 +49,32 @@ function GameAvatar({ game, size = 'sm' }: GameAvatarProps) {
 interface GameFormData {
   name: string;
   description: string;
-  firebase_project_id: string;
   avatar: File | null;
 }
 
-function CreateGameForm({ onSuccess }: { onSuccess: () => void }) {
+interface FirebaseServiceAccount {
+  type: string;
+  project_id: string;
+  private_key_id: string;
+  private_key: string;
+  client_email: string;
+  client_id: string;
+  auth_uri: string;
+  token_uri: string;
+  auth_provider_x509_cert_url: string;
+  client_x509_cert_url: string;
+}
+
+function CreateGameForm({ onSuccess }: { onSuccess: (game: Game) => void }) {
   const [formData, setFormData] = useState<GameFormData>({
     name: '',
     description: '',
-    firebase_project_id: '',
     avatar: null,
   });
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [firebaseServiceAccount, setFirebaseServiceAccount] = useState<File | null>(null);
+  const [firebaseProjectId, setFirebaseProjectId] = useState<string | null>(null);
+  const [firebaseFileError, setFirebaseFileError] = useState<string | null>(null);
   const createGame = useCreateGame();
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -75,22 +89,77 @@ function CreateGameForm({ onSuccess }: { onSuccess: () => void }) {
     }
   };
 
+  const handleFirebaseFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    setFirebaseFileError(null);
+    setFirebaseProjectId(null);
+    
+    if (!file) {
+      setFirebaseServiceAccount(null);
+      return;
+    }
+
+    // Validate file extension
+    if (!file.name.endsWith('.json')) {
+      setFirebaseFileError('Please upload a JSON file');
+      return;
+    }
+
+    // Read and validate JSON content
+    try {
+      const content = await file.text();
+      const json = JSON.parse(content) as FirebaseServiceAccount;
+      
+      // Validate required fields
+      const requiredFields = ['type', 'project_id', 'private_key', 'client_email'];
+      const missingFields = requiredFields.filter(field => !(field in json));
+      
+      if (missingFields.length > 0) {
+        setFirebaseFileError(`Missing required fields: ${missingFields.join(', ')}`);
+        return;
+      }
+
+      if (json.type !== 'service_account') {
+        setFirebaseFileError('Invalid service account type. Expected "service_account"');
+        return;
+      }
+
+      if (!json.private_key.startsWith('-----BEGIN PRIVATE KEY-----')) {
+        setFirebaseFileError('Invalid private key format');
+        return;
+      }
+
+      setFirebaseServiceAccount(file);
+      setFirebaseProjectId(json.project_id);
+    } catch {
+      setFirebaseFileError('Invalid JSON file');
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!firebaseServiceAccount) {
+      toast.error('Please upload a Firebase service account JSON file');
+      return;
+    }
+
     try {
       const submitData = new FormData();
       submitData.append('name', formData.name);
-      submitData.append('firebase_project_id', formData.firebase_project_id);
       if (formData.description) {
         submitData.append('description', formData.description);
       }
       if (formData.avatar) {
         submitData.append('avatar', formData.avatar);
       }
+      submitData.append('firebase_service_account', firebaseServiceAccount);
       
-      await createGame.mutateAsync(submitData);
-      onSuccess();
-      toast.success('Game created successfully');
+      const newGame = await createGame.mutateAsync(submitData);
+      if (newGame) {
+        onSuccess(newGame);
+        toast.success('Game created successfully');
+      }
     } catch {
       toast.error('Failed to create game');
     }
@@ -144,18 +213,61 @@ function CreateGameForm({ onSuccess }: { onSuccess: () => void }) {
             placeholder="Game description"
           />
         </div>
+        
+        {/* Firebase Service Account Upload */}
         <div>
-          <label className="text-sm font-medium">Firebase Project ID *</label>
-          <Input
-            value={formData.firebase_project_id}
-            onChange={(e) => setFormData({ ...formData, firebase_project_id: e.target.value })}
-            placeholder="your-firebase-project"
-            required
-          />
+          <label className="text-sm font-medium">Firebase Service Account *</label>
+          <div className="mt-1">
+            <label
+              className={`flex flex-col items-center justify-center w-full h-24 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${
+                firebaseFileError
+                  ? 'border-destructive bg-destructive/5'
+                  : firebaseServiceAccount
+                  ? 'border-green-500 bg-green-50 dark:bg-green-950/20'
+                  : 'border-border hover:bg-muted/50'
+              }`}
+            >
+              <div className="flex flex-col items-center justify-center py-2">
+                {firebaseServiceAccount ? (
+                  <>
+                    <CheckCircle2 className="h-6 w-6 text-green-500 mb-1" />
+                    <p className="text-sm font-medium text-green-600 dark:text-green-400">
+                      {firebaseServiceAccount.name}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Project: <span className="font-mono">{firebaseProjectId}</span>
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <FileJson className="h-6 w-6 text-muted-foreground mb-1" />
+                    <p className="text-sm text-muted-foreground">
+                      <span className="font-medium">Click to upload</span> Firebase service account JSON
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Download from Firebase Console
+                    </p>
+                  </>
+                )}
+              </div>
+              <input
+                type="file"
+                accept=".json"
+                onChange={handleFirebaseFileChange}
+                className="hidden"
+              />
+            </label>
+            {firebaseFileError && (
+              <p className="text-xs text-destructive mt-1 flex items-center gap-1">
+                <AlertCircle className="h-3 w-3" />
+                {firebaseFileError}
+              </p>
+            )}
+          </div>
         </div>
       </div>
       <div className="flex gap-4 justify-end">
-        <Button type="submit" disabled={createGame.isPending}>
+        <Button type="submit" disabled={createGame.isPending || !firebaseServiceAccount}>
           {createGame.isPending ? 'Creating...' : 'Create'}
         </Button>
       </div>
@@ -200,8 +312,11 @@ export function GameSelector() {
     }
   };
 
-  const handleCreateSuccess = () => {
+  const handleCreateSuccess = (newGame: Game) => {
     setCreateDialogOpen(false);
+    // Select the newly created game and navigate to it
+    setSelectedGame(newGame);
+    router.push(`/sections/economy?gameId=${newGame.id}`);
   };
 
   if (isLoadingGames) {

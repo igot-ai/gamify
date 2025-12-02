@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List, Optional, Any
+from typing import List, Optional, Any, Tuple
 from enum import IntEnum
 
 
@@ -12,19 +12,8 @@ class ETutorialStep(IntEnum):
     HINT_POINT = 4
 
 
-class Tile(BaseModel):
-    """Tile configuration for LoadBoard step"""
-    id: int = Field(..., ge=0, description="Tile ID")
-    row: float = Field(..., description="Row position")
-    col: float = Field(..., description="Column position")
-    layer: int = Field(default=0, ge=0, description="Layer (z-index)")
-    ind: int = Field(default=0, ge=0, description="Index")
-    skin: int = Field(default=0, ge=0, description="Skin ID")
-    
-    class Config:
-        json_schema_extra = {
-            "example": {"id": 0, "row": 0, "col": -2, "layer": 0, "ind": 0, "skin": 0}
-        }
+# GridTile is a tuple of [column, -row, skinId]
+GridTile = Tuple[float, float, int]
 
 
 class ToastModel(BaseModel):
@@ -63,11 +52,19 @@ class HintPointInfo(BaseModel):
 class LoadBoardData(BaseModel):
     """Data for LoadBoard step type"""
     Level: int = Field(..., ge=1, description="Level number")
-    Adaptive: int = Field(default=0, ge=0, description="Adaptive mode")
-    Tiles: List[Tile] = Field(default_factory=list, description="Tile configurations")
-    HolderTiles: List[Any] = Field(default_factory=list, description="Holder tile data")
-    CanRevive: bool = Field(default=False, description="Whether revive is allowed")
-    TotalTiles: int = Field(default=0, ge=0, description="Total tile count")
+    Moves: int = Field(..., ge=0, description="Number of moves allowed")
+    GridTiles: List[List[float]] = Field(default_factory=list, description="Grid tiles as [column, -row, skinId]")
+    HolderTiles: List[int] = Field(default_factory=list, description="Holder tiles skin IDs")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "Level": 1,
+                "Moves": 10,
+                "GridTiles": [[0, 0, 1], [1, 0, 2], [2, 0, 3]],
+                "HolderTiles": [1, 2, 3]
+            }
+        }
 
 
 class ShowToastData(BaseModel):
@@ -106,11 +103,9 @@ class TutorialStep(BaseModel):
                 "Type": 0,
                 "Data": {
                     "Level": 1,
-                    "Adaptive": 0,
-                    "Tiles": [],
-                    "HolderTiles": [],
-                    "CanRevive": False,
-                    "TotalTiles": 0
+                    "Moves": 10,
+                    "GridTiles": [[0, 0, 1], [1, 0, 2]],
+                    "HolderTiles": [1, 2, 3]
                 },
                 "Focus": False
             }
@@ -147,11 +142,13 @@ class TutorialData(BaseModel):
 
 class TutorialConfig(BaseModel):
     """Full tutorial configuration"""
+    option: int = Field(default=1, ge=1, description="Tutorial option (determines which Option_X.json to load)")
     data: TutorialData = Field(..., description="Tutorial data")
     
     class Config:
         json_schema_extra = {
             "example": {
+                "option": 1,
                 "data": {
                     "Id": "1",
                     "Levels": []

@@ -77,23 +77,17 @@ def transform_hint_offer_config(config: Dict[str, Any]) -> Dict[str, Any]:
 
 def transform_tutorial_config(config: Dict[str, Any]) -> Dict[str, Any]:
     """Transform TutorialConfig to Unity format."""
-    def transform_tile(tile: Dict[str, Any]) -> Dict[str, Any]:
-        return {
-            "id": tile.get("id", 0),
-            "row": tile.get("row", 0),
-            "col": tile.get("col", 0),
-            "layer": tile.get("layer", 0),
-            "ind": tile.get("ind", 0),
-            "skin": tile.get("skin", 0),
-        }
-    
     def transform_step(step: Dict[str, Any]) -> Dict[str, Any]:
         data = step.get("Data", {})
-        # Transform tiles if this is a LoadBoard step (Type 0)
-        if step.get("Type") == 0 and "Tiles" in data:
+        # LoadBoard step (Type 0) - data is already in correct format
+        # GridTiles: [[column, -row, skinId], ...]
+        # HolderTiles: [skinId, ...]
+        if step.get("Type") == 0:
             data = {
-                **data,
-                "Tiles": [transform_tile(t) for t in data.get("Tiles", [])],
+                "Level": data.get("Level", 1),
+                "Moves": data.get("Moves", 10),
+                "GridTiles": data.get("GridTiles", []),
+                "HolderTiles": data.get("HolderTiles", []),
             }
         return {
             "Type": step.get("Type", 0),

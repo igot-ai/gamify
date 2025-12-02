@@ -46,7 +46,6 @@ const configSections: NavItem[] = [
   { label: 'Economy', icon: Coins, path: '/sections/economy', sectionType: 'economy' },
   { label: 'Ads', icon: Tv, path: '/sections/ads', sectionType: 'ads' },
   { label: 'Notifications', icon: Bell, path: '/sections/notification', sectionType: 'notification' },
-  { label: 'Shop', icon: ShoppingCart, path: '/sections/shop', sectionType: 'shop' },
   { label: 'Boosters', icon: Rocket, path: '/sections/booster', sectionType: 'booster' },
   { label: 'Game Config', icon: Gamepad2, path: '/sections/game', sectionType: 'game' },
   { label: 'Haptic', icon: Vibrate, path: '/sections/haptic', sectionType: 'haptic' },

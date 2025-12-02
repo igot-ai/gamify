@@ -22,7 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/Table';
-import { Plus, Edit, Trash2, AlertCircle, Gamepad2 } from 'lucide-react';
+import { Plus, Edit, Trash2, AlertCircle, Gamepad2, Upload, FileJson, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function GamesPage() {
@@ -218,16 +218,31 @@ interface GameFormProps {
   onSuccess?: () => void;
 }
 
+interface FirebaseServiceAccount {
+  type: string;
+  project_id: string;
+  private_key_id: string;
+  private_key: string;
+  client_email: string;
+  client_id: string;
+  auth_uri: string;
+  token_uri: string;
+  auth_provider_x509_cert_url: string;
+  client_x509_cert_url: string;
+}
+
 function GameForm({ game, onSuccess }: GameFormProps) {
   const [formData, setFormData] = useState({
     name: game?.name || '',
     description: game?.description || '',
-    firebase_project_id: game?.firebase_project_id || '',
   });
   const [avatar, setAvatar] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(
     game?.avatar_url ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}${game.avatar_url}` : null
   );
+  const [firebaseServiceAccount, setFirebaseServiceAccount] = useState<File | null>(null);
+  const [firebaseProjectId, setFirebaseProjectId] = useState<string | null>(game?.firebase_project_id || null);
+  const [firebaseFileError, setFirebaseFileError] = useState<string | null>(null);
 
   const createGame = useCreateGame();
   const updateGameMutation = useUpdateGame(game?.id || '');
@@ -244,22 +259,78 @@ function GameForm({ game, onSuccess }: GameFormProps) {
     }
   };
 
+  const handleFirebaseFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    setFirebaseFileError(null);
+    setFirebaseProjectId(null);
+    
+    if (!file) {
+      setFirebaseServiceAccount(null);
+      return;
+    }
+
+    // Validate file extension
+    if (!file.name.endsWith('.json')) {
+      setFirebaseFileError('Please upload a JSON file');
+      return;
+    }
+
+    // Read and validate JSON content
+    try {
+      const content = await file.text();
+      const json = JSON.parse(content) as FirebaseServiceAccount;
+      
+      // Validate required fields
+      const requiredFields = ['type', 'project_id', 'private_key', 'client_email'];
+      const missingFields = requiredFields.filter(field => !(field in json));
+      
+      if (missingFields.length > 0) {
+        setFirebaseFileError(`Missing required fields: ${missingFields.join(', ')}`);
+        return;
+      }
+
+      if (json.type !== 'service_account') {
+        setFirebaseFileError('Invalid service account type. Expected "service_account"');
+        return;
+      }
+
+      if (!json.private_key.startsWith('-----BEGIN PRIVATE KEY-----')) {
+        setFirebaseFileError('Invalid private key format');
+        return;
+      }
+
+      setFirebaseServiceAccount(file);
+      setFirebaseProjectId(json.project_id);
+    } catch (err) {
+      setFirebaseFileError('Invalid JSON file');
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate firebase service account for new games
+    if (!game && !firebaseServiceAccount) {
+      toast.error('Please upload a Firebase service account JSON file');
+      return;
+    }
+
     try {
       if (game) {
-        // For updates, use JSON (avatar updates not supported in edit mode for now)
+        // For updates, use JSON (avatar and firebase updates not supported in edit mode for now)
         await updateGameMutation.mutateAsync(formData);
       } else {
-        // For creation, use FormData to support avatar upload
+        // For creation, use FormData to support file uploads
         const submitData = new FormData();
         submitData.append('name', formData.name);
-        submitData.append('firebase_project_id', formData.firebase_project_id);
         if (formData.description) {
           submitData.append('description', formData.description);
         }
         if (avatar) {
           submitData.append('avatar', avatar);
+        }
+        if (firebaseServiceAccount) {
+          submitData.append('firebase_service_account', firebaseServiceAccount);
         }
         await createGame.mutateAsync(submitData);
       }
@@ -325,20 +396,80 @@ function GameForm({ game, onSuccess }: GameFormProps) {
             placeholder="Game description"
           />
         </div>
+        
+        {/* Firebase Service Account Upload */}
         <div>
-          <label className="text-sm font-medium">Firebase Project ID *</label>
-          <Input
-            value={formData.firebase_project_id}
-            onChange={(e) =>
-              setFormData({ ...formData, firebase_project_id: e.target.value })
-            }
-            placeholder="your-firebase-project"
-            required
-          />
+          <label className="text-sm font-medium">
+            Firebase Service Account {!game && '*'}
+          </label>
+          {game ? (
+            // For editing, show current project ID (readonly)
+            <div className="mt-1 p-3 bg-muted rounded-md">
+              <div className="flex items-center gap-2 text-sm">
+                <CheckCircle2 className="h-4 w-4 text-green-500" />
+                <span className="font-mono">{firebaseProjectId || 'Not configured'}</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Firebase service account cannot be changed after creation
+              </p>
+            </div>
+          ) : (
+            // For creation, show file upload
+            <div className="mt-1">
+              <label
+                className={`flex flex-col items-center justify-center w-full h-24 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${
+                  firebaseFileError
+                    ? 'border-destructive bg-destructive/5'
+                    : firebaseServiceAccount
+                    ? 'border-green-500 bg-green-50 dark:bg-green-950/20'
+                    : 'border-border hover:bg-muted/50'
+                }`}
+              >
+                <div className="flex flex-col items-center justify-center py-2">
+                  {firebaseServiceAccount ? (
+                    <>
+                      <CheckCircle2 className="h-6 w-6 text-green-500 mb-1" />
+                      <p className="text-sm font-medium text-green-600 dark:text-green-400">
+                        {firebaseServiceAccount.name}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Project: <span className="font-mono">{firebaseProjectId}</span>
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <FileJson className="h-6 w-6 text-muted-foreground mb-1" />
+                      <p className="text-sm text-muted-foreground">
+                        <span className="font-medium">Click to upload</span> Firebase service account JSON
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Download from Firebase Console &gt; Project Settings &gt; Service Accounts
+                      </p>
+                    </>
+                  )}
+                </div>
+                <input
+                  type="file"
+                  accept=".json"
+                  onChange={handleFirebaseFileChange}
+                  className="hidden"
+                />
+              </label>
+              {firebaseFileError && (
+                <p className="text-xs text-destructive mt-1 flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3" />
+                  {firebaseFileError}
+                </p>
+              )}
+            </div>
+          )}
         </div>
       </div>
       <div className="flex gap-4 justify-end">
-        <Button type="submit" disabled={createGame.isPending || updateGameMutation.isPending}>
+        <Button 
+          type="submit" 
+          disabled={createGame.isPending || updateGameMutation.isPending || (!game && !firebaseServiceAccount)}
+        >
           {game ? 'Update' : 'Create'}
         </Button>
       </div>

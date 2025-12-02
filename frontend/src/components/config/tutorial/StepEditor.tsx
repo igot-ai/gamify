@@ -20,28 +20,28 @@ import {
   STEP_TYPE_ICONS,
   getDefaultStepData,
   type TutorialStep,
-  type Tile,
+  type GridTile,
   type LoadBoardData,
   type ShowToastData,
   type ShowPopupData,
   type HintTapData,
   type HintPointData,
-  defaultTile,
+  defaultGridTile,
 } from '@/lib/validations/tutorialConfig';
 
 // ============================================
-// TILE EDITOR COMPONENT
+// GRID TILE EDITOR COMPONENT
+// Format: [column, -row, skinId]
 // ============================================
 
-interface TileEditorProps {
-  tiles: Tile[];
-  onChange: (tiles: Tile[]) => void;
+interface GridTileEditorProps {
+  tiles: GridTile[];
+  onChange: (tiles: GridTile[]) => void;
 }
 
-function TileEditor({ tiles, onChange }: TileEditorProps) {
+function GridTileEditor({ tiles, onChange }: GridTileEditorProps) {
   const handleAdd = () => {
-    const newId = tiles.length > 0 ? Math.max(...tiles.map(t => t.id)) + 1 : 0;
-    onChange([...tiles, { ...defaultTile, id: newId }]);
+    onChange([...tiles, [...defaultGridTile] as GridTile]);
   };
 
   const handleRemove = (index: number) => {
@@ -50,16 +50,18 @@ function TileEditor({ tiles, onChange }: TileEditorProps) {
     onChange(newTiles);
   };
 
-  const handleChange = (index: number, field: keyof Tile, value: number) => {
+  const handleChange = (index: number, fieldIndex: 0 | 1 | 2, value: number) => {
     const newTiles = [...tiles];
-    newTiles[index] = { ...newTiles[index], [field]: value };
+    const newTile = [...newTiles[index]] as GridTile;
+    newTile[fieldIndex] = value;
+    newTiles[index] = newTile;
     onChange(newTiles);
   };
 
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <Label className="text-sm font-medium">Tiles ({tiles.length})</Label>
+        <Label className="text-sm font-medium">Grid Tiles ({tiles.length})</Label>
         <Button
           type="button"
           variant="outline"
@@ -73,55 +75,35 @@ function TileEditor({ tiles, onChange }: TileEditorProps) {
 
       {tiles.length > 0 && (
         <>
-          <div className="grid grid-cols-7 gap-2 px-2 text-xs text-muted-foreground font-medium">
-            <div>ID</div>
-            <div>Row</div>
-            <div>Col</div>
-            <div>Layer</div>
-            <div>Ind</div>
-            <div>Skin</div>
+          <div className="grid grid-cols-4 gap-2 px-2 text-xs text-muted-foreground font-medium">
+            <div>Column</div>
+            <div>-Row</div>
+            <div>Skin ID</div>
             <div></div>
           </div>
           <div className="space-y-1">
             {tiles.map((tile, index) => (
-              <div key={index} className="grid grid-cols-7 gap-2 items-center">
+              <div key={index} className="grid grid-cols-4 gap-2 items-center">
                 <Input
                   type="number"
-                  value={tile.id}
-                  onChange={(e) => handleChange(index, 'id', parseInt(e.target.value) || 0)}
+                  value={tile[0]}
+                  onChange={(e) => handleChange(index, 0, parseFloat(e.target.value) || 0)}
                   className="h-8 text-xs"
+                  placeholder="column"
                 />
                 <Input
                   type="number"
-                  step="0.5"
-                  value={tile.row}
-                  onChange={(e) => handleChange(index, 'row', parseFloat(e.target.value) || 0)}
+                  value={tile[1]}
+                  onChange={(e) => handleChange(index, 1, parseFloat(e.target.value) || 0)}
                   className="h-8 text-xs"
+                  placeholder="-row"
                 />
                 <Input
                   type="number"
-                  step="0.5"
-                  value={tile.col}
-                  onChange={(e) => handleChange(index, 'col', parseFloat(e.target.value) || 0)}
+                  value={tile[2]}
+                  onChange={(e) => handleChange(index, 2, parseInt(e.target.value) || 0)}
                   className="h-8 text-xs"
-                />
-                <Input
-                  type="number"
-                  value={tile.layer}
-                  onChange={(e) => handleChange(index, 'layer', parseInt(e.target.value) || 0)}
-                  className="h-8 text-xs"
-                />
-                <Input
-                  type="number"
-                  value={tile.ind}
-                  onChange={(e) => handleChange(index, 'ind', parseInt(e.target.value) || 0)}
-                  className="h-8 text-xs"
-                />
-                <Input
-                  type="number"
-                  value={tile.skin}
-                  onChange={(e) => handleChange(index, 'skin', parseInt(e.target.value) || 0)}
-                  className="h-8 text-xs"
+                  placeholder="skinId"
                 />
                 <Button
                   type="button"
@@ -140,7 +122,83 @@ function TileEditor({ tiles, onChange }: TileEditorProps) {
 
       {tiles.length === 0 && (
         <div className="rounded border border-dashed border-border/50 bg-muted/10 p-3 text-center text-xs text-muted-foreground">
-          No tiles added yet
+          No grid tiles added yet
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============================================
+// HOLDER TILES EDITOR COMPONENT
+// Array of skinId integers
+// ============================================
+
+interface HolderTilesEditorProps {
+  holderTiles: number[];
+  onChange: (holderTiles: number[]) => void;
+}
+
+function HolderTilesEditor({ holderTiles, onChange }: HolderTilesEditorProps) {
+  const handleAdd = () => {
+    onChange([...holderTiles, 0]);
+  };
+
+  const handleRemove = (index: number) => {
+    const newTiles = [...holderTiles];
+    newTiles.splice(index, 1);
+    onChange(newTiles);
+  };
+
+  const handleChange = (index: number, value: number) => {
+    const newTiles = [...holderTiles];
+    newTiles[index] = value;
+    onChange(newTiles);
+  };
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <Label className="text-sm font-medium">Holder Tiles ({holderTiles.length})</Label>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={handleAdd}
+          className="h-7 px-2 text-xs"
+        >
+          + Add
+        </Button>
+      </div>
+
+      {holderTiles.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {holderTiles.map((skinId, index) => (
+            <div key={index} className="flex items-center gap-1">
+              <Input
+                type="number"
+                value={skinId}
+                onChange={(e) => handleChange(index, parseInt(e.target.value) || 0)}
+                className="h-8 w-20 text-xs"
+                placeholder="skinId"
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => handleRemove(index)}
+                className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {holderTiles.length === 0 && (
+        <div className="rounded border border-dashed border-border/50 bg-muted/10 p-3 text-center text-xs text-muted-foreground">
+          No holder tiles added yet
         </div>
       )}
     </div>
@@ -159,7 +217,7 @@ interface LoadBoardFormProps {
 function LoadBoardForm({ data, onChange }: LoadBoardFormProps) {
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1.5">
           <Label className="text-xs">Level</Label>
           <Input
@@ -171,38 +229,25 @@ function LoadBoardForm({ data, onChange }: LoadBoardFormProps) {
           />
         </div>
         <div className="space-y-1.5">
-          <Label className="text-xs">Adaptive</Label>
+          <Label className="text-xs">Moves</Label>
           <Input
             type="number"
             min={0}
-            value={data.Adaptive}
-            onChange={(e) => onChange({ ...data, Adaptive: parseInt(e.target.value) || 0 })}
+            value={data.Moves}
+            onChange={(e) => onChange({ ...data, Moves: parseInt(e.target.value) || 0 })}
             className="h-8"
           />
-        </div>
-        <div className="space-y-1.5">
-          <Label className="text-xs">Total Tiles</Label>
-          <Input
-            type="number"
-            min={0}
-            value={data.TotalTiles}
-            onChange={(e) => onChange({ ...data, TotalTiles: parseInt(e.target.value) || 0 })}
-            className="h-8"
-          />
-        </div>
-        <div className="flex items-end space-x-2 pb-1">
-          <Switch
-            id="can-revive"
-            checked={data.CanRevive}
-            onCheckedChange={(checked) => onChange({ ...data, CanRevive: checked })}
-          />
-          <Label htmlFor="can-revive" className="text-xs">Can Revive</Label>
         </div>
       </div>
 
-      <TileEditor
-        tiles={data.Tiles || []}
-        onChange={(tiles) => onChange({ ...data, Tiles: tiles })}
+      <GridTileEditor
+        tiles={data.GridTiles || []}
+        onChange={(tiles) => onChange({ ...data, GridTiles: tiles })}
+      />
+
+      <HolderTilesEditor
+        holderTiles={data.HolderTiles || []}
+        onChange={(holderTiles) => onChange({ ...data, HolderTiles: holderTiles })}
       />
     </div>
   );
@@ -599,7 +644,7 @@ export function StepEditor({
   const getStepSummary = (): string => {
     switch (step.Type) {
       case ETutorialStep.LoadBoard:
-        return `${step.Data?.Tiles?.length || 0} tiles`;
+        return `Level ${step.Data?.Level || 1}, ${step.Data?.GridTiles?.length || 0} tiles, ${step.Data?.Moves || 0} moves`;
       case ETutorialStep.ShowToast:
         return step.Data?.Toast?.M || 'No message';
       case ETutorialStep.ShowPopup:

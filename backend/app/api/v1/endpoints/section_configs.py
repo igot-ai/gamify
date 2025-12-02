@@ -204,7 +204,7 @@ async def publish_section_config(
     - Increments published_version
     - Sets has_unpublished_changes to false
     """
-    from app.services.firebase_service import get_firebase_service
+    from app.services.firebase_service import create_firebase_service
     from app.models.game import Game
     import json
     
@@ -217,12 +217,12 @@ async def publish_section_config(
     if section_config.draft_data is None:
         raise HTTPException(status_code=400, detail="Cannot publish empty config. Save draft data first.")
     
-    # Get game for Firebase project ID
+    # Get game for Firebase service account
     game_result = await db.execute(select(Game).where(Game.id == section_config.game_id))
     game = game_result.scalar_one_or_none()
     
-    if not game or not game.firebase_project_id:
-        raise HTTPException(status_code=400, detail="Game does not have Firebase project configured")
+    if not game or not game.firebase_service_account:
+        raise HTTPException(status_code=400, detail="Game does not have Firebase service account configured")
     
     # Get Firebase parameter name
     param_name = SECTION_TO_FIREBASE_PARAM.get(section_config.section_type)
@@ -233,7 +233,8 @@ async def publish_section_config(
     try:
         from app.services.unity_transform import transform_config_to_unity
         
-        firebase_service = get_firebase_service()
+        # Create Firebase service with game-specific service account
+        firebase_service = create_firebase_service(game.firebase_service_account)
         
         # Transform config to Unity format before pushing to Firebase
         unity_config = transform_config_to_unity(
