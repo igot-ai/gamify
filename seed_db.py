@@ -39,15 +39,14 @@ async def seed_data():
             print("Test user exists.")
             
         # 2. Check/Create Test Game
-        result = await session.execute(select(Game).where(Game.slug == "tile-adventure"))
+        result = await session.execute(select(Game).where(Game.app_id == "tile-adventure"))
         game = result.scalar_one_or_none()
         
         if not game:
             print("Creating test game...")
             game = Game(
                 name="Tile Adventure",
-                slug="tile-adventure",
-                firebase_project_id="tile-adventure-123",
+                app_id="tile-adventure",
                 description="A matching puzzle game"
             )
             session.add(game)

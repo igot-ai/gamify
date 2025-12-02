@@ -1,5 +1,4 @@
 from typing import List, Optional, Dict, Any
-import re
 import json
 import uuid
 import shutil
@@ -67,19 +66,6 @@ async def parse_and_validate_firebase_service_account(file: UploadFile) -> Dict[
     return service_account_data
 
 
-def slugify(text: str) -> str:
-    """Convert text to slug format"""
-    # Convert to lowercase
-    text = text.lower()
-    # Replace spaces and underscores with hyphens
-    text = re.sub(r'[\s_]+', '-', text)
-    # Remove any characters that aren't alphanumeric or hyphens
-    text = re.sub(r'[^a-z0-9-]', '', text)
-    # Remove multiple consecutive hyphens
-    text = re.sub(r'-+', '-', text)
-    # Strip hyphens from start and end
-    text = text.strip('-')
-    return text
 
 
 async def save_avatar(file: UploadFile) -> str:
@@ -126,34 +112,36 @@ async def list_games(
 
 @router.post("", response_model=ApiResponse[GameResponse], status_code=status.HTTP_201_CREATED)
 async def create_game(
+    app_id: str = Form(..., description="User-defined App ID (unique identifier)"),
     name: str = Form(...),
-    firebase_service_account: UploadFile = File(..., description="Firebase service account JSON file"),
+    firebase_service_account: Optional[UploadFile] = File(None, description="Firebase service account JSON file (optional)"),
     description: Optional[str] = Form(None),
-    slug: Optional[str] = Form(None),
     avatar: Optional[UploadFile] = File(None),
     db: AsyncSession = Depends(get_db),
 ):
-    """Create a new game with Firebase service account JSON file and optional avatar"""
-    # Parse and validate Firebase service account JSON
-    service_account_data = await parse_and_validate_firebase_service_account(firebase_service_account)
+    """Create a new game with optional Firebase service account JSON file and avatar"""
+    # Parse and validate Firebase service account JSON if provided
+    service_account_data = None
+    if firebase_service_account and firebase_service_account.filename:
+        service_account_data = await parse_and_validate_firebase_service_account(firebase_service_account)
     
-    # Build game data
-    game_data = {
-        "name": name,
-        "firebase_service_account": service_account_data,
-        "description": description,
-        "slug": slug if slug else slugify(name),
-    }
-    
-    # Check if slug already exists
+    # Check if app_id already exists
     existing = await db.execute(
-        select(Game).where(Game.slug == game_data['slug'])
+        select(Game).where(Game.app_id == app_id)
     )
     if existing.scalar_one_or_none():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Game with slug '{game_data['slug']}' already exists"
+            detail=f"Game with app_id '{app_id}' already exists"
         )
+    
+    # Build game data
+    game_data = {
+        "app_id": app_id,
+        "name": name,
+        "firebase_service_account": service_account_data,
+        "description": description,
+    }
     
     # Handle avatar upload
     if avatar and avatar.filename:

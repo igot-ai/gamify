@@ -72,9 +72,8 @@ async def test_game(db_session: AsyncSession):
     """Create a test game."""
     game = Game(
         name="Test Game",
-        slug="test-game",
+        app_id="test-game",
         description="A game for testing",
-        firebase_project_id="test-project-123"
     )
     db_session.add(game)
     await db_session.commit()

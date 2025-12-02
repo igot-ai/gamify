@@ -16,9 +16,9 @@ export interface User {
 
 export interface Game {
   id: string;
+  app_id: string;  // User-defined App ID
   name: string;
   description: string | null;
-  slug: string;
   status: 'active' | 'inactive' | 'archived';
   firebase_project_id?: string;
   avatar_url?: string | null;

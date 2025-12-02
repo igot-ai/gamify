@@ -5,17 +5,17 @@ from pydantic import BaseModel, field_validator
 
 class GameBase(BaseModel):
     """Base game schema"""
+    app_id: str  # User-defined App ID
     name: str
-    slug: str
     description: Optional[str] = None
     avatar_url: Optional[str] = None
 
 
 class GameCreate(BaseModel):
     """Schema for creating a new game"""
+    app_id: str  # Required user-defined App ID
     name: str
     description: Optional[str] = None
-    slug: Optional[str] = None  # Auto-generated from name if not provided
     # firebase_service_account is handled via file upload in the endpoint
 
 
@@ -25,6 +25,7 @@ class GameUpdate(BaseModel):
     description: Optional[str] = None
     avatar_url: Optional[str] = None
     # firebase_service_account can be updated via file upload
+    # app_id cannot be updated after creation
 
 
 class GameResponse(GameBase):

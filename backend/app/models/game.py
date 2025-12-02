@@ -8,8 +8,8 @@ class Game(BaseModel):
     """Game model representing a single game/product"""
     __tablename__ = "games"
     
+    app_id = Column(String, unique=True, nullable=False, index=True)  # User-defined App ID
     name = Column(String, nullable=False)
-    slug = Column(String, unique=True, nullable=False, index=True)
     firebase_service_account = Column(JSON, nullable=True)  # Stores the full service account JSON
     description = Column(String, nullable=True)
     avatar_url = Column(String, nullable=True)

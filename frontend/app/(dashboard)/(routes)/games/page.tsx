@@ -115,8 +115,8 @@ export default function GamesPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Game</TableHead>
+                  <TableHead>App ID</TableHead>
                   <TableHead>Firebase Project</TableHead>
-                  <TableHead>Environments</TableHead>
                   <TableHead>Created</TableHead>
                   <TableHead className="w-24">Actions</TableHead>
                 </TableRow>
@@ -147,9 +147,11 @@ export default function GamesPage() {
                       </div>
                     </TableCell>
                     <TableCell className="font-mono text-xs">
+                      {game.app_id}
+                    </TableCell>
+                    <TableCell className="font-mono text-xs">
                       {game.firebase_project_id}
                     </TableCell>
-                    <TableCell>{game.environments?.length || 0}</TableCell>
                     <TableCell className="text-sm text-muted-foreground">
                       {game.created_at ? new Date(game.created_at).toLocaleDateString() : ''}
                     </TableCell>
@@ -233,6 +235,7 @@ interface FirebaseServiceAccount {
 
 function GameForm({ game, onSuccess }: GameFormProps) {
   const [formData, setFormData] = useState({
+    app_id: game?.app_id || '',
     name: game?.name || '',
     description: game?.description || '',
   });
@@ -308,20 +311,16 @@ function GameForm({ game, onSuccess }: GameFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Validate firebase service account for new games
-    if (!game && !firebaseServiceAccount) {
-      toast.error('Please upload a Firebase service account JSON file');
-      return;
-    }
 
     try {
       if (game) {
-        // For updates, use JSON (avatar and firebase updates not supported in edit mode for now)
-        await updateGameMutation.mutateAsync(formData);
+        // For updates, use JSON (avatar, app_id and firebase updates not supported in edit mode)
+        const { app_id, ...updateData } = formData;
+        await updateGameMutation.mutateAsync(updateData);
       } else {
         // For creation, use FormData to support file uploads
         const submitData = new FormData();
+        submitData.append('app_id', formData.app_id);
         submitData.append('name', formData.name);
         if (formData.description) {
           submitData.append('description', formData.description);
@@ -376,6 +375,21 @@ function GameForm({ game, onSuccess }: GameFormProps) {
 
       <div className="space-y-4">
         <div>
+          <label className="text-sm font-medium">App ID *</label>
+          <Input
+            value={formData.app_id}
+            onChange={(e) =>
+              setFormData({ ...formData, app_id: e.target.value })
+            }
+            placeholder="com.company.game"
+            required
+            disabled={!!game}
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            {game ? 'App ID cannot be changed after creation' : 'Unique identifier for your app (e.g., com.company.game)'}
+          </p>
+        </div>
+        <div>
           <label className="text-sm font-medium">Name *</label>
           <Input
             value={formData.name}
@@ -400,7 +414,7 @@ function GameForm({ game, onSuccess }: GameFormProps) {
         {/* Firebase Service Account Upload */}
         <div>
           <label className="text-sm font-medium">
-            Firebase Service Account {!game && '*'}
+            Firebase Service Account
           </label>
           {game ? (
             // For editing, show current project ID (readonly)
@@ -468,7 +482,7 @@ function GameForm({ game, onSuccess }: GameFormProps) {
       <div className="flex gap-4 justify-end">
         <Button 
           type="submit" 
-          disabled={createGame.isPending || updateGameMutation.isPending || (!game && !firebaseServiceAccount)}
+          disabled={createGame.isPending || updateGameMutation.isPending}
         >
           {game ? 'Update' : 'Create'}
         </Button>

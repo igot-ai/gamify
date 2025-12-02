@@ -47,6 +47,7 @@ function GameAvatar({ game, size = 'sm' }: GameAvatarProps) {
 }
 
 interface GameFormData {
+  app_id: string;
   name: string;
   description: string;
   avatar: File | null;
@@ -67,6 +68,7 @@ interface FirebaseServiceAccount {
 
 function CreateGameForm({ onSuccess }: { onSuccess: (game: Game) => void }) {
   const [formData, setFormData] = useState<GameFormData>({
+    app_id: '',
     name: '',
     description: '',
     avatar: null,
@@ -138,14 +140,10 @@ function CreateGameForm({ onSuccess }: { onSuccess: (game: Game) => void }) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!firebaseServiceAccount) {
-      toast.error('Please upload a Firebase service account JSON file');
-      return;
-    }
 
     try {
       const submitData = new FormData();
+      submitData.append('app_id', formData.app_id);
       submitData.append('name', formData.name);
       if (formData.description) {
         submitData.append('description', formData.description);
@@ -153,7 +151,9 @@ function CreateGameForm({ onSuccess }: { onSuccess: (game: Game) => void }) {
       if (formData.avatar) {
         submitData.append('avatar', formData.avatar);
       }
-      submitData.append('firebase_service_account', firebaseServiceAccount);
+      if (firebaseServiceAccount) {
+        submitData.append('firebase_service_account', firebaseServiceAccount);
+      }
       
       const newGame = await createGame.mutateAsync(submitData);
       if (newGame) {
@@ -197,6 +197,16 @@ function CreateGameForm({ onSuccess }: { onSuccess: (game: Game) => void }) {
 
       <div className="space-y-4">
         <div>
+          <label className="text-sm font-medium">App ID *</label>
+          <Input
+            value={formData.app_id}
+            onChange={(e) => setFormData({ ...formData, app_id: e.target.value })}
+            placeholder="com.company.game"
+            required
+          />
+          <p className="text-xs text-muted-foreground mt-1">Unique identifier for your app (e.g., com.company.game)</p>
+        </div>
+        <div>
           <label className="text-sm font-medium">Name *</label>
           <Input
             value={formData.name}
@@ -216,7 +226,7 @@ function CreateGameForm({ onSuccess }: { onSuccess: (game: Game) => void }) {
         
         {/* Firebase Service Account Upload */}
         <div>
-          <label className="text-sm font-medium">Firebase Service Account *</label>
+          <label className="text-sm font-medium">Firebase Service Account</label>
           <div className="mt-1">
             <label
               className={`flex flex-col items-center justify-center w-full h-24 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${
@@ -267,7 +277,7 @@ function CreateGameForm({ onSuccess }: { onSuccess: (game: Game) => void }) {
         </div>
       </div>
       <div className="flex gap-4 justify-end">
-        <Button type="submit" disabled={createGame.isPending || !firebaseServiceAccount}>
+        <Button type="submit" disabled={createGame.isPending}>
           {createGame.isPending ? 'Creating...' : 'Create'}
         </Button>
       </div>
@@ -384,9 +394,9 @@ export function GameSelector() {
                     <GameAvatar game={game} size="md" />
                     <div className="flex-1 min-w-0">
                       <div className={`font-medium text-sm truncate ${selectedGame?.id === game.id ? 'text-amber-400' : 'text-zinc-100'}`}>{game.name}</div>
-                      {game.firebase_project_id && (
-                        <div className="text-xs text-zinc-400 truncate">
-                          {game.firebase_project_id}
+                      {game.app_id && (
+                        <div className="text-xs text-zinc-400 truncate font-mono">
+                          {game.app_id}
                         </div>
                       )}
                     </div>
