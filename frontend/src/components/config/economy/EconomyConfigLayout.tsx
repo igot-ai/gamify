@@ -81,6 +81,7 @@ export interface EconomyConfigLayoutRef {
   getData: () => EconomyConfig;
   save: () => Promise<void>;
   setActiveSection: (sectionId: string) => void;
+  reset: (data: EconomyConfig) => void;
 }
 
 export const EconomyConfigLayout = forwardRef<EconomyConfigLayoutRef, EconomyConfigLayoutProps>(
@@ -130,6 +131,10 @@ export const EconomyConfigLayout = forwardRef<EconomyConfigLayoutRef, EconomyCon
       if (sections.some(s => s.id === sectionId)) {
         setActiveSection(sectionId as SectionId);
       }
+    },
+    reset: (data: EconomyConfig) => {
+      console.log('Resetting economy form with data:', data);
+      form.reset(data);
     },
   }));
 

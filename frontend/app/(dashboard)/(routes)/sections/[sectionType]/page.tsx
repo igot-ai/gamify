@@ -352,7 +352,9 @@ export default function SectionEditorPage() {
       case 'tutorial':
         tutorialFormRef.current?.reset?.(transformedData);
         break;
-      // Economy uses EconomyConfigLayout which handles its own state differently
+      case 'economy':
+        economyFormRef.current?.reset?.(transformedData);
+        break;
     }
   };
 

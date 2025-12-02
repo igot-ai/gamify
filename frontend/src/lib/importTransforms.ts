@@ -390,16 +390,20 @@ function transformEconomyConfigFromImport(data: any): EconomyConfig {
     currencies: (data.CurrencyDefinitions ?? []).map((c: any): Currency => ({
       id: c.Id ?? '',
       displayName: c.DisplayName ?? '',
+      description: c.Description ?? '',
+      iconPath: c.IconPath ?? '',
       startingBalance: c.DefaultBalance ?? 0,
-      maxValue: c.MaxValue ?? 999999,
+      maxValue: c.MaxValue ?? 0,
       allowNegative: c.AllowNegative ?? false,
     })),
     inventoryItems: (data.InventoryItemDefinitions ?? []).map((i: any): InventoryItem => ({
       id: i.Id ?? '',
       displayName: i.DisplayName ?? '',
+      description: i.Description ?? '',
+      iconPath: i.IconPath ?? '',
       startingQuantity: i.DefaultQuantity ?? 0,
       isStackable: i.IsStackable ?? true,
-      maxStackSize: i.MaxStackSize ?? 999,
+      maxStackSize: i.MaxStackSize ?? 0,
     })),
     virtualPurchases: (data.VirtualPurchaseDefinitions ?? []).map((p: any): VirtualPurchase => ({
       id: p.Id ?? '',
@@ -407,13 +411,14 @@ function transformEconomyConfigFromImport(data: any): EconomyConfig {
       costs: (p.Costs ?? []).map((c: any) => ({
         type: RESOURCE_TYPE_REVERSE_MAP[c.ResourceType] ?? 'Currency',
         resourceId: c.ResourceId ?? '',
-        amount: c.Amount ?? 0,
+        amount: c.Amount ?? 1,
       })),
       rewards: (p.Rewards ?? []).map((r: any) => ({
         type: RESOURCE_TYPE_REVERSE_MAP[r.ResourceType] ?? 'Currency',
         resourceId: r.ResourceId ?? '',
-        amount: r.Amount ?? 0,
+        amount: r.Amount ?? 1,
       })),
+      bonuses: [],
     })),
     realPurchases: (data.RealMoneyProductDefinitions ?? []).map((p: any): RealPurchase => ({
       productId: p.ProductId ?? '',
@@ -422,11 +427,13 @@ function transformEconomyConfigFromImport(data: any): EconomyConfig {
       rewards: (p.Rewards ?? []).map((r: any) => ({
         type: RESOURCE_TYPE_REVERSE_MAP[r.ResourceType] ?? 'Currency',
         resourceId: r.ResourceId ?? '',
-        amount: r.Amount ?? 0,
+        amount: r.Amount ?? 1,
       })),
+      bonuses: [],
     })),
     settings: {
       enableRefundProcessing: data.EnableRefundProcessing ?? false,
+      remoteConfigKey: 'ECONOMY_CONFIG',
     },
   };
 }
