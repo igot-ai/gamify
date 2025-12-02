@@ -31,6 +31,7 @@ interface TileBundleConfigFormProps {
 
 export interface TileBundleConfigFormRef {
   getData: () => TileBundleConfig;
+  reset: (data: TileBundleConfig) => void;
 }
 
 export const TileBundleConfigForm = forwardRef<TileBundleConfigFormRef, TileBundleConfigFormProps>(
@@ -48,6 +49,7 @@ export const TileBundleConfigForm = forwardRef<TileBundleConfigFormRef, TileBund
 
     useImperativeHandle(ref, () => ({
       getData: () => form.getValues(),
+      reset: (data: TileBundleConfig) => form.reset(data),
     }));
 
     const watchedValues = form.watch();

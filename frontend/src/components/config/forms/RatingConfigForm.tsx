@@ -40,6 +40,7 @@ interface RatingConfigFormProps {
 
 export interface RatingConfigFormRef {
   getData: () => RatingConfig;
+  reset: (data: RatingConfig) => void;
 }
 
 export const RatingConfigForm = forwardRef<RatingConfigFormRef, RatingConfigFormProps>(
@@ -64,6 +65,7 @@ export const RatingConfigForm = forwardRef<RatingConfigFormRef, RatingConfigForm
 
     useImperativeHandle(ref, () => ({
       getData: () => form.getValues(),
+      reset: (data: RatingConfig) => form.reset(data),
     }));
 
     const watchedValues = form.watch();

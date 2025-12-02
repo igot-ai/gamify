@@ -30,6 +30,7 @@ interface TutorialConfigFormProps {
 
 export interface TutorialConfigFormRef {
   getData: () => TutorialConfig;
+  reset: (data: TutorialConfig) => void;
 }
 
 export const TutorialConfigForm = forwardRef<TutorialConfigFormRef, TutorialConfigFormProps>(
@@ -75,6 +76,7 @@ export const TutorialConfigForm = forwardRef<TutorialConfigFormRef, TutorialConf
 
     useImperativeHandle(ref, () => ({
       getData: () => form.getValues(),
+      reset: (data: TutorialConfig) => form.reset(data),
     }));
 
     const watchedValues = form.watch();

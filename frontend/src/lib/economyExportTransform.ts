@@ -87,7 +87,7 @@ export function transformEconomyConfigToExport(config: EconomyConfig): ExportEco
 }
 
 function transformCurrencies(currencies: EconomyConfig['currencies']): ExportCurrencyDefinition[] {
-  return currencies.map((currency) => ({
+  return (currencies ?? []).map((currency) => ({
     Id: currency.id,
     DisplayName: currency.displayName,
     DefaultBalance: currency.startingBalance,
@@ -97,7 +97,7 @@ function transformCurrencies(currencies: EconomyConfig['currencies']): ExportCur
 }
 
 function transformInventoryItems(items: EconomyConfig['inventoryItems']): ExportInventoryItemDefinition[] {
-  return items.map((item) => ({
+  return (items ?? []).map((item) => ({
     Id: item.id,
     DisplayName: item.displayName,
     DefaultQuantity: item.startingQuantity,
@@ -115,20 +115,20 @@ function transformResourceReference(ref: { type: ResourceType; resourceId: strin
 }
 
 function transformVirtualPurchases(purchases: EconomyConfig['virtualPurchases']): ExportVirtualPurchaseDefinition[] {
-  return purchases.map((purchase) => ({
+  return (purchases ?? []).map((purchase) => ({
     Id: purchase.id,
     Name: purchase.name,
-    Costs: purchase.costs.map(transformResourceReference),
-    Rewards: purchase.rewards.map(transformResourceReference),
+    Costs: (purchase.costs ?? []).map(transformResourceReference),
+    Rewards: (purchase.rewards ?? []).map(transformResourceReference),
   }));
 }
 
 function transformRealPurchases(purchases: EconomyConfig['realPurchases']): ExportRealMoneyProductDefinition[] {
-  return purchases.map((purchase) => ({
+  return (purchases ?? []).map((purchase) => ({
     ProductId: purchase.productId,
     ProductType: PRODUCT_TYPE_MAP[purchase.productType],
     Name: purchase.displayName,
-    Rewards: purchase.rewards.map(transformResourceReference),
+    Rewards: (purchase.rewards ?? []).map(transformResourceReference),
   }));
 }
 

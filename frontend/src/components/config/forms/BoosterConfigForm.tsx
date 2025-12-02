@@ -53,6 +53,7 @@ interface BoosterConfigFormProps {
 
 export interface BoosterConfigFormRef {
   getData: () => BoosterConfig;
+  reset: (data: BoosterConfig) => void;
 }
 
 export const BoosterConfigForm = forwardRef<BoosterConfigFormRef, BoosterConfigFormProps>(
@@ -83,6 +84,7 @@ export const BoosterConfigForm = forwardRef<BoosterConfigFormRef, BoosterConfigF
 
     useImperativeHandle(ref, () => ({
       getData: () => form.getValues(),
+      reset: (data: BoosterConfig) => form.reset(data),
     }));
 
     const watchedValues = form.watch();

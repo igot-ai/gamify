@@ -37,6 +37,7 @@ interface SpinConfigFormProps {
 
 export interface SpinConfigFormRef {
   getData: () => SpinConfig;
+  reset: (data: SpinConfig) => void;
 }
 
 export const SpinConfigForm = forwardRef<SpinConfigFormRef, SpinConfigFormProps>(
@@ -73,6 +74,7 @@ export const SpinConfigForm = forwardRef<SpinConfigFormRef, SpinConfigFormProps>
 
     useImperativeHandle(ref, () => ({
       getData: () => form.getValues(),
+      reset: (data: SpinConfig) => form.reset(data),
     }));
 
     const watchedValues = form.watch();

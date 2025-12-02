@@ -36,6 +36,9 @@ import { transformSpinConfigToExport } from '@/lib/spinExportTransform';
 import { transformHintOfferConfigToExport } from '@/lib/hintOfferExportTransform';
 import { transformTutorialConfigToExport } from '@/lib/tutorialExportTransform';
 
+// Import transform function
+import { transformImportData } from '@/lib/importTransforms';
+
 // Form components
 import { EconomyConfigLayout, type EconomyConfigLayoutRef } from '@/components/config/economy';
 import { AdConfigForm, type AdConfigFormRef } from '@/components/config/ads';
@@ -294,15 +297,62 @@ export default function SectionEditorPage() {
 
   // Handle import from JSON - resets form with imported data
   const handleImportData = (importedData: any) => {
-    setCurrentData(importedData);
+    // Transform from Unity format to internal format
+    const transformedData = transformImportData(sectionType, importedData);
+    console.log('importedData (raw):', importedData);
+    console.log('transformedData:', transformedData);
+    
+    setCurrentData(transformedData);
     setHasLocalChanges(true);
     
-    // Reset the form ref with imported data if available
+    // Reset the form ref with transformed data
     switch (sectionType) {
-      case 'notification':
-        notificationFormRef.current?.reset?.(importedData);
+      case 'ads':
+        adFormRef.current?.reset?.(transformedData);
         break;
-      // Other forms (including economy) will pick up the new currentData on re-render via initialData prop
+      case 'notification':
+        notificationFormRef.current?.reset?.(transformedData);
+        break;
+      case 'game':
+        gameFormRef.current?.reset?.(transformedData);
+        break;
+      case 'haptic':
+        hapticFormRef.current?.reset?.(transformedData);
+        break;
+      case 'remove_ads':
+        removeAdsFormRef.current?.reset?.(transformedData);
+        break;
+      case 'tile_bundle':
+        tileBundleFormRef.current?.reset?.(transformedData);
+        break;
+      case 'booster':
+        boosterFormRef.current?.reset?.(transformedData);
+        break;
+      case 'rating':
+        ratingFormRef.current?.reset?.(transformedData);
+        break;
+      case 'link':
+        linkFormRef.current?.reset?.(transformedData);
+        break;
+      case 'chapter_reward':
+        chapterRewardFormRef.current?.reset?.(transformedData);
+        break;
+      case 'game_economy':
+        gameEconomyFormRef.current?.reset?.(transformedData);
+        break;
+      case 'shop_settings':
+        shopSettingsFormRef.current?.reset?.(transformedData);
+        break;
+      case 'spin':
+        spinFormRef.current?.reset?.(transformedData);
+        break;
+      case 'hint_offer':
+        hintOfferFormRef.current?.reset?.(transformedData);
+        break;
+      case 'tutorial':
+        tutorialFormRef.current?.reset?.(transformedData);
+        break;
+      // Economy uses EconomyConfigLayout which handles its own state differently
     }
   };
 

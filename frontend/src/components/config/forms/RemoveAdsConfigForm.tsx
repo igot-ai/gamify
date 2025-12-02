@@ -31,6 +31,7 @@ interface RemoveAdsConfigFormProps {
 
 export interface RemoveAdsConfigFormRef {
   getData: () => RemoveAdsConfig;
+  reset: (data: RemoveAdsConfig) => void;
 }
 
 export const RemoveAdsConfigForm = forwardRef<RemoveAdsConfigFormRef, RemoveAdsConfigFormProps>(
@@ -48,6 +49,7 @@ export const RemoveAdsConfigForm = forwardRef<RemoveAdsConfigFormRef, RemoveAdsC
 
     useImperativeHandle(ref, () => ({
       getData: () => form.getValues(),
+      reset: (data: RemoveAdsConfig) => form.reset(data),
     }));
 
     // Watch for changes and notify parent

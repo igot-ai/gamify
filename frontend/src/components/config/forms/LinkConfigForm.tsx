@@ -36,6 +36,7 @@ interface LinkConfigFormProps {
 
 export interface LinkConfigFormRef {
   getData: () => LinkConfig;
+  reset: (data: LinkConfig) => void;
 }
 
 export const LinkConfigForm = forwardRef<LinkConfigFormRef, LinkConfigFormProps>(
@@ -60,6 +61,7 @@ export const LinkConfigForm = forwardRef<LinkConfigFormRef, LinkConfigFormProps>
 
     useImperativeHandle(ref, () => ({
       getData: () => form.getValues(),
+      reset: (data: LinkConfig) => form.reset(data),
     }));
 
     const watchedValues = form.watch();

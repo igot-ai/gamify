@@ -37,6 +37,7 @@ interface GameEconomyConfigFormProps {
 
 export interface GameEconomyConfigFormRef {
   getData: () => GameEconomyConfig;
+  reset: (data: GameEconomyConfig) => void;
 }
 
 export const GameEconomyConfigForm = forwardRef<GameEconomyConfigFormRef, GameEconomyConfigFormProps>(
@@ -61,6 +62,7 @@ export const GameEconomyConfigForm = forwardRef<GameEconomyConfigFormRef, GameEc
 
     useImperativeHandle(ref, () => ({
       getData: () => form.getValues(),
+      reset: (data: GameEconomyConfig) => form.reset(data),
     }));
 
     const watchedValues = form.watch();

@@ -30,6 +30,7 @@ interface GameConfigFormProps {
 
 export interface GameConfigFormRef {
   getData: () => GameConfig;
+  reset: (data: GameConfig) => void;
 }
 
 // Reusable Vector2 field component for X/Y coordinate pairs
@@ -106,9 +107,10 @@ export const GameConfigForm = forwardRef<GameConfigFormRef, GameConfigFormProps>
       defaultValues: initialData,
     });
 
-    // Expose getData method via ref
+    // Expose getData and reset methods via ref
     useImperativeHandle(ref, () => ({
       getData: () => form.getValues(),
+      reset: (data: GameConfig) => form.reset(data),
     }));
 
     // Watch for changes and notify parent

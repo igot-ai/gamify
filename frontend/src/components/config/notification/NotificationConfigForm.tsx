@@ -119,6 +119,7 @@ export const NotificationConfigForm = forwardRef<NotificationConfigFormRef, Noti
       fields: channelFields,
       append: appendChannel,
       remove: removeChannel,
+      replace: replaceChannels,
     } = useFieldArray({
       control: form.control,
       name: 'channels',
@@ -128,6 +129,7 @@ export const NotificationConfigForm = forwardRef<NotificationConfigFormRef, Noti
       fields: strategyFields,
       append: appendStrategy,
       remove: removeStrategy,
+      replace: replaceStrategies,
     } = useFieldArray({
       control: form.control,
       name: 'strategies',
@@ -139,7 +141,16 @@ export const NotificationConfigForm = forwardRef<NotificationConfigFormRef, Noti
     // Expose methods via ref
     useImperativeHandle(ref, () => ({
       getData: () => form.getValues(),
-      reset: (data: NotificationConfig) => form.reset(data),
+      reset: (data: NotificationConfig) => {
+        form.reset(data);
+        // Also replace field arrays to sync useFieldArray state
+        if (data.channels) {
+          replaceChannels(data.channels);
+        }
+        if (data.strategies) {
+          replaceStrategies(data.strategies);
+        }
+      },
     }));
 
     // Watch for changes and notify parent

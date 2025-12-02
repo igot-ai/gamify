@@ -37,6 +37,7 @@ interface ChapterRewardConfigFormProps {
 
 export interface ChapterRewardConfigFormRef {
   getData: () => ChapterRewardConfig;
+  reset: (data: ChapterRewardConfig) => void;
 }
 
 export const ChapterRewardConfigForm = forwardRef<ChapterRewardConfigFormRef, ChapterRewardConfigFormProps>(
@@ -61,6 +62,7 @@ export const ChapterRewardConfigForm = forwardRef<ChapterRewardConfigFormRef, Ch
 
     useImperativeHandle(ref, () => ({
       getData: () => form.getValues(),
+      reset: (data: ChapterRewardConfig) => form.reset(data),
     }));
 
     const watchedValues = form.watch();

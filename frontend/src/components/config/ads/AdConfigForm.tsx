@@ -93,7 +93,7 @@ export const AdConfigForm = forwardRef<AdConfigFormRef, AdConfigFormProps>(
     defaultValues: mergedDefaults,
   });
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove, replace } = useFieldArray({
     control: form.control,
     name: 'placements',
   });
@@ -104,7 +104,14 @@ export const AdConfigForm = forwardRef<AdConfigFormRef, AdConfigFormProps>(
   // Expose methods via ref
   useImperativeHandle(ref, () => ({
     getData: () => form.getValues(),
-    reset: (data: AdConfig) => form.reset(data),
+    reset: (data: AdConfig) => {
+      console.log('resetting ad config', data);
+      form.reset(data);
+      // Also replace the field array to sync useFieldArray state
+      if (data.placements) {
+        replace(data.placements);
+      }
+    },
   }));
 
   // Watch for changes and notify parent

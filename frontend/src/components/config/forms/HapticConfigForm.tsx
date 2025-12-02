@@ -34,6 +34,7 @@ interface HapticConfigFormProps {
 
 export interface HapticConfigFormRef {
   getData: () => HapticConfig;
+  reset: (data: HapticConfig) => void;
 }
 
 // Haptic type names for the form
@@ -87,6 +88,7 @@ export const HapticConfigForm = forwardRef<HapticConfigFormRef, HapticConfigForm
 
     useImperativeHandle(ref, () => ({
       getData: () => form.getValues(),
+      reset: (data: HapticConfig) => form.reset(data),
     }));
 
     const watchedValues = form.watch();

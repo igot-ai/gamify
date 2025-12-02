@@ -33,6 +33,7 @@ interface HintOfferConfigFormProps {
 
 export interface HintOfferConfigFormRef {
   getData: () => HintOfferConfig;
+  reset: (data: HintOfferConfig) => void;
 }
 
 export const HintOfferConfigForm = forwardRef<HintOfferConfigFormRef, HintOfferConfigFormProps>(
@@ -57,6 +58,7 @@ export const HintOfferConfigForm = forwardRef<HintOfferConfigFormRef, HintOfferC
 
     useImperativeHandle(ref, () => ({
       getData: () => form.getValues(),
+      reset: (data: HintOfferConfig) => form.reset(data),
     }));
 
     const watchedValues = form.watch();

@@ -37,6 +37,7 @@ interface ShopSettingsConfigFormProps {
 
 export interface ShopSettingsConfigFormRef {
   getData: () => ShopSettingsConfig;
+  reset: (data: ShopSettingsConfig) => void;
 }
 
 export const ShopSettingsConfigForm = forwardRef<ShopSettingsConfigFormRef, ShopSettingsConfigFormProps>(
@@ -61,6 +62,7 @@ export const ShopSettingsConfigForm = forwardRef<ShopSettingsConfigFormRef, Shop
 
     useImperativeHandle(ref, () => ({
       getData: () => form.getValues(),
+      reset: (data: ShopSettingsConfig) => form.reset(data),
     }));
 
     const watchedValues = form.watch();
