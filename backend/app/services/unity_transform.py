@@ -46,20 +46,6 @@ PRODUCT_TYPE_MAP = {
 
 
 # ============================================
-# HELPER FUNCTIONS
-# ============================================
-
-def snake_to_pascal(s: str) -> str:
-    """Convert snake_case to PascalCase."""
-    return ''.join(word.capitalize() for word in s.split('_'))
-
-
-def camel_to_pascal(s: str) -> str:
-    """Convert camelCase to PascalCase."""
-    return s[0].upper() + s[1:] if s else s
-
-
-# ============================================
 # SECTION-SPECIFIC TRANSFORMS
 # ============================================
 

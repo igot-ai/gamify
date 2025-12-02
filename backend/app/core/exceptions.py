@@ -29,15 +29,6 @@ class GameNotFoundError(AppException):
         )
 
 
-class EnvironmentNotFoundError(AppException):
-    """Raised when an environment is not found"""
-    def __init__(self, environment_id: str):
-        super().__init__(
-            message=f"Environment with ID '{environment_id}' not found",
-            status_code=status.HTTP_404_NOT_FOUND
-        )
-
-
 class PermissionDeniedError(AppException):
     """Raised when user doesn't have permission for an action"""
     def __init__(self, action: str, resource: str = "resource"):
@@ -74,22 +65,4 @@ class ValidationError(AppException):
         super().__init__(
             message=f"Validation error for '{field}': {message}",
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY
-        )
-
-
-class DuplicateResourceError(AppException):
-    """Raised when attempting to create a duplicate resource"""
-    def __init__(self, resource_type: str, identifier: str):
-        super().__init__(
-            message=f"{resource_type} with identifier '{identifier}' already exists",
-            status_code=status.HTTP_409_CONFLICT
-        )
-
-
-class ConfigLockError(AppException):
-    """Raised when config is locked and cannot be modified"""
-    def __init__(self, config_id: str, status: str):
-        super().__init__(
-            message=f"Configuration '{config_id}' is locked (status: {status}) and cannot be modified",
-            status_code=status.HTTP_423_LOCKED
         )

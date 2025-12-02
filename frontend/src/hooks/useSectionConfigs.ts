@@ -97,33 +97,6 @@ export function useSaveDraft() {
 }
 
 /**
- * Legacy hook for backward compatibility.
- * Use useSaveDraft instead.
- */
-export function useUpdateSectionConfig(sectionConfigId: string) {
-  const saveDraft = useSaveDraft();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationKey: ['update-section-config', sectionConfigId],
-    mutationFn: async (data: { config_data: any }) => {
-      if (!sectionConfigId) {
-        throw new Error('Section config ID is required');
-      }
-      const response = await apiClient.patch<ApiResponse<SectionConfig>>(
-        `/section-configs/${sectionConfigId}`,
-        { draft_data: data.config_data }
-      );
-      return response.data.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['section-config'] });
-      queryClient.invalidateQueries({ queryKey: ['section-configs-summary'] });
-    },
-  });
-}
-
-/**
  * Publish section config to Firebase.
  * - Deploys draft_data to Firebase
  * - Copies draft_data to published_data  
@@ -154,8 +127,6 @@ export function usePublishConfig() {
     },
   });
 }
-
-
 
 /**
  * Fetch version history for a section config
@@ -198,62 +169,6 @@ export function useRollbackConfig() {
       queryClient.invalidateQueries({ queryKey: ['section-config'] });
       queryClient.invalidateQueries({ queryKey: ['section-configs-summary'] });
       queryClient.invalidateQueries({ queryKey: ['section-config-versions'] });
-    },
-  });
-}
-
-// ============================================
-// DEPRECATED - Keep for backward compatibility
-// ============================================
-
-/**
- * @deprecated Use useSectionConfig instead
- * This function now returns an array with single item for backward compatibility
- */
-export function useSectionConfigs(filters: SectionConfigFilters) {
-  const query = useSectionConfig(filters);
-  
-  return {
-    ...query,
-    data: query.data ? [query.data] : [],
-  };
-}
-
-/**
- * @deprecated Configs are now auto-created on first GET
- */
-export function useCreateSectionConfig() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (data: {
-      game_id: string;
-      section_type: SectionType;
-      config_data?: any;
-    }) => {
-      // Just fetch the config (auto-creates if doesn't exist)
-      const params = new URLSearchParams();
-      params.append('game_id', data.game_id);
-      params.append('section_type', data.section_type);
-      
-      const response = await apiClient.get<ApiResponse<SectionConfig>>(
-        `/section-configs?${params.toString()}`
-      );
-      
-      // If config_data was provided, save it as draft
-      if (data.config_data && response.data.data) {
-        const saveResponse = await apiClient.patch<ApiResponse<SectionConfig>>(
-          `/section-configs/${response.data.data.id}`,
-          { draft_data: data.config_data }
-        );
-        return saveResponse.data.data;
-      }
-      
-      return response.data.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['section-config'] });
-      queryClient.invalidateQueries({ queryKey: ['section-configs-summary'] });
     },
   });
 }
