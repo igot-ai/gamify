@@ -9,7 +9,6 @@ from sqlalchemy import select
 sys.path.append(os.path.join(os.path.dirname(__file__), 'backend'))
 
 from app.core.config import settings
-from app.models.user import User, UserRole
 from app.models.game import Game
 from app.models.environment import Environment
 
@@ -21,24 +20,7 @@ async def seed_data():
     async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
     
     async with async_session() as session:
-        # 1. Check/Create Test User
-        result = await session.execute(select(User).where(User.email == "test@sunstudio.com"))
-        user = result.scalar_one_or_none()
-        
-        if not user:
-            print("Creating test user...")
-            user = User(
-                id="dev-user-123",
-                email="test@sunstudio.com",
-                name="Test User",
-                role=UserRole.ADMIN,
-                is_active=True
-            )
-            session.add(user)
-        else:
-            print("Test user exists.")
-            
-        # 2. Check/Create Test Game
+        # Check/Create Test Game
         result = await session.execute(select(Game).where(Game.app_id == "tile-adventure"))
         game = result.scalar_one_or_none()
         

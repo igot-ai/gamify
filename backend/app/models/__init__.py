@@ -2,8 +2,6 @@
 from app.models.base import BaseModel
 from app.models.game import Game
 from app.models.section_config import SectionConfig, SectionType, SectionConfigVersion
-from app.models.user import User, UserRole
-from app.models.audit_log import AuditLog
 
 __all__ = [
     "BaseModel",
@@ -11,7 +9,4 @@ __all__ = [
     "SectionConfig",
     "SectionType",
     "SectionConfigVersion",
-    "User",
-    "UserRole",
-    "AuditLog",
 ]

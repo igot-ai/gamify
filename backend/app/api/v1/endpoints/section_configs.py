@@ -7,7 +7,6 @@ from app.core.database import get_db
 from app.core.response import ApiResponse, create_response
 from app.core.auth import get_current_user, CurrentUser
 from app.models.section_config import SectionConfig, SectionType, SectionConfigVersion
-from app.models.audit_log import AuditAction
 from app.schemas.section_config import (
     SectionConfigResponse,
     SectionConfigVersionCreate,
@@ -16,7 +15,6 @@ from app.schemas.section_config import (
     SectionConfigVersionListResponse,
     SectionConfigSummary,
 )
-from app.services.audit_service import AuditService
 
 router = APIRouter()
 
@@ -52,17 +50,6 @@ async def get_or_create_section_config(
         db.add(section_config)
         await db.commit()
         await db.refresh(section_config)
-        
-        # Log audit trail
-        audit_service = AuditService(db)
-        await audit_service.log_action(
-            entity_type="section_config",
-            entity_id=section_config.id,
-            action=AuditAction.CREATE,
-            user_id=current_user.uid,
-            changes={"game_id": game_id, "section_type": section_type.value}
-        )
-        await db.commit()
     
     return create_response(section_config)
 
@@ -190,22 +177,6 @@ async def create_version(
     await db.commit()
     await db.refresh(version)
     
-    # Log audit trail
-    audit_service = AuditService(db)
-    await audit_service.log_action(
-        entity_type="section_config_version",
-        entity_id=version.id,
-        action=AuditAction.CREATE,
-        user_id=current_user.uid,
-        changes={
-            "section_config_id": section_config_id,
-            "title": version_data.title,
-            "experiment": version_data.experiment,
-            "variant": version_data.variant,
-        }
-    )
-    await db.commit()
-    
     return create_response(version)
 
 
@@ -254,14 +225,6 @@ async def update_version(
     if not version:
         raise HTTPException(status_code=404, detail="Version not found")
     
-    # Store old values for audit
-    old_values = {
-        "title": version.title,
-        "description": version.description,
-        "experiment": version.experiment,
-        "variant": version.variant,
-    }
-    
     # Update fields
     update_dict = update_data.model_dump(exclude_unset=True)
     for field, value in update_dict.items():
@@ -269,20 +232,6 @@ async def update_version(
     
     await db.commit()
     await db.refresh(version)
-    
-    # Log audit trail
-    audit_service = AuditService(db)
-    await audit_service.log_action(
-        entity_type="section_config_version",
-        entity_id=version.id,
-        action=AuditAction.UPDATE,
-        user_id=current_user.uid,
-        changes={
-            "old_values": old_values,
-            "new_values": update_dict,
-        }
-    )
-    await db.commit()
     
     return create_response(version)
 
@@ -307,20 +256,6 @@ async def delete_version(
     
     if not version:
         raise HTTPException(status_code=404, detail="Version not found")
-    
-    # Log audit trail before deletion
-    audit_service = AuditService(db)
-    await audit_service.log_action(
-        entity_type="section_config_version",
-        entity_id=version.id,
-        action=AuditAction.DELETE,
-        user_id=current_user.uid,
-        changes={
-            "title": version.title,
-            "experiment": version.experiment,
-            "variant": version.variant,
-        }
-    )
     
     await db.delete(version)
     await db.commit()
@@ -362,20 +297,5 @@ async def duplicate_version(
     db.add(new_version)
     await db.commit()
     await db.refresh(new_version)
-    
-    # Log audit trail
-    audit_service = AuditService(db)
-    await audit_service.log_action(
-        entity_type="section_config_version",
-        entity_id=new_version.id,
-        action=AuditAction.CREATE,
-        user_id=current_user.uid,
-        changes={
-            "action": "duplicate",
-            "source_version_id": version_id,
-            "title": new_title,
-        }
-    )
-    await db.commit()
     
     return create_response(new_version)

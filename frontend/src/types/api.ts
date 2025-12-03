@@ -3,17 +3,6 @@
  * Comprehensive type definitions for API responses
  */
 
-export interface User {
-  id: string;
-  uid: string;
-  email: string;
-  displayName: string | null;
-  photoURL: string | null;
-  role: 'viewer' | 'editor' | 'approver' | 'admin';
-  createdAt: string;
-  updatedAt: string;
-}
-
 export interface Game {
   id: string;
   app_id: string;  // User-defined App ID
@@ -22,17 +11,6 @@ export interface Game {
   logo_url?: string | null;
   created_at?: string;
   updated_at?: string;
-}
-
-export interface AuditLog {
-  id: string;
-  userId: string;
-  action: string;
-  resourceType: string;
-  resourceId: string;
-  changes?: Record<string, any>;
-  metadata?: Record<string, any>;
-  createdAt: string;
 }
 
 export interface ApiError {

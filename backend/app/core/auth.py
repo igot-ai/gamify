@@ -1,16 +1,24 @@
 """Authentication and authorization utilities"""
 
 import logging
+from enum import Enum
 from typing import Optional
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from app.core.config import settings
-from app.models.user import UserRole
 
 logger = logging.getLogger(__name__)
 
 security = HTTPBearer(auto_error=False)
+
+
+class UserRole(str, Enum):
+    """User role enum for permissions"""
+    DESIGNER = "designer"
+    LEAD_DESIGNER = "lead_designer"
+    PRODUCT_MANAGER = "product_manager"
+    ADMIN = "admin"
 
 
 class CurrentUser:
