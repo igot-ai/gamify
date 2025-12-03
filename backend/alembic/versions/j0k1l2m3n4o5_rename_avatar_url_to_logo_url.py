@@ -1,7 +1,7 @@
 """Rename avatar_url to logo_url in games table
 
 Revision ID: j0k1l2m3n4o5
-Revises: 06e604ffc276
+Revises: i9j0k1l2m3n4
 Create Date: 2025-12-02 00:00:00.000000
 
 """
