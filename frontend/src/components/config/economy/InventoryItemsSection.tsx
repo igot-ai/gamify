@@ -57,7 +57,7 @@ export function InventoryItemsSection({ onSave, isSaving = false, readOnly = fal
 
   // Store original items on initial load for diff comparison
   useEffect(() => {
-    if (!initializedRef.current && inventoryItems) {
+    if (!initializedRef.current && inventoryItems && Array.isArray(inventoryItems)) {
       setOriginalItems(JSON.parse(JSON.stringify(inventoryItems)));
       initializedRef.current = true;
     }
@@ -96,9 +96,14 @@ export function InventoryItemsSection({ onSave, isSaving = false, readOnly = fal
   // Handle save - pass current inventory items data
   const handleSave = () => {
     if (onSave) {
-      onSave(inventoryItems);
+      const itemsToSave = inventoryItems || [];
+      onSave(itemsToSave);
       // Update original after save
-      setOriginalItems(JSON.parse(JSON.stringify(inventoryItems)));
+      if (Array.isArray(itemsToSave)) {
+        setOriginalItems(JSON.parse(JSON.stringify(itemsToSave)));
+      } else {
+        setOriginalItems([]);
+      }
     }
   };
 

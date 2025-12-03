@@ -50,20 +50,26 @@ export function EconomySettingsSection({
 
   // Store original settings on initial load for diff comparison
   useEffect(() => {
-    if (!initializedRef.current && settings) {
+    if (!initializedRef.current && settings && typeof settings === 'object') {
       setOriginalSettings(JSON.parse(JSON.stringify(settings)));
       initializedRef.current = true;
     }
   }, [settings]);
 
-  const hasChanges = JSON.stringify(settings) !== JSON.stringify(originalSettings);
+  const hasChanges = settings && originalSettings 
+    ? JSON.stringify(settings) !== JSON.stringify(originalSettings)
+    : settings !== originalSettings;
 
   const handleSaveNow = () => {
     const currentSettings = form.getValues('settings');
     if (onSave) {
       onSave(currentSettings);
       // Update original after save
-      setOriginalSettings(JSON.parse(JSON.stringify(currentSettings)));
+      if (currentSettings && typeof currentSettings === 'object') {
+        setOriginalSettings(JSON.parse(JSON.stringify(currentSettings)));
+      } else {
+        setOriginalSettings(null);
+      }
     }
     toast.success('Settings saved to ScriptableObject');
   };
@@ -204,7 +210,7 @@ export function EconomySettingsSection({
                   </Button>
                   <div className="flex items-start gap-2 p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
                     <Info className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
-                    <p className="text-xs text-blue-600 dark:text-blue-400">
+                    <p className="text-xs text-blue-600">
                       Save Settings to the ScriptableObject
                     </p>
                   </div>

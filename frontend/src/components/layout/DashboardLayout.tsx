@@ -115,11 +115,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     return currentTab === tabParam;
   };
 
-  // Build URL with gameId param for section pages
+  // Build URL with appId param for section pages
   const buildNavUrl = (path: string, tabParam?: string) => {
     const params = new URLSearchParams();
     if (selectedGameId) {
-      params.set('gameId', selectedGameId);
+      params.set('appId', selectedGameId);
     }
     if (tabParam) {
       params.set('tab', tabParam);

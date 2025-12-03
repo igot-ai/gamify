@@ -7,7 +7,7 @@ import type { Game } from '../types/api';
 
 /**
  * Hook for URL-based game selection
- * - Reads gameId from URL search params (single source of truth)
+ * - Reads appId from URL search params (single source of truth)
  * - Uses React Query to fetch game data
  * - Provides setSelectedGame to update URL
  */
@@ -16,20 +16,20 @@ export function useSelectedGame() {
   const router = useRouter();
   const pathname = usePathname();
 
-  // Get gameId from URL - this is the single source of truth
-  const gameId = searchParams.get('gameId');
+  // Get appId from URL - this is the single source of truth
+  const appId = searchParams.get('appId');
 
   // Fetch game data using React Query
-  const { data: selectedGame, isLoading } = useGame(gameId || '');
+  const { data: selectedGame, isLoading } = useGame(appId || '');
 
   // Function to select a game (updates URL)
   const setSelectedGame = useCallback((game: Game | null) => {
     const params = new URLSearchParams(searchParams.toString());
     
     if (game) {
-      params.set('gameId', game.id);
+      params.set('appId', game.id);
     } else {
-      params.delete('gameId');
+      params.delete('appId');
     }
 
     const queryString = params.toString();
@@ -42,9 +42,9 @@ export function useSelectedGame() {
     const params = new URLSearchParams(searchParams.toString());
     
     if (newGameId) {
-      params.set('gameId', newGameId);
+      params.set('appId', newGameId);
     } else {
-      params.delete('gameId');
+      params.delete('appId');
     }
 
     const queryString = params.toString();
@@ -54,7 +54,7 @@ export function useSelectedGame() {
 
   return {
     selectedGame: selectedGame || null,
-    selectedGameId: gameId,
+    selectedGameId: appId,
     setSelectedGame,
     setSelectedGameById,
     isLoading,

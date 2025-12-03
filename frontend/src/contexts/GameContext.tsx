@@ -4,7 +4,7 @@
  * Game Selection Context
  * 
  * This module provides game selection functionality using URL-based state management.
- * The selected game ID is stored in URL search params (?gameId=xxx) for shareable links.
+ * The selected game ID is stored in URL search params (?appId=xxx) for shareable links.
  * 
  * Usage:
  *   import { useGame } from '@/contexts/GameContext';

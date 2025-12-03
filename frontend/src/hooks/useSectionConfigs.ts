@@ -69,6 +69,85 @@ export function useSectionConfigsSummary(gameId: string) {
   });
 }
 
+/**
+ * Fetch total configuration count across all games
+ * Aggregates summaries from all accessible games
+ */
+export function useTotalConfigurationsCount(gameIds: string[]) {
+  return useQuery({
+    queryKey: ['total-configurations-count', gameIds.sort().join(',')],
+    queryFn: async () => {
+      if (!gameIds || gameIds.length === 0) {
+        return 0;
+      }
+
+      // Fetch summaries for all games in parallel
+      const summaryPromises = gameIds.map(async (gameId) => {
+        try {
+          const response = await apiClient.get<ApiResponse<SectionConfigSummary[]>>(
+            `/section-configs/summary?game_id=${gameId}`
+          );
+          return response.data.data || [];
+        } catch (error) {
+          // If a game fails, return empty array
+          console.error(`Failed to fetch configs for game ${gameId}:`, error);
+          return [];
+        }
+      });
+
+      const allSummaries = await Promise.all(summaryPromises);
+      
+      // Count configurations that have at least one version
+      const totalCount = allSummaries.flat().filter(
+        (summary) => summary.version_count > 0
+      ).length;
+
+      return totalCount;
+    },
+    enabled: gameIds.length > 0,
+  });
+}
+
+/**
+ * Fetch total configuration versions across all games
+ * Aggregates version counts from all accessible games
+ */
+export function useTotalConfigurationVersions(gameIds: string[]) {
+  return useQuery({
+    queryKey: ['total-configuration-versions', gameIds.sort().join(',')],
+    queryFn: async () => {
+      if (!gameIds || gameIds.length === 0) {
+        return 0;
+      }
+
+      // Fetch summaries for all games in parallel
+      const summaryPromises = gameIds.map(async (gameId) => {
+        try {
+          const response = await apiClient.get<ApiResponse<SectionConfigSummary[]>>(
+            `/section-configs/summary?game_id=${gameId}`
+          );
+          return response.data.data || [];
+        } catch (error) {
+          // If a game fails, return empty array
+          console.error(`Failed to fetch configs for game ${gameId}:`, error);
+          return [];
+        }
+      });
+
+      const allSummaries = await Promise.all(summaryPromises);
+      
+      // Sum all version counts across all configurations
+      const totalVersions = allSummaries.flat().reduce(
+        (sum, summary) => sum + summary.version_count,
+        0
+      );
+
+      return totalVersions;
+    },
+    enabled: gameIds.length > 0,
+  });
+}
+
 // ==================== Version Management Hooks ====================
 
 /**

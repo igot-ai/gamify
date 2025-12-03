@@ -56,7 +56,7 @@ export function CurrenciesSection({ onSave, isSaving = false, readOnly = false }
 
   // Store original currencies on initial load for diff comparison
   useEffect(() => {
-    if (!initializedRef.current && currencies) {
+    if (!initializedRef.current && currencies && Array.isArray(currencies)) {
       setOriginalCurrencies(JSON.parse(JSON.stringify(currencies)));
       initializedRef.current = true;
     }
@@ -96,9 +96,14 @@ export function CurrenciesSection({ onSave, isSaving = false, readOnly = false }
   // Handle save - pass current currencies data
   const handleSave = () => {
     if (onSave) {
-      onSave(currencies);
+      const currenciesToSave = currencies || [];
+      onSave(currenciesToSave);
       // Update original after save
-      setOriginalCurrencies(JSON.parse(JSON.stringify(currencies)));
+      if (Array.isArray(currenciesToSave)) {
+        setOriginalCurrencies(JSON.parse(JSON.stringify(currenciesToSave)));
+      } else {
+        setOriginalCurrencies([]);
+      }
     }
   };
 

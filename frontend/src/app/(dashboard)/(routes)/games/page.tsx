@@ -125,7 +125,7 @@ export default function GamesPage() {
                   <TableRow 
                     key={game.id}
                     className="cursor-pointer hover:bg-muted/50"
-                    onClick={() => router.push(`/sections/economy?gameId=${game.id}`)}
+                    onClick={() => router.push(`/sections/economy?appId=${game.id}`)}
                   >
                     <TableCell>
                       <div className="flex items-center gap-3">

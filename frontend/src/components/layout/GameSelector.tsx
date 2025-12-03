@@ -197,7 +197,7 @@ export function GameSelector() {
     
     // If not on a section page, navigate to the economy section with the new game
     if (!pathname?.startsWith('/sections/')) {
-      router.push(`/sections/economy?gameId=${game.id}`);
+      router.push(`/sections/economy?appId=${game.id}`);
     } else {
       // On section pages, just update the URL param (setSelectedGame does this)
       setSelectedGame(game);
@@ -208,7 +208,7 @@ export function GameSelector() {
     setCreateDialogOpen(false);
     // Select the newly created game and navigate to it
     setSelectedGame(newGame);
-    router.push(`/sections/economy?gameId=${newGame.id}`);
+    router.push(`/sections/economy?appId=${newGame.id}`);
   };
 
   if (isLoadingGames) {
@@ -243,15 +243,15 @@ export function GameSelector() {
             <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-[280px] p-0 bg-zinc-900 border-zinc-700" align="end">
-          <div className="p-2 border-b border-zinc-700">
+        <PopoverContent className="w-[280px] p-0 bg-white border-border" align="end">
+          <div className="p-2 border-b border-border">
             <div className="relative">
-              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
+              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search games..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8 h-8 bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-500"
+                className="pl-8 h-8 bg-background border-border text-foreground placeholder:text-muted-foreground"
               />
             </div>
           </div>
@@ -259,7 +259,7 @@ export function GameSelector() {
           <ScrollArea className="h-[240px]">
             <div className="p-1">
               {filteredGames.length === 0 ? (
-                <div className="py-6 text-center text-sm text-zinc-400">
+                <div className="py-6 text-center text-sm text-muted-foreground">
                   {games?.length === 0 ? 'No games yet' : 'No games found'}
                 </div>
               ) : (
@@ -270,14 +270,14 @@ export function GameSelector() {
                     className={`w-full flex items-center gap-3 px-2 py-2 rounded-md text-left transition-colors ${
                       selectedGame?.id === game.id
                         ? 'bg-amber-500/20 border border-amber-500/50'
-                        : 'hover:bg-zinc-800'
+                        : 'hover:bg-muted'
                     }`}
                   >
                     <GameLogo game={game} size="md" />
                     <div className="flex-1 min-w-0">
-                      <div className={`font-medium text-sm truncate ${selectedGame?.id === game.id ? 'text-amber-400' : 'text-zinc-100'}`}>{game.name}</div>
+                      <div className={`font-medium text-sm truncate ${selectedGame?.id === game.id ? 'text-amber-600' : 'text-foreground'}`}>{game.name}</div>
                       {game.app_id && (
-                        <div className="text-xs text-zinc-400 truncate font-mono">
+                        <div className="text-xs text-muted-foreground truncate font-mono">
                           {game.app_id}
                         </div>
                       )}
@@ -288,10 +288,10 @@ export function GameSelector() {
             </div>
           </ScrollArea>
           
-          <div className="p-2 border-t border-zinc-700">
+          <div className="p-2 border-t border-border">
             <Button
               variant="ghost"
-              className="w-full justify-start h-9 text-zinc-100 hover:bg-zinc-800 hover:text-zinc-100"
+              className="w-full justify-start h-9 text-foreground hover:bg-muted hover:text-foreground"
               onClick={() => {
                 setOpen(false);
                 setCreateDialogOpen(true);

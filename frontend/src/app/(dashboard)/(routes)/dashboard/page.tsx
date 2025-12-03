@@ -1,7 +1,10 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
 import { useGames } from '@/hooks/useGames';
+import { apiClient } from '@/lib/api';
+import { useIsAdmin } from '@/stores/authStore';
 import {
   Card,
   CardContent,
@@ -10,11 +13,30 @@ import {
   CardTitle,
 } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Users } from 'lucide-react';
+
+interface UserListItem {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+  is_active: boolean;
+}
 
 export default function DashboardPage() {
   const router = useRouter();
+  const isAdmin = useIsAdmin();
   const { data: games, isLoading } = useGames();
+  
+  // Fetch users count (admin only)
+  const { data: users = [], isLoading: isLoadingUsers } = useQuery({
+    queryKey: ['users'],
+    queryFn: async () => {
+      const response = await apiClient.get<UserListItem[]>('/users');
+      return response.data || [];
+    },
+    enabled: isAdmin, // Only fetch if user is admin
+  });
 
   if (isLoading) {
     return (
@@ -60,24 +82,35 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card
-          className="bg-gradient-to-br from-accent/10 to-primary/10 border-accent/20 hover:border-accent/40 transition cursor-pointer"
-          onClick={() => router.push('/games')}
-        >
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              Configurations
-              <ArrowRight className="h-5 w-5" />
-            </CardTitle>
-            <CardDescription>View and manage configs</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold text-foreground">--</p>
-            <p className="text-sm text-muted-foreground">
-              Select a game to view
-            </p>
-          </CardContent>
-        </Card>
+        {isAdmin && (
+          <Card
+            className="bg-gradient-to-br from-accent/10 to-primary/10 border-accent/20 hover:border-accent/40 transition cursor-pointer"
+            onClick={() => router.push('/users')}
+          >
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Users
+                </div>
+                <ArrowRight className="h-5 w-5" />
+              </CardTitle>
+              <CardDescription>Manage system users</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl font-bold text-foreground">
+                {isLoadingUsers ? '...' : users.length}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {users.length === 0 
+                  ? 'No users yet' 
+                  : users.length === 1 
+                  ? 'User' 
+                  : 'Total Users'}
+              </p>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       <div>
@@ -87,7 +120,7 @@ export default function DashboardPage() {
             <Card
               key={game.id}
               className="hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer border-border/50 bg-card/50 backdrop-blur-sm"
-              onClick={() => router.push(`/sections/economy?gameId=${game.id}`)}
+              onClick={() => router.push(`/sections/economy?appId=${game.id}`)}
             >
               <CardHeader>
                 <CardTitle className="text-xl">{game.name}</CardTitle>

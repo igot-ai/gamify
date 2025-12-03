@@ -69,7 +69,7 @@ export function RealPurchasesSection({ onSave, isSaving = false, readOnly = fals
 
   // Store original purchases on initial load for diff comparison
   useEffect(() => {
-    if (!initializedRef.current && realPurchases) {
+    if (!initializedRef.current && realPurchases && Array.isArray(realPurchases)) {
       setOriginalPurchases(JSON.parse(JSON.stringify(realPurchases)));
       initializedRef.current = true;
     }
@@ -111,9 +111,14 @@ export function RealPurchasesSection({ onSave, isSaving = false, readOnly = fals
   // Handle save - pass current real purchases data
   const handleSave = () => {
     if (onSave) {
-      onSave(realPurchases);
+      const purchasesToSave = realPurchases || [];
+      onSave(purchasesToSave);
       // Update original after save
-      setOriginalPurchases(JSON.parse(JSON.stringify(realPurchases)));
+      if (Array.isArray(purchasesToSave)) {
+        setOriginalPurchases(JSON.parse(JSON.stringify(purchasesToSave)));
+      } else {
+        setOriginalPurchases([]);
+      }
     }
   };
 
