@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { ChevronDown, Plus, Search, Gamepad2, FileJson, CheckCircle2, AlertCircle } from 'lucide-react';
+import { ChevronDown, Plus, Search, Gamepad2 } from 'lucide-react';
 import { useGames, useCreateGame } from '@/hooks/useGames';
 import { useGame } from '@/contexts/GameContext';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -18,19 +18,19 @@ import {
 import { toast } from 'sonner';
 import type { Game } from '@/types/api';
 
-interface GameAvatarProps {
+interface GameLogoProps {
   game: Game;
   size?: 'sm' | 'md';
 }
 
-function GameAvatar({ game, size = 'sm' }: GameAvatarProps) {
+function GameLogo({ game, size = 'sm' }: GameLogoProps) {
   const sizeClasses = size === 'sm' ? 'h-6 w-6 text-xs' : 'h-8 w-8 text-sm';
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
   
-  if (game.avatar_url) {
+  if (game.logo_url) {
     return (
       <img
-        src={`${apiUrl}${game.avatar_url}`}
+        src={`${apiUrl}${game.logo_url}`}
         alt={game.name}
         className={`${sizeClasses} rounded-full object-cover border border-border`}
       />
@@ -50,20 +50,7 @@ interface GameFormData {
   app_id: string;
   name: string;
   description: string;
-  avatar: File | null;
-}
-
-interface FirebaseServiceAccount {
-  type: string;
-  project_id: string;
-  private_key_id: string;
-  private_key: string;
-  client_email: string;
-  client_id: string;
-  auth_uri: string;
-  token_uri: string;
-  auth_provider_x509_cert_url: string;
-  client_x509_cert_url: string;
+  logo: File | null;
 }
 
 function CreateGameForm({ onSuccess }: { onSuccess: (game: Game) => void }) {
@@ -71,70 +58,20 @@ function CreateGameForm({ onSuccess }: { onSuccess: (game: Game) => void }) {
     app_id: '',
     name: '',
     description: '',
-    avatar: null,
+    logo: null,
   });
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
-  const [firebaseServiceAccount, setFirebaseServiceAccount] = useState<File | null>(null);
-  const [firebaseProjectId, setFirebaseProjectId] = useState<string | null>(null);
-  const [firebaseFileError, setFirebaseFileError] = useState<string | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const createGame = useCreateGame();
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setFormData({ ...formData, avatar: file });
+      setFormData({ ...formData, logo: file });
       const reader = new FileReader();
       reader.onloadend = () => {
-        setAvatarPreview(reader.result as string);
+        setLogoPreview(reader.result as string);
       };
       reader.readAsDataURL(file);
-    }
-  };
-
-  const handleFirebaseFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    setFirebaseFileError(null);
-    setFirebaseProjectId(null);
-    
-    if (!file) {
-      setFirebaseServiceAccount(null);
-      return;
-    }
-
-    // Validate file extension
-    if (!file.name.endsWith('.json')) {
-      setFirebaseFileError('Please upload a JSON file');
-      return;
-    }
-
-    // Read and validate JSON content
-    try {
-      const content = await file.text();
-      const json = JSON.parse(content) as FirebaseServiceAccount;
-      
-      // Validate required fields
-      const requiredFields = ['type', 'project_id', 'private_key', 'client_email'];
-      const missingFields = requiredFields.filter(field => !(field in json));
-      
-      if (missingFields.length > 0) {
-        setFirebaseFileError(`Missing required fields: ${missingFields.join(', ')}`);
-        return;
-      }
-
-      if (json.type !== 'service_account') {
-        setFirebaseFileError('Invalid service account type. Expected "service_account"');
-        return;
-      }
-
-      if (!json.private_key.startsWith('-----BEGIN PRIVATE KEY-----')) {
-        setFirebaseFileError('Invalid private key format');
-        return;
-      }
-
-      setFirebaseServiceAccount(file);
-      setFirebaseProjectId(json.project_id);
-    } catch {
-      setFirebaseFileError('Invalid JSON file');
     }
   };
 
@@ -148,11 +85,8 @@ function CreateGameForm({ onSuccess }: { onSuccess: (game: Game) => void }) {
       if (formData.description) {
         submitData.append('description', formData.description);
       }
-      if (formData.avatar) {
-        submitData.append('avatar', formData.avatar);
-      }
-      if (firebaseServiceAccount) {
-        submitData.append('firebase_service_account', firebaseServiceAccount);
+      if (formData.logo) {
+        submitData.append('logo', formData.logo);
       }
       
       const newGame = await createGame.mutateAsync(submitData);
@@ -171,13 +105,13 @@ function CreateGameForm({ onSuccess }: { onSuccess: (game: Game) => void }) {
         <DialogTitle>Create New Game</DialogTitle>
       </DialogHeader>
       
-      {/* Avatar Upload */}
+      {/* Logo Upload */}
       <div className="flex flex-col items-center gap-3">
         <div className="relative">
-          {avatarPreview ? (
+          {logoPreview ? (
             <img
-              src={avatarPreview}
-              alt="Avatar preview"
+              src={logoPreview}
+              alt="Logo preview"
               className="h-20 w-20 rounded-full object-cover border-2 border-border"
             />
           ) : (
@@ -188,11 +122,11 @@ function CreateGameForm({ onSuccess }: { onSuccess: (game: Game) => void }) {
           <input
             type="file"
             accept="image/*"
-            onChange={handleAvatarChange}
+            onChange={handleLogoChange}
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
           />
         </div>
-        <span className="text-xs text-muted-foreground">Click to upload avatar</span>
+        <span className="text-xs text-muted-foreground">Click to upload logo</span>
       </div>
 
       <div className="space-y-4">
@@ -222,58 +156,6 @@ function CreateGameForm({ onSuccess }: { onSuccess: (game: Game) => void }) {
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             placeholder="Game description"
           />
-        </div>
-        
-        {/* Firebase Service Account Upload */}
-        <div>
-          <label className="text-sm font-medium">Firebase Service Account</label>
-          <div className="mt-1">
-            <label
-              className={`flex flex-col items-center justify-center w-full h-24 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${
-                firebaseFileError
-                  ? 'border-destructive bg-destructive/5'
-                  : firebaseServiceAccount
-                  ? 'border-green-500 bg-green-50 dark:bg-green-950/20'
-                  : 'border-border hover:bg-muted/50'
-              }`}
-            >
-              <div className="flex flex-col items-center justify-center py-2">
-                {firebaseServiceAccount ? (
-                  <>
-                    <CheckCircle2 className="h-6 w-6 text-green-500 mb-1" />
-                    <p className="text-sm font-medium text-green-600 dark:text-green-400">
-                      {firebaseServiceAccount.name}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Project: <span className="font-mono">{firebaseProjectId}</span>
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <FileJson className="h-6 w-6 text-muted-foreground mb-1" />
-                    <p className="text-sm text-muted-foreground">
-                      <span className="font-medium">Click to upload</span> Firebase service account JSON
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Download from Firebase Console
-                    </p>
-                  </>
-                )}
-              </div>
-              <input
-                type="file"
-                accept=".json"
-                onChange={handleFirebaseFileChange}
-                className="hidden"
-              />
-            </label>
-            {firebaseFileError && (
-              <p className="text-xs text-destructive mt-1 flex items-center gap-1">
-                <AlertCircle className="h-3 w-3" />
-                {firebaseFileError}
-              </p>
-            )}
-          </div>
         </div>
       </div>
       <div className="flex gap-4 justify-end">
@@ -348,7 +230,7 @@ export function GameSelector() {
             <div className="flex items-center gap-2 truncate">
               {selectedGame ? (
                 <>
-                  <GameAvatar game={selectedGame} size="sm" />
+                  <GameLogo game={selectedGame} size="sm" />
                   <span className="truncate text-sm">{selectedGame.name}</span>
                 </>
               ) : (
@@ -391,7 +273,7 @@ export function GameSelector() {
                         : 'hover:bg-zinc-800'
                     }`}
                   >
-                    <GameAvatar game={game} size="md" />
+                    <GameLogo game={game} size="md" />
                     <div className="flex-1 min-w-0">
                       <div className={`font-medium text-sm truncate ${selectedGame?.id === game.id ? 'text-amber-400' : 'text-zinc-100'}`}>{game.name}</div>
                       {game.app_id && (

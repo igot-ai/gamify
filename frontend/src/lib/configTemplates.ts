@@ -120,7 +120,7 @@ export const configTemplates: Record<ConfigType, any> = {
       },
     ],
     push_notifications: [],
-    firebase_config: {
+    push_config: {
       sender_id: '',
       server_key: '',
       topics: [],

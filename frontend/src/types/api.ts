@@ -19,13 +19,9 @@ export interface Game {
   app_id: string;  // User-defined App ID
   name: string;
   description: string | null;
-  status: 'active' | 'inactive' | 'archived';
-  firebase_project_id?: string;
-  avatar_url?: string | null;
+  logo_url?: string | null;
   created_at?: string;
-  createdAt: string;
-  updatedAt: string;
-  createdBy: string;
+  updated_at?: string;
 }
 
 export interface AuditLog {
@@ -37,14 +33,6 @@ export interface AuditLog {
   changes?: Record<string, any>;
   metadata?: Record<string, any>;
   createdAt: string;
-}
-
-export interface PaginatedResponse<T> {
-  data: T[];
-  total: number;
-  page: number;
-  pageSize: number;
-  totalPages: number;
 }
 
 export interface ApiError {
@@ -83,48 +71,56 @@ export type SectionType =
   | 'tutorial';
 
 /**
- * Section configuration with draft and published data.
+ * Section configuration - container for versions.
  * One record per game+section_type combination.
  */
 export interface SectionConfig {
   id: string;
   game_id: string;
   section_type: SectionType;
-  
-  // Draft state (always editable)
-  draft_data: any | null;
-  draft_updated_at: string | null;
-  draft_updated_by: string | null;
-  
-  // Published state (null if never published)
-  published_data: any | null;
-  published_version: number | null;
-  published_at: string | null;
-  published_by: string | null;
-  
-  // Dirty flag - indicates if draft has changes not yet published
-  has_unpublished_changes: boolean;
-  
-  // Timestamps
   created_at: string;
   updated_at: string;
 }
 
 /**
- * Version history item - created on each publish.
+ * Version (config container) - editable configuration snapshot.
  */
 export interface SectionConfigVersion {
   id: string;
-  version: number;
-  config_data: any | null;
-  published_at: string;
-  published_by: string;
+  section_config_id: string;
+  title: string | null;
   description: string | null;
+  experiment: string | null;
+  variant: string | null;
+  config_data: any | null;
   created_at: string;
+  updated_at: string;
 }
 
 /**
- * Response for version history list.
+ * Request payload for creating a new version.
+ */
+export interface SectionConfigVersionCreate {
+  title?: string;
+  description?: string;
+  experiment?: string;
+  variant?: string;
+  config_data?: any;
+}
+
+/**
+ * Request payload for updating a version.
+ */
+export interface SectionConfigVersionUpdate {
+  title?: string;
+  description?: string;
+  experiment?: string;
+  variant?: string;
+  config_data?: any;
+}
+
+/**
+ * Response for version list.
  */
 export interface SectionConfigVersionListResponse {
   versions: SectionConfigVersion[];
@@ -136,8 +132,7 @@ export interface SectionConfigVersionListResponse {
  */
 export interface SectionConfigSummary {
   section_type: SectionType;
-  published_version: number | null;
-  has_unpublished_changes: boolean;
+  version_count: number;
   updated_at: string | null;
 }
 

@@ -1,7 +1,6 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-// Note: Firebase is not used for frontend auth - we use backend API authentication
 import type { User } from '../types/user';
 
 interface AuthContextType {
@@ -20,7 +19,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     useEffect(() => {
         // Check for existing session token
-        const token = localStorage.getItem('firebase_token');
+        const token = localStorage.getItem('auth_token');
         if (token) {
             // Mock user for testing - in production, validate token with backend
             setUser({
@@ -44,7 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 photoURL: null,
                 role: 'admin'
             });
-            localStorage.setItem('firebase_token', 'mock-token-for-testing');
+            localStorage.setItem('auth_token', 'mock-token-for-testing');
             return;
         }
         throw new Error('Invalid credentials');
@@ -56,7 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     const logout = async () => {
-        localStorage.removeItem('firebase_token');
+        localStorage.removeItem('auth_token');
         setUser(null);
     };
 

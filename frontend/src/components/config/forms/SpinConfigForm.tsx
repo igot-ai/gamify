@@ -23,7 +23,7 @@ import {
   defaultSpinConfig,
   type SpinConfig,
 } from '@/lib/validations/spinConfig';
-import { useSectionConfig } from '@/hooks/useSectionConfigs';
+import { useSectionConfig, useSectionConfigVersions } from '@/hooks/useSectionConfigs';
 import { useGame } from '@/contexts/GameContext';
 import type { EconomyConfig, Currency, InventoryItem } from '@/lib/validations/economyConfig';
 
@@ -55,8 +55,12 @@ export const SpinConfigForm = forwardRef<SpinConfigFormRef, SpinConfigFormProps>
       section_type: 'economy',
     });
     
-    // Extract currencies and inventory items from economy config
-    const economyData = economyConfig?.draft_data as EconomyConfig | undefined;
+    // Fetch economy versions to get the config data
+    const { data: economyVersionsData } = useSectionConfigVersions(economyConfig?.id || '');
+    
+    // Extract currencies and inventory items from the latest economy version
+    const latestEconomyVersion = economyVersionsData?.versions?.[0];
+    const economyData = latestEconomyVersion?.config_data as EconomyConfig | undefined;
     const currencies: Currency[] = economyData?.currencies || [];
     const inventoryItems: InventoryItem[] = economyData?.inventoryItems || [];
 

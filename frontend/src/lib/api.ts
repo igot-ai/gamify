@@ -28,7 +28,7 @@ export const apiClient = axios.create({
 // Request interceptor to add auth token and handle FormData
 apiClient.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem('firebase_token');
+        const token = localStorage.getItem('auth_token');
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
@@ -52,7 +52,7 @@ apiClient.interceptors.response.use(
     (error) => {
         if (error.response?.status === 401) {
             // Handle unauthorized - clear token and redirect to login
-            localStorage.removeItem('firebase_token');
+            localStorage.removeItem('auth_token');
             window.location.href = '/login';
         }
         return Promise.reject(error);

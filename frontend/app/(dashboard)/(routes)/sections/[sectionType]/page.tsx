@@ -5,17 +5,27 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useGame } from '@/contexts/GameContext';
 import {
   useSectionConfig,
-  useSaveDraft,
-  usePublishConfig,
+  useSectionConfigVersions,
+  useUpdateVersion,
+  useCreateVersion,
 } from '@/hooks/useSectionConfigs';
-import type { SectionType } from '@/types/api';
+import type { SectionType, SectionConfigVersion } from '@/types/api';
 import { SECTION_METADATA } from '@/types/api';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
 import { VersionDropdown } from '@/components/config/VersionDropdown';
 import { ConfigActionsMenu } from '@/components/config/shared/ConfigActionsMenu';
 import { SectionTabs, SECTION_TABS } from '@/components/config/SectionTabs';
-import { Zap, Loader2, Circle, CheckCircle2 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/Dialog';
+import { Save, Loader2, Plus, Edit2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 // Export transform functions
@@ -143,13 +153,20 @@ export default function SectionEditorPage() {
   const defaultTab = SECTION_TABS[sectionType]?.[0]?.id || 'currencies';
   const [activeTab, setActiveTab] = useState(urlTab || defaultTab);
 
-  // Current draft data state (local copy for editing)
+  // Version state
+  const [selectedVersion, setSelectedVersion] = useState<SectionConfigVersion | null>(null);
   const [currentData, setCurrentData] = useState<any>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [hasLocalChanges, setHasLocalChanges] = useState(false);
   
-  // Version viewing state - when viewing an old version, form is read-only
-  const [viewingOldVersion, setViewingOldVersion] = useState<number | null>(null);
+  // Version metadata edit dialog
+  const [editMetaDialogOpen, setEditMetaDialogOpen] = useState(false);
+  const [editingMeta, setEditingMeta] = useState({
+    title: '',
+    description: '',
+    experiment: '',
+    variant: '',
+  });
 
   // Form refs
   const economyFormRef = useRef<EconomyConfigLayoutRef>(null);
@@ -170,20 +187,25 @@ export default function SectionEditorPage() {
   const tutorialFormRef = useRef<TutorialConfigFormRef>(null);
 
   // Fetch the single config for this game+section (auto-creates if needed)
-  const { data: config, isLoading: isLoadingConfig, refetch: refetchConfig } = useSectionConfig({
+  const { data: config, isLoading: isLoadingConfig } = useSectionConfig({
     game_id: selectedGameId || '',
     section_type: sectionType,
   });
 
-  const saveDraftMutation = useSaveDraft();
-  const publishMutation = usePublishConfig();
+  // Fetch versions for this config
+  const { data: versionsData, refetch: refetchVersions } = useSectionConfigVersions(config?.id || '');
+  
+  const updateVersionMutation = useUpdateVersion();
+  const createVersionMutation = useCreateVersion();
 
-  // Initialize current data from config's draft_data
+  // Auto-select first version when versions load
   useEffect(() => {
-    if (config && !hasLocalChanges) {
-      setCurrentData(config.draft_data);
+    if (versionsData?.versions && versionsData.versions.length > 0 && !selectedVersion) {
+      const firstVersion = versionsData.versions[0];
+      setSelectedVersion(firstVersion);
+      setCurrentData(firstVersion.config_data);
     }
-  }, [config, hasLocalChanges]);
+  }, [versionsData, selectedVersion]);
 
   // Update URL when tab changes
   const handleTabChange = (tabId: string) => {
@@ -241,45 +263,26 @@ export default function SectionEditorPage() {
   }, [sectionType, currentData]);
 
   const handleSave = async (data?: any) => {
-    if (!config) {
-      toast.error('No configuration to save');
+    if (!config || !selectedVersion) {
+      toast.error('No version selected');
       return;
     }
 
     setIsSaving(true);
     try {
       const saveData = data ?? getFormData() ?? currentData;
-      await saveDraftMutation.mutateAsync({ 
-        sectionConfigId: config.id, 
-        draft_data: saveData 
+      await updateVersionMutation.mutateAsync({ 
+        sectionConfigId: config.id,
+        versionId: selectedVersion.id, 
+        data: { config_data: saveData }
       });
       setCurrentData(saveData);
       setHasLocalChanges(false);
-      toast.success('Draft saved');
+      toast.success('Saved');
     } catch (error: any) {
       toast.error(error?.response?.data?.detail || 'Failed to save');
     } finally {
       setIsSaving(false);
-    }
-  };
-
-  const handlePublish = async () => {
-    if (!config) {
-      toast.error('No configuration to publish');
-      return;
-    }
-
-    try {
-      // Save draft first if there are local changes
-      if (hasLocalChanges) {
-        await handleSave();
-      }
-      
-      // Publish to Firebase
-      await publishMutation.mutateAsync({ sectionConfigId: config.id });
-      toast.success(`v${(config.published_version || 0) + 1} is now current (published to Firebase)`);
-    } catch (error: any) {
-      toast.error(error?.response?.data?.detail || 'Failed to publish');
     }
   };
 
@@ -288,11 +291,80 @@ export default function SectionEditorPage() {
     setHasLocalChanges(true);
   };
 
-  const handleRollback = () => {
-    // After rollback, refetch config to get new draft_data
-    refetchConfig();
+  const handleVersionSelect = (version: SectionConfigVersion) => {
+    // Check for unsaved changes
+    if (hasLocalChanges) {
+      if (!confirm('You have unsaved changes. Discard them?')) {
+        return;
+      }
+    }
+    
+    setSelectedVersion(version);
+    setCurrentData(version.config_data);
     setHasLocalChanges(false);
-    setViewingOldVersion(null); // Clear read-only state after rollback
+    
+    // Reset form refs
+    resetFormWithData(version.config_data);
+  };
+
+  const handleVersionCreated = (version: SectionConfigVersion) => {
+    refetchVersions();
+    setSelectedVersion(version);
+    setCurrentData(version.config_data);
+    setHasLocalChanges(false);
+  };
+
+  const resetFormWithData = (data: any) => {
+    switch (sectionType) {
+      case 'ads':
+        adFormRef.current?.reset?.(data);
+        break;
+      case 'notification':
+        notificationFormRef.current?.reset?.(data);
+        break;
+      case 'game':
+        gameFormRef.current?.reset?.(data);
+        break;
+      case 'haptic':
+        hapticFormRef.current?.reset?.(data);
+        break;
+      case 'remove_ads':
+        removeAdsFormRef.current?.reset?.(data);
+        break;
+      case 'tile_bundle':
+        tileBundleFormRef.current?.reset?.(data);
+        break;
+      case 'booster':
+        boosterFormRef.current?.reset?.(data);
+        break;
+      case 'rating':
+        ratingFormRef.current?.reset?.(data);
+        break;
+      case 'link':
+        linkFormRef.current?.reset?.(data);
+        break;
+      case 'chapter_reward':
+        chapterRewardFormRef.current?.reset?.(data);
+        break;
+      case 'game_economy':
+        gameEconomyFormRef.current?.reset?.(data);
+        break;
+      case 'shop_settings':
+        shopSettingsFormRef.current?.reset?.(data);
+        break;
+      case 'spin':
+        spinFormRef.current?.reset?.(data);
+        break;
+      case 'hint_offer':
+        hintOfferFormRef.current?.reset?.(data);
+        break;
+      case 'tutorial':
+        tutorialFormRef.current?.reset?.(data);
+        break;
+      case 'economy':
+        economyFormRef.current?.reset?.(data);
+        break;
+    }
   };
 
   // Handle import from JSON - resets form with imported data
@@ -304,86 +376,7 @@ export default function SectionEditorPage() {
     
     setCurrentData(transformedData);
     setHasLocalChanges(true);
-    
-    // Reset the form ref with transformed data
-    switch (sectionType) {
-      case 'ads':
-        adFormRef.current?.reset?.(transformedData);
-        break;
-      case 'notification':
-        notificationFormRef.current?.reset?.(transformedData);
-        break;
-      case 'game':
-        gameFormRef.current?.reset?.(transformedData);
-        break;
-      case 'haptic':
-        hapticFormRef.current?.reset?.(transformedData);
-        break;
-      case 'remove_ads':
-        removeAdsFormRef.current?.reset?.(transformedData);
-        break;
-      case 'tile_bundle':
-        tileBundleFormRef.current?.reset?.(transformedData);
-        break;
-      case 'booster':
-        boosterFormRef.current?.reset?.(transformedData);
-        break;
-      case 'rating':
-        ratingFormRef.current?.reset?.(transformedData);
-        break;
-      case 'link':
-        linkFormRef.current?.reset?.(transformedData);
-        break;
-      case 'chapter_reward':
-        chapterRewardFormRef.current?.reset?.(transformedData);
-        break;
-      case 'game_economy':
-        gameEconomyFormRef.current?.reset?.(transformedData);
-        break;
-      case 'shop_settings':
-        shopSettingsFormRef.current?.reset?.(transformedData);
-        break;
-      case 'spin':
-        spinFormRef.current?.reset?.(transformedData);
-        break;
-      case 'hint_offer':
-        hintOfferFormRef.current?.reset?.(transformedData);
-        break;
-      case 'tutorial':
-        tutorialFormRef.current?.reset?.(transformedData);
-        break;
-      case 'economy':
-        economyFormRef.current?.reset?.(transformedData);
-        break;
-    }
-  };
-
-  // Handle version selection - loads version data into form for preview/editing
-  const handleVersionSelect = (versionData: any, versionNumber: number, isPublished: boolean) => {
-    setCurrentData(versionData);
-    
-    // If viewing an old (non-published) version, make it read-only
-    if (!isPublished) {
-      setViewingOldVersion(versionNumber);
-      setHasLocalChanges(false);
-      toast.info(`Viewing v${versionNumber} (read-only). Use Rollback to edit this version.`);
-    } else {
-      // Viewing the current published version - back to normal state
-      // Don't set hasLocalChanges=true since we're loading the published data (no actual changes)
-      setViewingOldVersion(null);
-      setHasLocalChanges(false);
-      
-      // Reset the form ref with version data if available
-      switch (sectionType) {
-        case 'ads':
-          adFormRef.current?.reset?.(versionData);
-          break;
-        case 'notification':
-          notificationFormRef.current?.reset?.(versionData);
-          break;
-        // Other forms (including economy) will pick up the new currentData on re-render via initialData prop
-      }
-    }
+    resetFormWithData(transformedData);
   };
 
   // Get transform function for current section
@@ -395,6 +388,42 @@ export default function SectionEditorPage() {
   const getExportFileName = useCallback(() => {
     return sectionExportNameMap[sectionType] || 'config';
   }, [sectionType]);
+
+  // Handle edit version metadata
+  const handleEditMeta = () => {
+    if (!selectedVersion) return;
+    setEditingMeta({
+      title: selectedVersion.title || '',
+      description: selectedVersion.description || '',
+      experiment: selectedVersion.experiment || '',
+      variant: selectedVersion.variant || '',
+    });
+    setEditMetaDialogOpen(true);
+  };
+
+  const handleSaveMeta = async () => {
+    if (!config || !selectedVersion) return;
+    
+    try {
+      await updateVersionMutation.mutateAsync({
+        sectionConfigId: config.id,
+        versionId: selectedVersion.id,
+        data: editingMeta,
+      });
+      
+      // Update local state
+      setSelectedVersion({
+        ...selectedVersion,
+        ...editingMeta,
+      });
+      
+      refetchVersions();
+      setEditMetaDialogOpen(false);
+      toast.success('Version updated');
+    } catch (error: any) {
+      toast.error(error?.response?.data?.detail || 'Failed to update version');
+    }
+  };
 
   // Show error if invalid section type
   if (!sectionType || !sectionMeta) {
@@ -434,42 +463,42 @@ export default function SectionEditorPage() {
     );
   }
 
-  // Config data to display (use local state if available, otherwise from config)
-  const configData = currentData ?? config?.draft_data ?? {};
-
-  // Status indicator
-  const getStatusIndicator = () => {
-    if (!config) return null;
-    
-    const hasUnsavedChanges = hasLocalChanges || config.has_unpublished_changes;
-    
-    if (hasUnsavedChanges) {
-      return (
-        <div className="flex items-center gap-2 text-amber-600">
-          <Circle className="h-3 w-3 fill-amber-500" />
-          <span className="text-sm">Unpublished changes</span>
-        </div>
-      );
-    }
-    
-    if (config.published_version) {
-      return (
-        <div className="flex items-center gap-2 text-green-600">
-          <CheckCircle2 className="h-3 w-3" />
-          <span className="text-sm">Current v{config.published_version}</span>
-        </div>
-      );
-    }
-    
-    return (
-      <div className="flex items-center gap-2 text-muted-foreground">
-        <Circle className="h-3 w-3" />
-        <span className="text-sm">No version</span>
-      </div>
-    );
-  };
+  // Config data to display
+  const configData = currentData ?? {};
 
   const renderContent = () => {
+    if (!selectedVersion) {
+      return (
+        <Card className="border-border/30 shadow-stripe-sm">
+          <CardContent className="p-8 text-center text-muted-foreground">
+            <p className="mb-4">No version selected. Create a version to get started.</p>
+            <Button
+              onClick={() => {
+                if (config) {
+                  createVersionMutation.mutateAsync({
+                    sectionConfigId: config.id,
+                    data: { title: 'Initial Version' }
+                  }).then((newVersion) => {
+                    if (newVersion) {
+                      handleVersionCreated(newVersion);
+                    }
+                  });
+                }
+              }}
+              disabled={createVersionMutation.isPending}
+            >
+              {createVersionMutation.isPending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Plus className="mr-2 h-4 w-4" />
+              )}
+              Create First Version
+            </Button>
+          </CardContent>
+        </Card>
+      );
+    }
+
     switch (sectionType) {
       case 'economy':
         return (
@@ -666,12 +695,24 @@ export default function SectionEditorPage() {
               </h1>
               <VersionDropdown
                 config={config || null}
-                onRollback={handleRollback}
+                selectedVersion={selectedVersion}
                 onVersionSelect={handleVersionSelect}
+                onVersionCreated={handleVersionCreated}
               />
+              {selectedVersion && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleEditMeta}
+                  className="h-8 px-2"
+                  title="Edit version details"
+                >
+                  <Edit2 className="h-4 w-4" />
+                </Button>
+              )}
             </div>
             <div className="flex items-center gap-3">
-              {!viewingOldVersion && (
+              {selectedVersion && (
                 <ConfigActionsMenu
                   onGetData={getFormData}
                   onImport={handleImportData}
@@ -679,25 +720,20 @@ export default function SectionEditorPage() {
                   exportFileName={getExportFileName()}
                 />
               )}
-              {viewingOldVersion ? (
-                <div className="flex items-center gap-2 text-blue-600">
-                  <Circle className="h-3 w-3 fill-blue-500" />
-                  <span className="text-sm">Viewing v{viewingOldVersion} (read-only)</span>
-                </div>
-              ) : (
-                getStatusIndicator()
+              {hasLocalChanges && (
+                <span className="text-sm text-amber-600">Unsaved changes</span>
               )}
               <Button
-                onClick={handlePublish}
-                disabled={isSaving || publishMutation.isPending || !config || !!viewingOldVersion}
+                onClick={() => handleSave()}
+                disabled={isSaving || !selectedVersion}
                 className="h-9"
               >
-                {publishMutation.isPending ? (
+                {isSaving ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : (
-                  <Zap className="mr-2 h-4 w-4" />
+                  <Save className="mr-2 h-4 w-4" />
                 )}
-                Publish
+                Save
               </Button>
             </div>
           </div>
@@ -721,29 +757,73 @@ export default function SectionEditorPage() {
 
       {/* Content */}
       <div className="p-6">
-        {viewingOldVersion ? (
-          <fieldset disabled className="contents">
-            <style>{`
-              fieldset[disabled] input,
-              fieldset[disabled] textarea,
-              fieldset[disabled] select,
-              fieldset[disabled] button:not([data-allow-click]) {
-                cursor: not-allowed;
-                opacity: 0.7;
-              }
-              fieldset[disabled] button[type="submit"] {
-                display: none;
-              }
-              fieldset[disabled] .flex.items-center.justify-end.gap-3.pt-4.border-t {
-                display: none;
-              }
-            `}</style>
-            {renderContent()}
-          </fieldset>
-        ) : (
-          renderContent()
-        )}
+        {renderContent()}
       </div>
+
+      {/* Edit Version Metadata Dialog */}
+      <Dialog open={editMetaDialogOpen} onOpenChange={setEditMetaDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Version Details</DialogTitle>
+            <DialogDescription>
+              Update the metadata for this version.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <label className="text-sm font-medium">Title</label>
+              <Input
+                value={editingMeta.title}
+                onChange={(e) => setEditingMeta({ ...editingMeta, title: e.target.value })}
+                placeholder="Version title"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Description</label>
+              <Input
+                value={editingMeta.description}
+                onChange={(e) => setEditingMeta({ ...editingMeta, description: e.target.value })}
+                placeholder="Optional description"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium">Experiment</label>
+                <Input
+                  value={editingMeta.experiment}
+                  onChange={(e) => setEditingMeta({ ...editingMeta, experiment: e.target.value })}
+                  placeholder="e.g., exp_holiday_2024"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Variant</label>
+                <Input
+                  value={editingMeta.variant}
+                  onChange={(e) => setEditingMeta({ ...editingMeta, variant: e.target.value })}
+                  placeholder="e.g., control, variant_a"
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setEditMetaDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSaveMeta}
+              disabled={updateVersionMutation.isPending}
+            >
+              {updateVersionMutation.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : null}
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -47,18 +47,6 @@ class InvalidWorkflowTransitionError(AppException):
         )
 
 
-class FirebaseError(AppException):
-    """Raised when Firebase operation fails"""
-    def __init__(self, operation: str, details: str = ""):
-        message = f"Firebase {operation} failed"
-        if details:
-            message += f": {details}"
-        super().__init__(
-            message=message,
-            status_code=status.HTTP_502_BAD_GATEWAY
-        )
-
-
 class ValidationError(AppException):
     """Raised when data validation fails"""
     def __init__(self, field: str, message: str):

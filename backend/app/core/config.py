@@ -18,10 +18,6 @@ class Settings(BaseSettings):
     # Redis
     REDIS_URL: str
     
-    # Firebase
-    FIREBASE_SERVICE_ACCOUNT_PATH: str = ""
-    FIREBASE_PROJECT_ID: str = ""
-    
     # Security
     SECRET_KEY: str
     ALGORITHM: str = "HS256"

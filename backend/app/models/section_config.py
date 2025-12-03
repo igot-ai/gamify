@@ -1,6 +1,5 @@
-from datetime import datetime
 from enum import Enum
-from sqlalchemy import Column, String, Integer, DateTime, ForeignKey, JSON, Enum as SQLEnum, Index, UniqueConstraint, Boolean
+from sqlalchemy import Column, String, ForeignKey, JSON, Enum as SQLEnum, Index, UniqueConstraint
 from sqlalchemy.orm import relationship
 from app.models.base import BaseModel
 
@@ -31,27 +30,12 @@ class SectionType(str, Enum):
 class SectionConfig(BaseModel):
     """
     Single config record per game+section_type combination.
-    Contains both draft (working) and published (live) data.
-    Versioning is per section within each game.
+    Acts as a container for versions.
     """
     __tablename__ = "section_configs"
     
     game_id = Column(String, ForeignKey("games.id", ondelete="CASCADE"), nullable=False)
     section_type = Column(SQLEnum(SectionType), nullable=False, index=True)
-    
-    # Working draft (always editable)
-    draft_data = Column(JSON, nullable=True)
-    draft_updated_at = Column(DateTime, nullable=True)
-    draft_updated_by = Column(String, nullable=True)
-    
-    # Published state (null if never published)
-    published_data = Column(JSON, nullable=True)
-    published_version = Column(Integer, nullable=True)
-    published_at = Column(DateTime, nullable=True)
-    published_by = Column(String, nullable=True)
-    
-    # Dirty flag - indicates if draft has changes not yet published
-    has_unpublished_changes = Column(Boolean, default=False, nullable=False)
     
     # Relationships
     game = relationship("Game", back_populates="section_configs")
@@ -66,24 +50,26 @@ class SectionConfig(BaseModel):
 
 class SectionConfigVersion(BaseModel):
     """
-    Immutable version snapshots created on each publish.
-    Provides version history for rollback functionality.
+    Editable version (config container) for a section config.
+    Each version has metadata (title, description, experiment, variant) and config data.
     """
     __tablename__ = "section_config_versions"
     
     section_config_id = Column(String, ForeignKey("section_configs.id", ondelete="CASCADE"), nullable=False)
-    version = Column(Integer, nullable=False)
+    
+    # Version metadata
+    title = Column(String, nullable=True)
+    description = Column(String, nullable=True)
+    experiment = Column(String, nullable=True)
+    variant = Column(String, nullable=True)
+    
+    # Config data
     config_data = Column(JSON, nullable=True)
-    published_at = Column(DateTime, nullable=False)
-    published_by = Column(String, nullable=False)
-    description = Column(String, nullable=True)  # Optional publish note
     
     # Relationships
     section_config = relationship("SectionConfig", back_populates="versions")
     
     # Indexes and constraints
     __table_args__ = (
-        UniqueConstraint('section_config_id', 'version', name='uq_section_config_version'),
         Index('idx_section_config_version_config_id', 'section_config_id'),
-        Index('idx_section_config_version_version', 'section_config_id', 'version'),
     )

@@ -5,8 +5,8 @@ router = APIRouter()
 
 @router.post("/login")
 async def login():
-    """Login endpoint - TODO: Implement Firebase Auth"""
-    return {"message": "Login endpoint - to be implemented with Firebase Auth"}
+    """Login endpoint - TODO: Implement authentication"""
+    return {"message": "Login endpoint - to be implemented"}
 
 
 @router.post("/logout")
@@ -17,5 +17,5 @@ async def logout():
 
 @router.get("/me")
 async def get_current_user():
-    """Get current user info - TODO: Implement with Firebase Auth"""
+    """Get current user info - TODO: Implement authentication"""
     return {"message": "User info - to be implemented"}

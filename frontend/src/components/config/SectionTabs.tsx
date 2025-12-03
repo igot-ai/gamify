@@ -8,16 +8,10 @@ interface TabItem {
   label: string;
 }
 
-// Define tabs - only Economy has sub-tabs, others show their form directly
+// Define tabs - Economy tabs are now in the sidebar navigation
 export const SECTION_TABS: Partial<Record<SectionType, TabItem[]>> = {
-  economy: [
-    { id: 'currencies', label: 'Currencies' },
-    { id: 'inventory', label: 'Inventory Items' },
-    { id: 'virtual-purchases', label: 'Virtual Purchases' },
-    { id: 'real-purchases', label: 'Real Purchases' },
-    { id: 'settings', label: 'Settings' },
-  ],
-  // Other sections don't need sub-tabs
+  // Economy sub-navigation is handled in the sidebar (DashboardLayout)
+  // Other sections can add tabs here if needed
 };
 
 interface SectionTabsProps {

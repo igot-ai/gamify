@@ -4,11 +4,8 @@ import logging
 from typing import Optional
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-import firebase_admin
-from firebase_admin import auth
 
 from app.core.config import settings
-from app.core.firebase import get_firebase_app
 from app.models.user import UserRole
 
 logger = logging.getLogger(__name__)
@@ -54,24 +51,36 @@ async def get_current_user(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)
 ) -> CurrentUser:
     """
-    Verify Firebase ID token and return current user.
+    Verify token and return current user.
     
-    This dependency extracts the Bearer token from the Authorization header,
-    verifies it with Firebase Auth, and returns user information.
+    This dependency extracts the Bearer token from the Authorization header
+    and returns user information.
     
     Raises:
-        HTTPException: If token is missing, invalid, or expired
+        HTTPException: If token is missing or invalid
     """
-    # If in development mode and no credentials, return mock user
-    if settings.ENVIRONMENT == "development" and not credentials:
-        logger.warning("Development mode: Using mock user authentication")
-        return CurrentUser(
-            uid="dev-user-123",
-            email="developer@sunstudio.com",
-            email_verified=True,
-            name="Developer",
-            role=UserRole.ADMIN,
-        )
+    # Development mode: allow mock authentication
+    if settings.ENVIRONMENT == "development":
+        if not credentials:
+            logger.warning("Development mode: Using mock user authentication")
+            return CurrentUser(
+                uid="dev-user-123",
+                email="developer@sunstudio.com",
+                email_verified=True,
+                name="Developer",
+                role=UserRole.ADMIN,
+            )
+        
+        # Mock token support for E2E tests
+        if credentials.credentials in ["mock-token-for-e2e", "mock-token-for-testing"]:
+            logger.info("Using mock token for testing")
+            return CurrentUser(
+                uid="test-user-id",
+                email="test@sunstudio.com",
+                email_verified=True,
+                name="Test User",
+                role=UserRole.ADMIN,
+            )
     
     if not credentials:
         raise HTTPException(
@@ -80,67 +89,23 @@ async def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    # Mock token support for E2E tests in development
-    if settings.ENVIRONMENT == "development" and credentials.credentials in ["mock-token-for-e2e", "mock-token-for-testing"]:
-        logger.info("Using mock token for E2E testing")
+    # For production, implement your own token verification here
+    # For now, accept any token in development
+    if settings.ENVIRONMENT == "development":
         return CurrentUser(
-            uid="test-user-id",
-            email="test@sunstudio.com",
+            uid="user-from-token",
+            email="user@sunstudio.com",
             email_verified=True,
-            name="Test User",
+            name="Authenticated User",
             role=UserRole.ADMIN,
         )
     
-    try:
-        # Get Firebase app instance
-        get_firebase_app()
-        
-        # Verify the ID token
-        decoded_token = auth.verify_id_token(credentials.credentials)
-        
-        # Extract user information
-        uid = decoded_token["uid"]
-        email = decoded_token.get("email", "")
-        email_verified = decoded_token.get("email_verified", False)
-        name = decoded_token.get("name")
-        picture = decoded_token.get("picture")
-        
-        # TODO: Fetch user role from database based on uid
-        # For now, default to DESIGNER
-        role = UserRole.DESIGNER
-        
-        logger.info(f"User authenticated: {email} (uid: {uid})")
-        
-        return CurrentUser(
-            uid=uid,
-            email=email,
-            email_verified=email_verified,
-            name=name,
-            picture=picture,
-            role=role,
-        )
-    
-    except auth.InvalidIdTokenError:
-        logger.warning("Invalid Firebase ID token")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authentication token",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    except auth.ExpiredIdTokenError:
-        logger.warning("Expired Firebase ID token")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentication token has expired",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    except Exception as e:
-        logger.error(f"Authentication error: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentication failed",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+    # Production: reject all tokens until proper auth is implemented
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Authentication not configured",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
 
 
 async def get_optional_user(
@@ -182,5 +147,3 @@ def require_role(required_role: UserRole):
         return current_user
     
     return role_checker
-
-

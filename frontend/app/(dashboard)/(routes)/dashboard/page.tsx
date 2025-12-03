@@ -103,16 +103,6 @@ export default function DashboardPage() {
                       {game.app_id}
                     </span>
                   </div>
-                  {game.firebase_project_id && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">
-                        Firebase Project:
-                      </span>
-                      <span className="font-mono text-xs text-foreground">
-                        {game.firebase_project_id}
-                      </span>
-                    </div>
-                  )}
                 </div>
                 <Button className="w-full">View Configs</Button>
               </CardContent>

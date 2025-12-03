@@ -17,7 +17,6 @@ class User(BaseModel):
     
     email = Column(String, unique=True, nullable=False, index=True)
     name = Column(String, nullable=True)
-    firebase_uid = Column(String, unique=True, nullable=True, index=True)
     role = Column(SQLEnum(UserRole), default=UserRole.DESIGNER, nullable=False, index=True)
     game_access = Column(JSON, nullable=False, default=list)  # List of game IDs
     is_active = Column(Boolean, default=True, nullable=False)

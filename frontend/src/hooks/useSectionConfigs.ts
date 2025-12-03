@@ -6,6 +6,8 @@ import type {
   SectionConfigSummary, 
   SectionConfigVersion,
   SectionConfigVersionListResponse,
+  SectionConfigVersionCreate,
+  SectionConfigVersionUpdate,
   ApiResponse,
 } from '../types/api';
 
@@ -67,69 +69,10 @@ export function useSectionConfigsSummary(gameId: string) {
   });
 }
 
-/**
- * Save draft data for a section config.
- * Always editable - updates draft_data and sets has_unpublished_changes=true.
- */
-export function useSaveDraft() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ 
-      sectionConfigId, 
-      draft_data 
-    }: { 
-      sectionConfigId: string; 
-      draft_data: any;
-    }) => {
-      const response = await apiClient.patch<ApiResponse<SectionConfig>>(
-        `/section-configs/${sectionConfigId}`,
-        { draft_data }
-      );
-      return response.data.data;
-    },
-    onSuccess: (data) => {
-      // Invalidate relevant queries
-      queryClient.invalidateQueries({ queryKey: ['section-config'] });
-      queryClient.invalidateQueries({ queryKey: ['section-configs-summary'] });
-    },
-  });
-}
+// ==================== Version Management Hooks ====================
 
 /**
- * Publish section config to Firebase.
- * - Deploys draft_data to Firebase
- * - Copies draft_data to published_data  
- * - Creates version snapshot
- * - Sets has_unpublished_changes to false
- */
-export function usePublishConfig() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ 
-      sectionConfigId, 
-      description 
-    }: { 
-      sectionConfigId: string; 
-      description?: string;
-    }) => {
-      const response = await apiClient.post<ApiResponse<SectionConfig>>(
-        `/section-configs/${sectionConfigId}/publish`,
-        description ? { description } : {}
-      );
-      return response.data.data;
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['section-config'] });
-      queryClient.invalidateQueries({ queryKey: ['section-configs-summary'] });
-      queryClient.invalidateQueries({ queryKey: ['section-config-versions'] });
-    },
-  });
-}
-
-/**
- * Fetch version history for a section config
+ * Fetch all versions for a section config
  */
 export function useSectionConfigVersions(sectionConfigId: string) {
   return useQuery({
@@ -145,30 +88,125 @@ export function useSectionConfigVersions(sectionConfigId: string) {
 }
 
 /**
- * Rollback to a specific version.
- * Copies the version's config_data to draft_data.
- * User must then publish to deploy the rollback.
+ * Fetch a single version by ID
  */
-export function useRollbackConfig() {
+export function useSectionConfigVersion(sectionConfigId: string, versionId: string) {
+  return useQuery({
+    queryKey: ['section-config-version', sectionConfigId, versionId],
+    queryFn: async () => {
+      const response = await apiClient.get<ApiResponse<SectionConfigVersion>>(
+        `/section-configs/${sectionConfigId}/versions/${versionId}`
+      );
+      return response.data.data;
+    },
+    enabled: !!sectionConfigId && !!versionId,
+  });
+}
+
+/**
+ * Create a new version for a section config
+ */
+export function useCreateVersion() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async ({ 
       sectionConfigId, 
-      version 
+      data 
     }: { 
       sectionConfigId: string; 
-      version: number;
+      data: SectionConfigVersionCreate;
     }) => {
-      const response = await apiClient.post<ApiResponse<SectionConfig>>(
-        `/section-configs/${sectionConfigId}/rollback/${version}`
+      const response = await apiClient.post<ApiResponse<SectionConfigVersion>>(
+        `/section-configs/${sectionConfigId}/versions`,
+        data
       );
       return response.data.data;
     },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['section-config'] });
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['section-config-versions', variables.sectionConfigId] });
       queryClient.invalidateQueries({ queryKey: ['section-configs-summary'] });
-      queryClient.invalidateQueries({ queryKey: ['section-config-versions'] });
+    },
+  });
+}
+
+/**
+ * Update an existing version
+ */
+export function useUpdateVersion() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ 
+      sectionConfigId,
+      versionId, 
+      data 
+    }: { 
+      sectionConfigId: string;
+      versionId: string; 
+      data: SectionConfigVersionUpdate;
+    }) => {
+      const response = await apiClient.patch<ApiResponse<SectionConfigVersion>>(
+        `/section-configs/${sectionConfigId}/versions/${versionId}`,
+        data
+      );
+      return response.data.data;
+    },
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['section-config-versions', variables.sectionConfigId] });
+      queryClient.invalidateQueries({ queryKey: ['section-config-version', variables.sectionConfigId, variables.versionId] });
+      queryClient.invalidateQueries({ queryKey: ['section-configs-summary'] });
+    },
+  });
+}
+
+/**
+ * Delete a version
+ */
+export function useDeleteVersion() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ 
+      sectionConfigId,
+      versionId 
+    }: { 
+      sectionConfigId: string;
+      versionId: string;
+    }) => {
+      await apiClient.delete(
+        `/section-configs/${sectionConfigId}/versions/${versionId}`
+      );
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['section-config-versions', variables.sectionConfigId] });
+      queryClient.invalidateQueries({ queryKey: ['section-configs-summary'] });
+    },
+  });
+}
+
+/**
+ * Duplicate a version
+ */
+export function useDuplicateVersion() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ 
+      sectionConfigId,
+      versionId 
+    }: { 
+      sectionConfigId: string;
+      versionId: string;
+    }) => {
+      const response = await apiClient.post<ApiResponse<SectionConfigVersion>>(
+        `/section-configs/${sectionConfigId}/versions/${versionId}/duplicate`
+      );
+      return response.data.data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['section-config-versions', variables.sectionConfigId] });
+      queryClient.invalidateQueries({ queryKey: ['section-configs-summary'] });
     },
   });
 }

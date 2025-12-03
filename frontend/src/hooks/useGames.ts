@@ -27,7 +27,7 @@ export function useGame(gameId: string) {
     });
 }
 
-// Create game with FormData (supports avatar upload)
+// Create game with FormData (supports logo upload)
 export function useCreateGame() {
     const queryClient = useQueryClient();
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { Header } from './Header';
 import { Button } from '../ui/Button';
@@ -25,6 +25,9 @@ import {
   RotateCw,
   Lightbulb,
   BookOpen,
+  ChevronDown,
+  ChevronRight,
+  Sparkles,
 } from 'lucide-react';
 import { useGame } from '@/contexts/GameContext';
 import type { SectionType } from '@/types/api';
@@ -34,50 +37,112 @@ interface DashboardLayoutProps {
   children: ReactNode;
 }
 
+interface SubItem {
+  id: string;
+  label: string;
+  tabParam?: string;  // For tabs on same page (e.g., Economy)
+  path?: string;      // For separate pages (e.g., Special Offer items)
+  sectionType?: SectionType;
+}
+
 interface NavItem {
   label: string;
   icon: React.ComponentType<{ className?: string }>;
   path: string;
   sectionType?: SectionType;
+  subItems?: SubItem[];
 }
 
-// Config section navigation items - simple, no sub-items
+// Config section navigation items - grouped items first, then standalone items
 const configSections: NavItem[] = [
-  { label: 'Economy', icon: Coins, path: '/sections/economy', sectionType: 'economy' },
+  { 
+    label: 'Economy', 
+    icon: Coins, 
+    path: '/sections/economy', 
+    sectionType: 'economy',
+    subItems: [
+      { id: 'currencies', label: 'Currencies', tabParam: 'currencies' },
+      { id: 'inventory', label: 'Inventory Items', tabParam: 'inventory' },
+      { id: 'virtual-purchases', label: 'Virtual Purchases', tabParam: 'virtual-purchases' },
+      { id: 'real-purchases', label: 'Real Purchases', tabParam: 'real-purchases' },
+      { id: 'settings', label: 'Settings', tabParam: 'settings' },
+    ]
+  },
+  { 
+    label: 'Game Config', 
+    icon: Gamepad2, 
+    path: '/sections/game-config',
+    subItems: [
+      { id: 'game', label: 'Game Config', path: '/sections/game', sectionType: 'game' },
+      { id: 'haptic', label: 'Haptic', path: '/sections/haptic', sectionType: 'haptic' },
+      { id: 'rating', label: 'Rating', path: '/sections/rating', sectionType: 'rating' },
+      { id: 'link', label: 'Links', path: '/sections/link', sectionType: 'link' },
+      { id: 'game-economy', label: 'Game Economy', path: '/sections/game-economy', sectionType: 'game_economy' },
+      { id: 'chapter-reward', label: 'Chapter Rewards', path: '/sections/chapter-reward', sectionType: 'chapter_reward' },
+    ]
+  },
+  { 
+    label: 'Special Offer', 
+    icon: Sparkles, 
+    path: '/sections/special-offer',
+    subItems: [
+      { id: 'hint-offer', label: 'Hint Offer', path: '/sections/hint-offer', sectionType: 'hint_offer' },
+      { id: 'remove-ads', label: 'Remove Ads', path: '/sections/remove-ads', sectionType: 'remove_ads' },
+      { id: 'tile-bundle', label: 'Tile Bundle', path: '/sections/tile-bundle', sectionType: 'tile_bundle' },
+      { id: 'spin', label: 'Spin Wheel', path: '/sections/spin', sectionType: 'spin' },
+    ]
+  },
   { label: 'Ads', icon: Tv, path: '/sections/ads', sectionType: 'ads' },
   { label: 'Notifications', icon: Bell, path: '/sections/notification', sectionType: 'notification' },
   { label: 'Boosters', icon: Rocket, path: '/sections/booster', sectionType: 'booster' },
-  { label: 'Game Config', icon: Gamepad2, path: '/sections/game', sectionType: 'game' },
-  { label: 'Haptic', icon: Vibrate, path: '/sections/haptic', sectionType: 'haptic' },
-  { label: 'Remove Ads', icon: Ban, path: '/sections/remove-ads', sectionType: 'remove_ads' },
-  { label: 'Tile Bundle', icon: Gift, path: '/sections/tile-bundle', sectionType: 'tile_bundle' },
-  { label: 'Rating', icon: Star, path: '/sections/rating', sectionType: 'rating' },
-  { label: 'Links', icon: Link, path: '/sections/link', sectionType: 'link' },
-  { label: 'Chapter Rewards', icon: Trophy, path: '/sections/chapter-reward', sectionType: 'chapter_reward' },
-  { label: 'Game Economy', icon: DollarSign, path: '/sections/game-economy', sectionType: 'game_economy' },
   { label: 'Shop Settings', icon: ShoppingCart, path: '/sections/shop-settings', sectionType: 'shop_settings' },
-  { label: 'Spin Wheel', icon: RotateCw, path: '/sections/spin', sectionType: 'spin' },
-  { label: 'Hint Offer', icon: Lightbulb, path: '/sections/hint-offer', sectionType: 'hint_offer' },
   { label: 'Tutorial', icon: BookOpen, path: '/sections/tutorial', sectionType: 'tutorial' },
 ];
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set(['Economy'])); // Economy expanded by default
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { selectedGame, selectedGameId } = useGame();
 
   const isActive = (path: string) => {
     return pathname === path || pathname?.startsWith(path + '/') || pathname?.startsWith(path + '?');
   };
 
+  // Check if a specific tab is active
+  const isTabActive = (path: string, tabParam: string) => {
+    if (!pathname?.startsWith(path)) return false;
+    const currentTab = searchParams?.get('tab');
+    // If no tab param in URL, default to first tab (currencies for economy)
+    if (!currentTab) return tabParam === 'currencies';
+    return currentTab === tabParam;
+  };
+
   // Build URL with gameId param for section pages
-  const buildNavUrl = (path: string) => {
-    // For section pages, include gameId if available
-    if (path.startsWith('/sections/') && selectedGameId) {
-      return `${path}?gameId=${selectedGameId}`;
+  const buildNavUrl = (path: string, tabParam?: string) => {
+    const params = new URLSearchParams();
+    if (selectedGameId) {
+      params.set('gameId', selectedGameId);
     }
-    return path;
+    if (tabParam) {
+      params.set('tab', tabParam);
+    }
+    const queryString = params.toString();
+    return queryString ? `${path}?${queryString}` : path;
+  };
+
+  const toggleExpanded = (label: string) => {
+    setExpandedItems(prev => {
+      const next = new Set(prev);
+      if (next.has(label)) {
+        next.delete(label);
+      } else {
+        next.add(label);
+      }
+      return next;
+    });
   };
 
   const renderNavItem = (item: NavItem, onClick?: () => void) => {
@@ -105,6 +170,73 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     );
   };
 
+  const renderNavItemWithSubItems = (item: NavItem, onClick?: () => void) => {
+    const Icon = item.icon;
+    const isExpanded = expandedItems.has(item.label);
+    // Check if any sub-item is active (for path-based sub-items)
+    const hasActiveSubItem = item.subItems?.some(sub => sub.path && isActive(sub.path));
+    const isParentActive = isActive(item.path) || hasActiveSubItem;
+
+    return (
+      <div key={item.path}>
+        {/* Parent item */}
+        <Button
+          variant={isParentActive && !isExpanded ? 'secondary' : 'ghost'}
+          className={cn(
+            'w-full justify-start text-sm font-normal',
+            isParentActive
+              ? 'text-foreground font-medium'
+              : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+          )}
+          onClick={() => toggleExpanded(item.label)}
+        >
+          <Icon className="mr-2 h-4 w-4" />
+          <span className="flex-1 text-left">{item.label}</span>
+          {isExpanded ? (
+            <ChevronDown className="h-4 w-4" />
+          ) : (
+            <ChevronRight className="h-4 w-4" />
+          )}
+        </Button>
+
+        {/* Sub-items */}
+        {isExpanded && item.subItems && (
+          <div className="ml-4 mt-1 space-y-1">
+            {item.subItems.map((subItem) => {
+              // Handle both tab-based (Economy) and path-based (Special Offer) sub-items
+              const isSubActive = subItem.path 
+                ? isActive(subItem.path) 
+                : isTabActive(item.path, subItem.tabParam!);
+              
+              const subItemUrl = subItem.path 
+                ? buildNavUrl(subItem.path)
+                : buildNavUrl(item.path, subItem.tabParam);
+
+              return (
+                <Button
+                  key={subItem.id}
+                  variant={isSubActive ? 'secondary' : 'ghost'}
+                  className={cn(
+                    'w-full justify-start text-sm font-normal pl-6',
+                    isSubActive
+                      ? 'bg-secondary text-secondary-foreground border-l-2 border-primary font-medium'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                  )}
+                  onClick={() => {
+                    router.push(subItemUrl);
+                    onClick?.();
+                  }}
+                >
+                  <span className="flex-1 text-left">{subItem.label}</span>
+                </Button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const renderSidebarContent = (onItemClick?: () => void) => (
     <nav className="space-y-1 flex flex-col h-full">
       {/* Dashboard - Always visible */}
@@ -119,7 +251,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               Configure
             </span>
           </div>
-          {configSections.map((item) => renderNavItem(item, onItemClick))}
+          {configSections.map((item) => 
+            item.subItems 
+              ? renderNavItemWithSubItems(item, onItemClick)
+              : renderNavItem(item, onItemClick)
+          )}
         </>
       )}
 

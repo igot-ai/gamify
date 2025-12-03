@@ -106,21 +106,6 @@ class AuditService:
             changes={"status": {"old": old_status, "new": new_status}}
         )
     
-    async def log_config_deployed(
-        self,
-        config_id: str,
-        user_id: str,
-        firebase_version: Optional[str] = None
-    ) -> AuditLog:
-        """Log configuration deployment to Firebase"""
-        return await self.log_action(
-            entity_type="config",
-            entity_id=config_id,
-            action=AuditAction.DEPLOY,
-            user_id=user_id,
-            metadata={"firebase_version": firebase_version}
-        )
-    
     async def log_config_deleted(
         self,
         config_id: str,

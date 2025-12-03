@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 // Simple middleware for route protection
-// In a real app, you'd verify the Firebase token here
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -15,8 +14,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
-  // For now, we'll handle auth on the client side with the AuthContext
-  // In production, you'd want to verify Firebase tokens here
+  // Auth is handled on the client side with the AuthContext
   return NextResponse.next();
 }
 
@@ -32,4 +30,3 @@ export const config = {
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };
-
