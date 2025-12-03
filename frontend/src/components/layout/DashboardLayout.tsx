@@ -15,21 +15,15 @@ import {
   ShoppingCart, 
   Rocket, 
   Gamepad2,
-  Vibrate,
-  Ban,
-  Gift,
-  Star,
-  Link,
-  Trophy,
-  DollarSign,
-  RotateCw,
-  Lightbulb,
   BookOpen,
   ChevronDown,
   ChevronRight,
   Sparkles,
+  Layers,
+  Users,
 } from 'lucide-react';
 import { useGame } from '@/contexts/GameContext';
+import { useIsAdmin } from '@/stores/authStore';
 import type { SectionType } from '@/types/api';
 import { cn } from '@/lib/utils';
 
@@ -106,6 +100,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { selectedGame, selectedGameId } = useGame();
+  const isAdmin = useIsAdmin();
 
   const isActive = (path: string) => {
     return pathname === path || pathname?.startsWith(path + '/') || pathname?.startsWith(path + '?');
@@ -241,6 +236,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     <nav className="space-y-1 flex flex-col h-full">
       {/* Dashboard - Always visible */}
       {renderNavItem({ label: 'Dashboard', icon: Home, path: '/dashboard' }, onItemClick)}
+      
+      {/* Games - Always visible */}
+      {renderNavItem({ label: 'Games', icon: Layers, path: '/games' }, onItemClick)}
+      
+      {/* User Management - Admin only */}
+      {isAdmin && renderNavItem({ label: 'User Management', icon: Users, path: '/users' }, onItemClick)}
 
       {/* Config sections - Only when game is selected */}
       {selectedGameId && (

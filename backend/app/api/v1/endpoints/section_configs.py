@@ -5,7 +5,8 @@ from sqlalchemy import select, desc, and_, func
 
 from app.core.database import get_db
 from app.core.response import ApiResponse, create_response
-from app.core.auth import get_current_user, CurrentUser
+from app.core.auth import get_current_user, can_access_game
+from app.models.user import User
 from app.models.section_config import SectionConfig, SectionType, SectionConfigVersion
 from app.schemas.section_config import (
     SectionConfigResponse,
@@ -19,17 +20,29 @@ from app.schemas.section_config import (
 router = APIRouter()
 
 
+async def verify_game_access(game_id: str, current_user: User, db: AsyncSession):
+    """Verify user has access to the game"""
+    if not can_access_game(current_user, game_id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You don't have access to this game"
+        )
+
+
 @router.get("", response_model=ApiResponse[SectionConfigResponse])
 async def get_or_create_section_config(
     game_id: str = Query(..., description="Game ID"),
     section_type: SectionType = Query(..., description="Section type"),
     db: AsyncSession = Depends(get_db),
-    current_user: CurrentUser = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
     """
     Get section config for a game+section combination.
     Auto-creates the config if it doesn't exist (one record per game+section).
     """
+    # Check game access
+    await verify_game_access(game_id, current_user, db)
+    
     # Try to find existing config
     result = await db.execute(
         select(SectionConfig).where(
@@ -58,8 +71,12 @@ async def get_or_create_section_config(
 async def get_section_configs_summary(
     game_id: str = Query(..., description="Game ID"),
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """Get summary of all section configs for a game"""
+    # Check game access
+    await verify_game_access(game_id, current_user, db)
+    
     summaries = []
     
     for section_type in SectionType:
@@ -99,6 +116,7 @@ async def get_section_configs_summary(
 async def get_section_config_by_id(
     section_config_id: str,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """Get a specific section configuration by ID"""
     result = await db.execute(select(SectionConfig).where(SectionConfig.id == section_config_id))
@@ -106,6 +124,9 @@ async def get_section_config_by_id(
     
     if not section_config:
         raise HTTPException(status_code=404, detail="Section config not found")
+    
+    # Check game access
+    await verify_game_access(section_config.game_id, current_user, db)
     
     return create_response(section_config)
 
@@ -119,6 +140,7 @@ async def list_versions(
     skip: int = 0,
     limit: int = 50,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """List all versions for a section config"""
     # Verify section config exists
@@ -127,6 +149,9 @@ async def list_versions(
     
     if not section_config:
         raise HTTPException(status_code=404, detail="Section config not found")
+    
+    # Check game access
+    await verify_game_access(section_config.game_id, current_user, db)
     
     # Get versions
     query = select(SectionConfigVersion).where(
@@ -154,7 +179,7 @@ async def create_version(
     section_config_id: str,
     version_data: SectionConfigVersionCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: CurrentUser = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
     """Create a new version for a section config"""
     # Verify section config exists
@@ -163,6 +188,9 @@ async def create_version(
     
     if not section_config:
         raise HTTPException(status_code=404, detail="Section config not found")
+    
+    # Check game access
+    await verify_game_access(section_config.game_id, current_user, db)
     
     # Create new version
     version = SectionConfigVersion(
@@ -185,8 +213,10 @@ async def get_version(
     section_config_id: str,
     version_id: str,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """Get a specific version"""
+    # Get version with section config info
     result = await db.execute(
         select(SectionConfigVersion).where(
             and_(
@@ -200,6 +230,13 @@ async def get_version(
     if not version:
         raise HTTPException(status_code=404, detail="Version not found")
     
+    # Get section config to check game access
+    config_result = await db.execute(select(SectionConfig).where(SectionConfig.id == section_config_id))
+    section_config = config_result.scalar_one_or_none()
+    
+    if section_config:
+        await verify_game_access(section_config.game_id, current_user, db)
+    
     return create_response(version)
 
 
@@ -209,7 +246,7 @@ async def update_version(
     version_id: str,
     update_data: SectionConfigVersionUpdate,
     db: AsyncSession = Depends(get_db),
-    current_user: CurrentUser = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
     """Update a version (title, description, experiment, variant, config_data)"""
     result = await db.execute(
@@ -224,6 +261,13 @@ async def update_version(
     
     if not version:
         raise HTTPException(status_code=404, detail="Version not found")
+    
+    # Get section config to check game access
+    config_result = await db.execute(select(SectionConfig).where(SectionConfig.id == section_config_id))
+    section_config = config_result.scalar_one_or_none()
+    
+    if section_config:
+        await verify_game_access(section_config.game_id, current_user, db)
     
     # Update fields
     update_dict = update_data.model_dump(exclude_unset=True)
@@ -241,7 +285,7 @@ async def delete_version(
     section_config_id: str,
     version_id: str,
     db: AsyncSession = Depends(get_db),
-    current_user: CurrentUser = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
     """Delete a version"""
     result = await db.execute(
@@ -257,6 +301,13 @@ async def delete_version(
     if not version:
         raise HTTPException(status_code=404, detail="Version not found")
     
+    # Get section config to check game access
+    config_result = await db.execute(select(SectionConfig).where(SectionConfig.id == section_config_id))
+    section_config = config_result.scalar_one_or_none()
+    
+    if section_config:
+        await verify_game_access(section_config.game_id, current_user, db)
+    
     await db.delete(version)
     await db.commit()
     
@@ -268,7 +319,7 @@ async def duplicate_version(
     section_config_id: str,
     version_id: str,
     db: AsyncSession = Depends(get_db),
-    current_user: CurrentUser = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
     """Duplicate a version (creates a copy with the same config_data)"""
     result = await db.execute(
@@ -283,6 +334,13 @@ async def duplicate_version(
     
     if not source_version:
         raise HTTPException(status_code=404, detail="Version not found")
+    
+    # Get section config to check game access
+    config_result = await db.execute(select(SectionConfig).where(SectionConfig.id == section_config_id))
+    section_config = config_result.scalar_one_or_none()
+    
+    if section_config:
+        await verify_game_access(section_config.game_id, current_user, db)
     
     # Create new version with copied data
     new_title = f"{source_version.title} (Copy)" if source_version.title else "Copy"

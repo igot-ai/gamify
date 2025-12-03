@@ -23,16 +23,13 @@ export const apiClient = axios.create({
     headers: {
         'Content-Type': 'application/json',
     },
+    // Enable credentials for cookie-based auth
+    withCredentials: true,
 });
 
-// Request interceptor to add auth token and handle FormData
+// Request interceptor to handle FormData
 apiClient.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem('auth_token');
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
-        }
-        
         // If sending FormData, remove Content-Type header so axios can set it
         // automatically with the correct multipart/form-data boundary
         if (config.data instanceof FormData) {
@@ -46,14 +43,20 @@ apiClient.interceptors.request.use(
     }
 );
 
-// Response interceptor for error handling
+// Response interceptor to handle 401 errors
 apiClient.interceptors.response.use(
     (response) => response,
     (error) => {
+        // If we get a 401, the user is not authenticated
+        // Redirect to login page (but not if we're already on the login page)
         if (error.response?.status === 401) {
-            // Handle unauthorized - clear token and redirect to login
-            localStorage.removeItem('auth_token');
-            window.location.href = '/login';
+            const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
+            if (currentPath !== '/login') {
+                // Use window.location for a full page redirect to clear any stale state
+                if (typeof window !== 'undefined') {
+                    window.location.href = '/login';
+                }
+            }
         }
         return Promise.reject(error);
     }

@@ -14,3 +14,10 @@ class Game(BaseModel):
     
     # Relationships
     section_configs = relationship("SectionConfig", back_populates="game", cascade="all, delete-orphan")
+    
+    # Assigned operators (game operators who can access this game)
+    assigned_operators = relationship(
+        "User",
+        secondary="user_game_assignments",
+        back_populates="assigned_games"
+    )

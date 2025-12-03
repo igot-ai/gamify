@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { Roboto, Roboto_Mono } from 'next/font/google';
-import '../src/index.css';
+import '@/index.css';
 import { Providers } from './providers';
 import { Toaster } from 'sonner';
 

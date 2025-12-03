@@ -19,20 +19,6 @@ services:
     networks:
       - gamify_network
 
-  # Redis
-  redis:
-    image: redis:7-alpine
-    container_name: gamify_config_redis
-    ports:
-      - "6379:6379"
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 3s
-      retries: 5
-    networks:
-      - gamify_network
-
   # Backend API
   backend:
     build:
@@ -41,20 +27,13 @@ services:
     container_name: gamify_config_backend
     environment:
       DATABASE_URL: postgresql+asyncpg://dev:devpass@postgres:5432/gamify_config
-      REDIS_URL: redis://redis:6379/0
       ENVIRONMENT: development
       DEBUG: "true"
       SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
-      FIREBASE_SERVICE_ACCOUNT_PATH: /app/firebase-service-account.json
-      FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:-your-project-id}
       # Allow CORS from nginx proxy and common development URLs
       BACKEND_CORS_ORIGINS: '["http://localhost","http://localhost:8866","http://localhost:3000","http://localhost:5173"]'
-    volumes:
-      - ../backend/firebase-service-account.json:/app/firebase-service-account.json
     depends_on:
       postgres:
-        condition: service_healthy
-      redis:
         condition: service_healthy
     networks:
       - gamify_network

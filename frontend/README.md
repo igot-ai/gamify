@@ -44,10 +44,9 @@ http://localhost:3000
 - **Forms**: [React Hook Form](https://react-hook-form.com/) + [Zod](https://zod.dev/)
 
 ### Authentication
-- **Auth**: [Firebase](https://firebase.google.com/)
+- **Auth**: JWT (httpOnly cookies) with Zustand
 
 ### Testing
-- **E2E**: [Cypress](https://www.cypress.io/)
 - **Unit**: [Vitest](https://vitest.dev/)
 
 ## 📁 Project Structure
@@ -64,9 +63,8 @@ frontend/
 │   │   └── (routes)/
 │   │       ├── dashboard/        # Main dashboard
 │   │       ├── games/            # Games management
-│   │       │   └── [gameId]/     # Dynamic game routes
-│   │       └── configs/          # Config management
-│   │           └── [configId]/   # Dynamic config routes
+│   │       ├── users/            # User management (admin only)
+│   │       └── sections/         # Section config management
 │   ├── layout.tsx                # Root layout
 │   ├── page.tsx                  # Root page
 │   ├── providers.tsx             # Client providers
@@ -81,9 +79,11 @@ frontend/
     ├── contexts/                 # React contexts
     ├── hooks/                    # Custom hooks
     ├── lib/                      # Utilities
-    │   ├── firebase.ts           # Firebase config
+    │   ├── api.ts                # Axios API client
     │   ├── queryClient.ts        # React Query client
     │   └── validations/          # Zod schemas
+    ├── stores/                   # Zustand stores
+    │   └── authStore.ts          # Authentication state
     └── types/                    # TypeScript types
 ```
 
@@ -109,8 +109,6 @@ npm run type-check       # TypeScript type checking
 npm run test             # Run unit tests
 npm run test:ui          # Open Vitest UI
 npm run test:coverage    # Generate coverage report
-npm run cypress:open     # Open Cypress
-npm run cypress:run      # Run Cypress headless
 ```
 
 ## 🏗️ Architecture
@@ -162,14 +160,6 @@ export default function Page() {
 Create `.env.local`:
 
 ```bash
-# Firebase
-NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_domain
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_bucket
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
-NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
-
 # API
 NEXT_PUBLIC_API_URL=http://localhost:8000
 ```
@@ -251,20 +241,6 @@ describe('Button', () => {
 });
 ```
 
-### E2E Tests (Cypress)
-
-```tsx
-// cypress/e2e/login.cy.ts
-describe('Login', () => {
-  it('should login successfully', () => {
-    cy.visit('/login');
-    cy.get('[name="email"]').type('test@sunstudio.com');
-    cy.get('[name="password"]').type('testpassword123');
-    cy.get('button[type="submit"]').click();
-    cy.url().should('include', '/dashboard');
-  });
-});
-```
 
 ## 🚢 Deployment
 
@@ -322,11 +298,11 @@ Available components:
 
 ## 🔒 Authentication
 
-Firebase Authentication with:
+JWT-based authentication with:
 - Email/Password login
-- Google OAuth
-- Protected routes
-- Role-based access control
+- httpOnly cookie storage
+- Protected routes via middleware
+- Role-based access control (admin, game_operator)
 
 ## 📊 State Management
 

@@ -1,157 +1,199 @@
 """Authentication and authorization utilities"""
 
 import logging
-from enum import Enum
+from datetime import datetime, timedelta, timezone
 from typing import Optional
-from fastapi import Depends, HTTPException, status
+
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from jose import JWTError, jwt
+from passlib.context import CryptContext
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.core.config import settings
+from app.core.database import get_db
+from app.models.user import User, UserRole
 
 logger = logging.getLogger(__name__)
 
+# Password hashing context
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+# Security scheme for bearer token (optional, we primarily use cookies)
 security = HTTPBearer(auto_error=False)
 
-
-class UserRole(str, Enum):
-    """User role enum for permissions"""
-    DESIGNER = "designer"
-    LEAD_DESIGNER = "lead_designer"
-    PRODUCT_MANAGER = "product_manager"
-    ADMIN = "admin"
+# Cookie name for JWT token
+AUTH_COOKIE_NAME = "access_token"
 
 
-class CurrentUser:
-    """Current authenticated user information"""
-    
-    def __init__(
-        self,
-        uid: str,
-        email: str,
-        email_verified: bool,
-        name: Optional[str] = None,
-        picture: Optional[str] = None,
-        role: UserRole = UserRole.DESIGNER,
-    ):
-        self.uid = uid
-        self.email = email
-        self.email_verified = email_verified
-        self.name = name
-        self.picture = picture
-        self.role = role
-    
-    def has_role(self, required_role: UserRole) -> bool:
-        """Check if user has required role or higher"""
-        role_hierarchy = {
-            UserRole.DESIGNER: 1,
-            UserRole.LEAD_DESIGNER: 2,
-            UserRole.PRODUCT_MANAGER: 3,
-            UserRole.ADMIN: 4,
-        }
-        
-        user_level = role_hierarchy.get(self.role, 0)
-        required_level = role_hierarchy.get(required_role, 0)
-        
-        return user_level >= required_level
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Verify a plain password against a hashed password"""
+    return pwd_context.verify(plain_password, hashed_password)
+
+
+def get_password_hash(password: str) -> str:
+    """Hash a password"""
+    return pwd_context.hash(password)
+
+
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
+    """Create a JWT access token"""
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.now(timezone.utc) + expires_delta
+    else:
+        expire = datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+    return encoded_jwt
+
+
+def decode_access_token(token: str) -> Optional[dict]:
+    """Decode and verify a JWT access token"""
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        return payload
+    except JWTError:
+        return None
 
 
 async def get_current_user(
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)
-) -> CurrentUser:
+    request: Request,
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
+    db: AsyncSession = Depends(get_db)
+) -> User:
     """
-    Verify token and return current user.
+    Get current authenticated user from JWT token.
     
-    This dependency extracts the Bearer token from the Authorization header
-    and returns user information.
-    
-    Raises:
-        HTTPException: If token is missing or invalid
+    Token can be provided via:
+    1. httpOnly cookie (preferred)
+    2. Authorization header (Bearer token)
     """
-    # Development mode: allow mock authentication
-    if settings.ENVIRONMENT == "development":
-        if not credentials:
-            logger.warning("Development mode: Using mock user authentication")
-            return CurrentUser(
-                uid="dev-user-123",
-                email="developer@sunstudio.com",
-                email_verified=True,
-                name="Developer",
-                role=UserRole.ADMIN,
-            )
-        
-        # Mock token support for E2E tests
-        if credentials.credentials in ["mock-token-for-e2e", "mock-token-for-testing"]:
-            logger.info("Using mock token for testing")
-            return CurrentUser(
-                uid="test-user-id",
-                email="test@sunstudio.com",
-                email_verified=True,
-                name="Test User",
-                role=UserRole.ADMIN,
-            )
+    token = None
     
-    if not credentials:
+    # Try to get token from cookie first
+    token = request.cookies.get(AUTH_COOKIE_NAME)
+    
+    # Fall back to Authorization header
+    if not token and credentials:
+        token = credentials.credentials
+    
+    if not token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Missing authentication credentials",
+            detail="Not authenticated",
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    # For production, implement your own token verification here
-    # For now, accept any token in development
-    if settings.ENVIRONMENT == "development":
-        return CurrentUser(
-            uid="user-from-token",
-            email="user@sunstudio.com",
-            email_verified=True,
-            name="Authenticated User",
-            role=UserRole.ADMIN,
+    # Decode token
+    payload = decode_access_token(token)
+    if payload is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token",
+            headers={"WWW-Authenticate": "Bearer"},
         )
     
-    # Production: reject all tokens until proper auth is implemented
-    raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Authentication not configured",
-        headers={"WWW-Authenticate": "Bearer"},
+    user_id: str = payload.get("sub")
+    if user_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token payload",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # Get user from database with assigned games loaded
+    result = await db.execute(
+        select(User)
+        .options(selectinload(User.assigned_games))
+        .where(User.id == user_id)
     )
+    user = result.scalar_one_or_none()
+    
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User is deactivated",
+        )
+    
+    return user
 
 
 async def get_optional_user(
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)
-) -> Optional[CurrentUser]:
+    request: Request,
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
+    db: AsyncSession = Depends(get_db)
+) -> Optional[User]:
     """
     Get current user if authenticated, otherwise return None.
-    
     Useful for endpoints that work for both authenticated and anonymous users.
     """
-    if not credentials:
-        return None
-    
     try:
-        return await get_current_user(credentials)
+        return await get_current_user(request, credentials, db)
     except HTTPException:
         return None
 
 
-def require_role(required_role: UserRole):
+def require_admin(current_user: User = Depends(get_current_user)) -> User:
     """
-    Dependency factory for role-based access control.
+    Dependency that requires the current user to be an admin.
     
     Usage:
         @router.post("/admin-only")
-        async def admin_endpoint(
-            current_user: CurrentUser = Depends(require_role(UserRole.ADMIN))
+        async def admin_endpoint(current_user: User = Depends(require_admin)):
+            ...
+    """
+    if current_user.role != UserRole.admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access required",
+        )
+    return current_user
+
+
+def can_access_game(user: User, game_id: str) -> bool:
+    """
+    Check if a user can access a specific game.
+    
+    - Admins can access all games
+    - Game operators can only access their assigned games
+    """
+    if user.role == UserRole.admin:
+        return True
+    
+    # Check if game is in user's assigned games
+    return any(game.id == game_id for game in user.assigned_games)
+
+
+def require_game_access(game_id: str):
+    """
+    Dependency factory for game-specific access control.
+    
+    Usage:
+        @router.get("/games/{game_id}")
+        async def get_game(
+            game_id: str,
+            current_user: User = Depends(require_game_access(game_id))
         ):
             ...
     """
-    async def role_checker(
-        current_user: CurrentUser = Depends(get_current_user)
-    ) -> CurrentUser:
-        if not current_user.has_role(required_role):
+    async def game_access_checker(
+        current_user: User = Depends(get_current_user)
+    ) -> User:
+        if not can_access_game(current_user, game_id):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Insufficient permissions. Required role: {required_role.value}",
+                detail="You don't have access to this game",
             )
         return current_user
     
-    return role_checker
+    return game_access_checker
