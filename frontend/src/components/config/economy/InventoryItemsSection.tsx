@@ -148,8 +148,8 @@ export function InventoryItemsSection({ onSave, isSaving = false, readOnly = fal
                 <div className={cn(
                   'rounded-lg border transition-all duration-200',
                   isExpanded 
-                    ? 'border-primary/40 bg-card shadow-stripe-md' 
-                    : 'border-border/40 bg-card/50 hover:border-border/60 hover:shadow-stripe-sm'
+                    ? 'border-primary/70 bg-card shadow-stripe-md' 
+                    : 'border-border/80 bg-card/50 hover:border-border hover:shadow-stripe-sm'
                 )}>
                   {/* Collapsed Header */}
                   <CollapsibleTrigger asChild>
@@ -191,7 +191,7 @@ export function InventoryItemsSection({ onSave, isSaving = false, readOnly = fal
 
                   {/* Expanded Content */}
                   <CollapsibleContent>
-                    <div className="px-4 pb-4 space-y-6 border-t border-border/30 pt-4">
+                    <div className="px-4 pb-4 space-y-6 border-t border-border/70 pt-4">
                       {readOnly ? (
                         /* Read-only display */
                         <>
@@ -252,7 +252,7 @@ export function InventoryItemsSection({ onSave, isSaving = false, readOnly = fal
                                       <Input 
                                         {...field} 
                                         placeholder="item_undo"
-                                        className="h-9 bg-muted/30"
+                                        className="h-9"
                                       />
                                     </FormControl>
                                     <FormMessage />
@@ -269,7 +269,7 @@ export function InventoryItemsSection({ onSave, isSaving = false, readOnly = fal
                                       <Input 
                                         {...field} 
                                         placeholder="Undo"
-                                        className="h-9 bg-muted/30"
+                                        className="h-9"
                                       />
                                     </FormControl>
                                     <FormMessage />
@@ -296,7 +296,7 @@ export function InventoryItemsSection({ onSave, isSaving = false, readOnly = fal
                                       <Textarea 
                                         {...field} 
                                         placeholder="Description of this item..."
-                                        className="min-h-[80px] resize-none bg-muted/30"
+                                        className="min-h-[80px] resize-none"
                                       />
                                     </FormControl>
                                     <FormMessage />
@@ -313,7 +313,7 @@ export function InventoryItemsSection({ onSave, isSaving = false, readOnly = fal
                                       <Input 
                                         {...field}
                                         placeholder="Assets/Icons/undo.png"
-                                        className="h-9 bg-muted/30"
+                                        className="h-9"
                                       />
                                     </FormControl>
                                     <FormMessage />
@@ -343,7 +343,7 @@ export function InventoryItemsSection({ onSave, isSaving = false, readOnly = fal
                                         {...field}
                                         onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                                         placeholder="0"
-                                        className="h-9 bg-muted/30 max-w-[200px]"
+                                        className="h-9 max-w-[200px]"
                                       />
                                     </FormControl>
                                     <FormMessage />
@@ -364,7 +364,7 @@ export function InventoryItemsSection({ onSave, isSaving = false, readOnly = fal
                                 control={form.control}
                                 name={`inventoryItems.${index}.isStackable`}
                                 render={({ field }) => (
-                                  <FormItem className="flex items-center justify-between rounded-lg border border-border/30 bg-muted/20 p-4">
+                                  <FormItem className="flex items-center justify-between rounded-lg border border-border/70 bg-muted/20 p-4">
                                     <div className="space-y-0.5">
                                       <FormLabel className="text-sm">Is Stackable</FormLabel>
                                       <FormDescription className="text-xs">
@@ -393,7 +393,7 @@ export function InventoryItemsSection({ onSave, isSaving = false, readOnly = fal
                                         {...field}
                                         onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                                         placeholder="0"
-                                        className="h-9 bg-muted/30 max-w-[200px]"
+                                        className="h-9 max-w-[200px]"
                                         disabled={!form.watch(`inventoryItems.${index}.isStackable`)}
                                       />
                                     </FormControl>

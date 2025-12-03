@@ -105,7 +105,7 @@ export function EconomySettingsSection({
 
         <TabsContent value="form" className="mt-4 space-y-6">
           {/* In-App Purchase Settings */}
-          <Card className="border-border/40 shadow-stripe-sm">
+          <Card className="border-border/80 shadow-stripe-sm">
             <CardHeader className="pb-4">
               <CardTitle className="text-base font-semibold flex items-center gap-2">
                 <Settings className="h-4 w-4 text-primary" />
@@ -137,7 +137,7 @@ export function EconomySettingsSection({
                       control={form.control}
                       name="settings.enableRefundProcessing"
                       render={({ field }) => (
-                        <FormItem className="flex items-center justify-between rounded-lg border border-border/30 bg-muted/20 p-4">
+                        <FormItem className="flex items-center justify-between rounded-lg border border-border/70 bg-muted/20 p-4">
                           <div className="space-y-0.5">
                             <FormLabel className="text-sm">Enable Refund Processing</FormLabel>
                             <FormDescription className="text-xs">
@@ -164,7 +164,7 @@ export function EconomySettingsSection({
                             <Input 
                               {...field} 
                               placeholder="ECONOMY_CONFIG"
-                              className="h-9 bg-muted/30"
+                              className="h-9"
                             />
                           </FormControl>
                           <FormMessage />
@@ -181,7 +181,7 @@ export function EconomySettingsSection({
           {!readOnly && (
             <>
               {/* Save Settings */}
-              <Card className="border-border/40 shadow-stripe-sm">
+              <Card className="border-border/80 shadow-stripe-sm">
                 <CardHeader className="pb-4">
                   <CardTitle className="text-base font-semibold flex items-center gap-2">
                     <Save className="h-4 w-4 text-primary" />

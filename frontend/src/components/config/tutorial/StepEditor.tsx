@@ -721,7 +721,7 @@ export function StepEditor({
 
       {/* Content */}
       {isExpanded && (
-        <div className="px-4 pb-4 pt-2 border-t border-border/30 space-y-4">
+        <div className="px-4 pb-4 pt-2 border-t border-border space-y-4">
           {/* Type and Focus */}
           <div className="flex items-center gap-4">
             <div className="flex-1 max-w-[200px] space-y-1.5">
@@ -757,7 +757,7 @@ export function StepEditor({
           </div>
 
           {/* Type-specific form */}
-          <div className="rounded-md border border-border/30 bg-muted/10 p-3">
+          <div className="rounded-md border border-border bg-muted/10 p-3">
             {renderDataForm()}
           </div>
         </div>

@@ -45,7 +45,7 @@ export function ConfigActions({
   showValidate = false,
 }: ConfigActionsProps) {
   return (
-    <div className={`flex items-center justify-between gap-4 rounded-lg border border-border/30 bg-muted/10 p-4 ${className}`}>
+    <div className={`flex items-center justify-between gap-4 rounded-lg border border-border bg-muted/10 p-4 ${className}`}>
       <TooltipProvider>
         <div className="flex items-center gap-2">
           {showExport && onExport && (

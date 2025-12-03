@@ -164,8 +164,8 @@ export function RealPurchasesSection({ onSave, isSaving = false, readOnly = fals
                 <div className={cn(
                   'rounded-lg border transition-all duration-200',
                   isExpanded 
-                    ? 'border-primary/40 bg-card shadow-stripe-md' 
-                    : 'border-border/40 bg-card/50 hover:border-border/60 hover:shadow-stripe-sm'
+                    ? 'border-primary/70 bg-card shadow-stripe-md' 
+                    : 'border-border/80 bg-card/50 hover:border-border hover:shadow-stripe-sm'
                 )}>
                   {/* Collapsed Header */}
                   <CollapsibleTrigger asChild>
@@ -220,7 +220,7 @@ export function RealPurchasesSection({ onSave, isSaving = false, readOnly = fals
 
                   {/* Expanded Content */}
                   <CollapsibleContent>
-                    <div className="px-4 pb-4 space-y-6 border-t border-border/30 pt-4">
+                    <div className="px-4 pb-4 space-y-6 border-t border-border/70 pt-4">
                       {readOnly ? (
                         /* Read-only display */
                         <>
@@ -295,7 +295,7 @@ export function RealPurchasesSection({ onSave, isSaving = false, readOnly = fals
                                       <Input 
                                         {...field} 
                                         placeholder="studio.sun.tileadventure.noads"
-                                        className="h-9 bg-muted/30"
+                                        className="h-9"
                                       />
                                     </FormControl>
                                     <FormMessage />
@@ -312,7 +312,7 @@ export function RealPurchasesSection({ onSave, isSaving = false, readOnly = fals
                                       <Input 
                                         {...field} 
                                         placeholder="Remove Ads"
-                                        className="h-9 bg-muted/30"
+                                        className="h-9"
                                       />
                                     </FormControl>
                                     <FormMessage />
@@ -332,7 +332,7 @@ export function RealPurchasesSection({ onSave, isSaving = false, readOnly = fals
                                       value={field.value}
                                     >
                                       <FormControl>
-                                        <SelectTrigger className="h-9 bg-muted/30 max-w-[250px]">
+                                        <SelectTrigger className="h-9 max-w-[250px]">
                                           <SelectValue placeholder="Select type" />
                                         </SelectTrigger>
                                       </FormControl>

@@ -170,7 +170,7 @@ export function ShopConfigForm({
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         {/* Shop Settings Section */}
-        <Card className="border-border/30 shadow-stripe-sm transition-all hover:shadow-stripe-md">
+        <Card className="border-border shadow-stripe-sm transition-all hover:shadow-stripe-md">
           <CardHeader className="pb-5">
             <CardTitle className="text-lg font-semibold tracking-tight">Shop Settings</CardTitle>
             <CardDescription className="text-sm text-muted-foreground mt-1.5">
@@ -225,7 +225,7 @@ export function ShopConfigForm({
                           onClick={() => handleToggleFeaturedItem(itemId)}
                           className={`group flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium shadow-stripe-xs transition-all hover:shadow-stripe-sm ${isFeatured
                               ? 'bg-primary/10 border-primary/40 text-primary hover:bg-primary/15 hover:border-primary/60'
-                              : 'bg-muted/20 border-border/30 text-foreground hover:bg-muted/40 hover:border-border/50'
+                              : 'bg-muted/20 border-border text-foreground hover:bg-muted/40 hover:border-border/50'
                             }`}
                         >
                           <span>{item?.name || itemId}</span>
@@ -250,7 +250,7 @@ export function ShopConfigForm({
         </Card>
 
         {/* Shop Categories Section */}
-        <Card className="border-border/30 shadow-stripe-sm transition-all hover:shadow-stripe-md">
+        <Card className="border-border shadow-stripe-sm transition-all hover:shadow-stripe-md">
           <CardHeader className="pb-5">
             <div className="flex items-center justify-between">
               <div>
@@ -329,7 +329,7 @@ export function ShopConfigForm({
                       />
 
                       {/* Items in Category */}
-                      <div className="space-y-4 border-t border-border/30 pt-5">
+                      <div className="space-y-4 border-t border-border pt-5">
                         <div className="flex items-center justify-between">
                           <FormLabel className="text-sm font-medium">
                             Items in Category
@@ -476,7 +476,7 @@ export function ShopConfigForm({
         </Card>
 
         {/* Action Buttons */}
-        <div className="flex gap-3 justify-end pt-6 border-t border-border/30">
+        <div className="flex gap-3 justify-end pt-6 border-t border-border">
           {onCancel && (
             <Button type="button" variant="outline" onClick={onCancel} className="h-9 px-4 shadow-stripe-xs transition-all hover:shadow-stripe-sm">
               Cancel
@@ -642,7 +642,7 @@ function ShopItemEditor({
         </div>
         <div className="space-y-3">
           {rewards.map((_reward: any, rewardIndex: number) => (
-            <div key={rewardIndex} className="flex gap-3 items-end p-3 rounded-lg border border-border/30 bg-muted/10">
+            <div key={rewardIndex} className="flex gap-3 items-end p-3 rounded-lg border border-border bg-muted/10">
               <FormField
                 control={form.control}
                 name={`categories.${categoryIndex}.items.${itemIndex}.rewards.${rewardIndex}.currency_id`}
@@ -745,7 +745,7 @@ function ShopItemEditor({
       />
 
       {limitedTime && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 p-4 rounded-lg border border-border/30 bg-muted/10">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 p-4 rounded-lg border border-border bg-muted/10">
           <FormField
             control={form.control}
             name={`categories.${categoryIndex}.items.${itemIndex}.expires_at`}
@@ -792,7 +792,7 @@ function ShopItemEditor({
         </div>
       )}
 
-      <div className="flex gap-3 pt-2 border-t border-border/30">
+      <div className="flex gap-3 pt-2 border-t border-border">
         <Button type="button" onClick={onSave} className="h-9 px-4">
           Save Item
         </Button>

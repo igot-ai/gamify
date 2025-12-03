@@ -60,7 +60,7 @@ export function JsonEditor({
         onChange={(e) => handleJsonTextChange(e.target.value)}
         readOnly={readOnly}
         className={cn(
-          'font-mono text-[13px] leading-relaxed min-h-[400px] resize-none bg-muted/30',
+          'font-mono text-[13px] leading-relaxed min-h-[400px] resize-none',
           !isValid && 'border-destructive focus-visible:ring-destructive'
         )}
         placeholder="Enter JSON configuration..."

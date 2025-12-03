@@ -7,7 +7,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
+import { cn } from '@/lib/utils';
 
 interface ConfigFormSectionProps {
   title: string;
@@ -32,46 +32,49 @@ export function ConfigFormSection({
 
   if (!collapsible) {
     return (
-      <Card className={`border-border/30 shadow-stripe-sm transition-all hover:shadow-stripe-md ${className}`}>
-        <CardHeader className="pb-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-lg font-semibold tracking-tight">{title}</CardTitle>
-              {description && <CardDescription className="mt-1.5 text-sm">{description}</CardDescription>}
-            </div>
-            {headerActions}
+      <div className={cn(
+        'border-b border-border pb-6 last:border-b-0 last:pb-0',
+        className
+      )}>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="text-base font-semibold tracking-tight text-foreground">{title}</h3>
+            {description && <p className="mt-1 text-sm text-muted-foreground">{description}</p>}
           </div>
-        </CardHeader>
-        <CardContent className="pt-0">{children}</CardContent>
-      </Card>
+          {headerActions}
+        </div>
+        <div>{children}</div>
+      </div>
     );
   }
 
   return (
-    <Card className={`border-border/30 shadow-stripe-sm transition-all hover:shadow-stripe-md ${className}`}>
+    <div className={cn(
+      'border-b border-border pb-6 last:border-b-0 last:pb-0',
+      className
+    )}>
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-        <CardHeader className="pb-5">
-          <div className="flex items-center justify-between">
-            <CollapsibleTrigger className="flex items-center gap-3 cursor-pointer transition-all hover:bg-muted/30 rounded-md -ml-2 pl-2 pr-4 py-1">
-              <ChevronDown
-                className={`h-4 w-4 text-muted-foreground transition-all duration-300 ${isOpen ? 'rotate-0' : '-rotate-90'
-                  }`}
-              />
-              <div className="text-left">
-                <CardTitle className="text-lg font-semibold tracking-tight">{title}</CardTitle>
-                {description && <CardDescription className="mt-1.5 text-sm">{description}</CardDescription>}
-              </div>
-            </CollapsibleTrigger>
-            {headerActions && (
-              <div className="flex items-center gap-2">{headerActions}</div>
-            )}
-          </div>
-        </CardHeader>
+        <div className="flex items-center justify-between mb-4">
+          <CollapsibleTrigger className="flex items-center gap-2 cursor-pointer transition-all hover:text-primary -ml-1 pl-1 pr-3 py-1 rounded-md">
+            <ChevronDown
+              className={cn(
+                'h-4 w-4 text-muted-foreground transition-all duration-200',
+                isOpen ? 'rotate-0' : '-rotate-90'
+              )}
+            />
+            <div className="text-left">
+              <h3 className="text-base font-semibold tracking-tight text-foreground">{title}</h3>
+              {description && <p className="mt-1 text-sm text-muted-foreground">{description}</p>}
+            </div>
+          </CollapsibleTrigger>
+          {headerActions && (
+            <div className="flex items-center gap-2">{headerActions}</div>
+          )}
+        </div>
         <CollapsibleContent className="animate-slide-up">
-          <CardContent className="pt-0 pb-6">{children}</CardContent>
+          <div>{children}</div>
         </CollapsibleContent>
       </Collapsible>
-    </Card>
+    </div>
   );
 }
-

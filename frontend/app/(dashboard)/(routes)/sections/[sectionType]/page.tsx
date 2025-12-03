@@ -25,7 +25,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/Dialog';
-import { Save, Loader2, Plus, Edit2 } from 'lucide-react';
+import { Loader2, Plus, Edit2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 // Export transform functions
@@ -684,7 +684,7 @@ export default function SectionEditorPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gray-50">
       {/* Header - sticky below main header */}
       <div className="border-b border-border/40 bg-card/95 backdrop-blur-md sticky top-14 z-20">
         <div className="px-6 py-4">
@@ -723,18 +723,6 @@ export default function SectionEditorPage() {
               {hasLocalChanges && (
                 <span className="text-sm text-amber-600">Unsaved changes</span>
               )}
-              <Button
-                onClick={() => handleSave()}
-                disabled={isSaving || !selectedVersion}
-                className="h-9"
-              >
-                {isSaving ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Save className="mr-2 h-4 w-4" />
-                )}
-                Save
-              </Button>
             </div>
           </div>
           <p className="text-sm text-muted-foreground mt-1">
@@ -757,7 +745,9 @@ export default function SectionEditorPage() {
 
       {/* Content */}
       <div className="p-6">
-        {renderContent()}
+        <div className="rounded-xl bg-white overflow-hidden shadow-sm p-6">
+          {renderContent()}
+        </div>
       </div>
 
       {/* Edit Version Metadata Dialog */}

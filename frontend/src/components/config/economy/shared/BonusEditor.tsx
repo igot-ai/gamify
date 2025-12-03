@@ -124,7 +124,7 @@ export function BonusEditor({
             {items.map((item, index) => (
               <div
                 key={index}
-                className="p-3 rounded-lg border border-border/30 bg-muted/10 space-y-3"
+                className="p-3 rounded-lg border border-border bg-muted/10 space-y-3"
               >
                 <div className="flex items-center gap-2">
                   {/* Type Selector */}

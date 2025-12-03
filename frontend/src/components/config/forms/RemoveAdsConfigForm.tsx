@@ -74,7 +74,7 @@ export const RemoveAdsConfigForm = forwardRef<RemoveAdsConfigFormRef, RemoveAdsC
           >
             <div className="space-y-4">
               {/* Enabled Toggle */}
-              <div className="rounded-lg border border-border/30 bg-muted/10 p-4">
+              <div className="rounded-lg border border-border bg-muted/10 p-4">
                 <FormField
                   control={form.control}
                   name="enabled"
@@ -93,7 +93,7 @@ export const RemoveAdsConfigForm = forwardRef<RemoveAdsConfigFormRef, RemoveAdsC
               </div>
 
               {/* Trigger Settings */}
-              <div className="rounded-lg border border-border/30 bg-muted/10 p-4">
+              <div className="rounded-lg border border-border bg-muted/10 p-4">
                 <h4 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-4">
                   <span className="w-1.5 h-1.5 rounded-full bg-primary" />
                   Trigger Settings
@@ -104,14 +104,14 @@ export const RemoveAdsConfigForm = forwardRef<RemoveAdsConfigFormRef, RemoveAdsC
                     name="minLevel"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-sm text-muted-foreground">Min Level</FormLabel>
+                        <FormLabel className="text-sm">Min Level</FormLabel>
                         <FormControl>
                           <Input
                             type="number"
                             {...field}
                             value={field.value ?? ''}
                             onChange={(e) => field.onChange(e.target.value === '' ? undefined : parseInt(e.target.value))}
-                            className="h-9 bg-muted/30"
+                            className="h-9"
                           />
                         </FormControl>
                         <FormMessage />
@@ -124,14 +124,14 @@ export const RemoveAdsConfigForm = forwardRef<RemoveAdsConfigFormRef, RemoveAdsC
                     name="adWatchedTrigger"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-sm text-muted-foreground">Ad Watched Trigger</FormLabel>
+                        <FormLabel className="text-sm">Ad Watched Trigger</FormLabel>
                         <FormControl>
                           <Input
                             type="number"
                             {...field}
                             value={field.value ?? ''}
                             onChange={(e) => field.onChange(e.target.value === '' ? undefined : parseInt(e.target.value))}
-                            className="h-9 bg-muted/30"
+                            className="h-9"
                           />
                         </FormControl>
                         <FormMessage />
@@ -144,14 +144,14 @@ export const RemoveAdsConfigForm = forwardRef<RemoveAdsConfigFormRef, RemoveAdsC
                     name="daysPlayedTrigger"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-sm text-muted-foreground">Days Played Trigger</FormLabel>
+                        <FormLabel className="text-sm">Days Played Trigger</FormLabel>
                         <FormControl>
                           <Input
                             type="number"
                             {...field}
                             value={field.value ?? ''}
                             onChange={(e) => field.onChange(e.target.value === '' ? undefined : parseInt(e.target.value))}
-                            className="h-9 bg-muted/30"
+                            className="h-9"
                           />
                         </FormControl>
                         <FormMessage />
@@ -162,7 +162,7 @@ export const RemoveAdsConfigForm = forwardRef<RemoveAdsConfigFormRef, RemoveAdsC
               </div>
 
               {/* Display Settings */}
-              <div className="rounded-lg border border-border/30 bg-muted/10 p-4">
+              <div className="rounded-lg border border-border bg-muted/10 p-4">
                 <h4 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-4">
                   <span className="w-1.5 h-1.5 rounded-full bg-primary" />
                   Display Settings
@@ -173,14 +173,14 @@ export const RemoveAdsConfigForm = forwardRef<RemoveAdsConfigFormRef, RemoveAdsC
                     name="durationHours"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-sm text-muted-foreground">Duration Hours</FormLabel>
+                        <FormLabel className="text-sm">Duration Hours</FormLabel>
                         <FormControl>
                           <Input
                             type="number"
                             {...field}
                             value={field.value ?? ''}
                             onChange={(e) => field.onChange(e.target.value === '' ? undefined : parseInt(e.target.value))}
-                            className="h-9 bg-muted/30"
+                            className="h-9"
                           />
                         </FormControl>
                         <FormMessage />
@@ -193,14 +193,14 @@ export const RemoveAdsConfigForm = forwardRef<RemoveAdsConfigFormRef, RemoveAdsC
                     name="maxLifetimeShows"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-sm text-muted-foreground">Max Lifetime Shows</FormLabel>
+                        <FormLabel className="text-sm">Max Lifetime Shows</FormLabel>
                         <FormControl>
                           <Input
                             type="number"
                             {...field}
                             value={field.value ?? ''}
                             onChange={(e) => field.onChange(e.target.value === '' ? undefined : parseInt(e.target.value))}
-                            className="h-9 bg-muted/30"
+                            className="h-9"
                           />
                         </FormControl>
                         <FormMessage />
@@ -213,14 +213,14 @@ export const RemoveAdsConfigForm = forwardRef<RemoveAdsConfigFormRef, RemoveAdsC
                     name="maxSessionShows"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-sm text-muted-foreground">Max Session Shows</FormLabel>
+                        <FormLabel className="text-sm">Max Session Shows</FormLabel>
                         <FormControl>
                           <Input
                             type="number"
                             {...field}
                             value={field.value ?? ''}
                             onChange={(e) => field.onChange(e.target.value === '' ? undefined : parseInt(e.target.value))}
-                            className="h-9 bg-muted/30"
+                            className="h-9"
                           />
                         </FormControl>
                         <FormMessage />
@@ -231,7 +231,7 @@ export const RemoveAdsConfigForm = forwardRef<RemoveAdsConfigFormRef, RemoveAdsC
               </div>
 
               {/* Cooldown Settings */}
-              <div className="rounded-lg border border-border/30 bg-muted/10 p-4">
+              <div className="rounded-lg border border-border bg-muted/10 p-4">
                 <h4 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-4">
                   <span className="w-1.5 h-1.5 rounded-full bg-primary" />
                   Cooldown Settings
@@ -242,14 +242,14 @@ export const RemoveAdsConfigForm = forwardRef<RemoveAdsConfigFormRef, RemoveAdsC
                     name="cooldownPopupHours"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-sm text-muted-foreground">Cooldown Popup Hours</FormLabel>
+                        <FormLabel className="text-sm">Cooldown Popup Hours</FormLabel>
                         <FormControl>
                           <Input
                             type="number"
                             {...field}
                             value={field.value ?? ''}
                             onChange={(e) => field.onChange(e.target.value === '' ? undefined : parseInt(e.target.value))}
-                            className="h-9 bg-muted/30"
+                            className="h-9"
                           />
                         </FormControl>
                         <FormMessage />
@@ -262,14 +262,14 @@ export const RemoveAdsConfigForm = forwardRef<RemoveAdsConfigFormRef, RemoveAdsC
                     name="cooldownOfferHours"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-sm text-muted-foreground">Cooldown Offer Hours</FormLabel>
+                        <FormLabel className="text-sm">Cooldown Offer Hours</FormLabel>
                         <FormControl>
                           <Input
                             type="number"
                             {...field}
                             value={field.value ?? ''}
                             onChange={(e) => field.onChange(e.target.value === '' ? undefined : parseInt(e.target.value))}
-                            className="h-9 bg-muted/30"
+                            className="h-9"
                           />
                         </FormControl>
                         <FormMessage />
@@ -282,7 +282,7 @@ export const RemoveAdsConfigForm = forwardRef<RemoveAdsConfigFormRef, RemoveAdsC
           </ConfigFormSection>
 
           {/* Bottom Actions */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-border/30">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
             {onCancel && (
               <Button
                 type="button"

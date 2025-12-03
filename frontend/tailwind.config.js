@@ -8,6 +8,10 @@ export default {
     ],
     theme: {
         extend: {
+            fontFamily: {
+                sans: ['var(--font-roboto)', 'Roboto', 'system-ui', 'sans-serif'],
+                mono: ['var(--font-roboto-mono)', 'Roboto Mono', 'monospace'],
+            },
             colors: {
                 border: "hsl(var(--border))",
                 input: "hsl(var(--input))",
@@ -51,13 +55,11 @@ export default {
             backgroundImage: {
                 'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
                 'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
-                'gradient-primary': 'linear-gradient(135deg, #A855F7 0%, #9333EA 50%, #7E22CE 100%)',
-                'gradient-secondary': 'linear-gradient(135deg, #00D9FF 0%, #00B8E6 50%, #0099CC 100%)',
-                'gradient-accent': 'linear-gradient(135deg, #A855F7 0%, #D946EF 50%, #EC4899 100%)',
-                'gradient-hero': 'linear-gradient(135deg, #A855F7 0%, #00D9FF 25%, #7C3AED 50%, #D946EF 75%, #EC4899 100%)',
-                'gradient-success': 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
-                'gradient-warning': 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
-                'gradient-danger': 'linear-gradient(135deg, #EF4444 0%, #DC2626 100%)',
+                'gradient-primary': 'linear-gradient(135deg, #1a73e8 0%, #1557b0 100%)',
+                'gradient-secondary': 'linear-gradient(135deg, #f1f3f4 0%, #e8eaed 100%)',
+                'gradient-success': 'linear-gradient(135deg, #34a853 0%, #1e8e3e 100%)',
+                'gradient-warning': 'linear-gradient(135deg, #fbbc04 0%, #f9ab00 100%)',
+                'gradient-danger': 'linear-gradient(135deg, #ea4335 0%, #d93025 100%)',
             },
             keyframes: {
                 "accordion-down": {

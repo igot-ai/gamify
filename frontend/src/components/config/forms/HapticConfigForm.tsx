@@ -45,7 +45,7 @@ const CollapsibleSection = ({
   onToggle: () => void;
   children: React.ReactNode;
 }) => (
-  <div className="rounded-lg border border-border/30 bg-muted/10">
+  <div className="rounded-lg border border-border bg-muted/10">
     <button
       type="button"
       onClick={onToggle}
@@ -93,7 +93,7 @@ export const HapticConfigForm = forwardRef<HapticConfigFormRef, HapticConfigForm
 
     const renderHapticTypeFields = (hapticType: typeof HAPTIC_TYPES[number]) => (
       <div className="space-y-4">
-        <div className="rounded-lg border border-border/20 bg-background/50 p-3">
+        <div className="rounded-lg border border-border bg-background/50 p-3">
           <h5 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
             <span className="w-1 h-1 rounded-full bg-green-500" />
             Android
@@ -104,14 +104,14 @@ export const HapticConfigForm = forwardRef<HapticConfigFormRef, HapticConfigForm
               name={`${hapticType}.android.duration`}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-xs text-muted-foreground">Duration (ms)</FormLabel>
+                  <FormLabel className="text-xs">Duration (ms)</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
                       {...field}
                       value={field.value ?? ''}
                       onChange={(e) => field.onChange(e.target.value === '' ? undefined : parseInt(e.target.value))}
-                      className="h-8 bg-muted/30 text-sm"
+                      className="h-8 text-sm"
                     />
                   </FormControl>
                   <FormMessage />
@@ -123,14 +123,14 @@ export const HapticConfigForm = forwardRef<HapticConfigFormRef, HapticConfigForm
               name={`${hapticType}.android.amplitude`}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-xs text-muted-foreground">Amplitude (0-255)</FormLabel>
+                  <FormLabel className="text-xs">Amplitude (0-255)</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
                       {...field}
                       value={field.value ?? ''}
                       onChange={(e) => field.onChange(e.target.value === '' ? undefined : parseInt(e.target.value))}
-                      className="h-8 bg-muted/30 text-sm"
+                      className="h-8 text-sm"
                     />
                   </FormControl>
                   <FormMessage />
@@ -140,7 +140,7 @@ export const HapticConfigForm = forwardRef<HapticConfigFormRef, HapticConfigForm
           </div>
         </div>
 
-        <div className="rounded-lg border border-border/20 bg-background/50 p-3">
+        <div className="rounded-lg border border-border bg-background/50 p-3">
           <h5 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
             <span className="w-1 h-1 rounded-full bg-blue-500" />
             iOS
@@ -151,7 +151,7 @@ export const HapticConfigForm = forwardRef<HapticConfigFormRef, HapticConfigForm
               name={`${hapticType}.ios.intensity`}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-xs text-muted-foreground">Intensity (0-1)</FormLabel>
+                  <FormLabel className="text-xs">Intensity (0-1)</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
@@ -159,7 +159,7 @@ export const HapticConfigForm = forwardRef<HapticConfigFormRef, HapticConfigForm
                       {...field}
                       value={field.value ?? ''}
                       onChange={(e) => field.onChange(e.target.value === '' ? undefined : parseFloat(e.target.value))}
-                      className="h-8 bg-muted/30 text-sm"
+                      className="h-8 text-sm"
                     />
                   </FormControl>
                   <FormMessage />
@@ -171,7 +171,7 @@ export const HapticConfigForm = forwardRef<HapticConfigFormRef, HapticConfigForm
               name={`${hapticType}.ios.sharpness`}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-xs text-muted-foreground">Sharpness (0-1)</FormLabel>
+                  <FormLabel className="text-xs">Sharpness (0-1)</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
@@ -179,7 +179,7 @@ export const HapticConfigForm = forwardRef<HapticConfigFormRef, HapticConfigForm
                       {...field}
                       value={field.value ?? ''}
                       onChange={(e) => field.onChange(e.target.value === '' ? undefined : parseFloat(e.target.value))}
-                      className="h-8 bg-muted/30 text-sm"
+                      className="h-8 text-sm"
                     />
                   </FormControl>
                   <FormMessage />
@@ -191,7 +191,7 @@ export const HapticConfigForm = forwardRef<HapticConfigFormRef, HapticConfigForm
               name={`${hapticType}.ios.duration`}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-xs text-muted-foreground">Duration (s)</FormLabel>
+                  <FormLabel className="text-xs">Duration (s)</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
@@ -199,7 +199,7 @@ export const HapticConfigForm = forwardRef<HapticConfigFormRef, HapticConfigForm
                       {...field}
                       value={field.value ?? ''}
                       onChange={(e) => field.onChange(e.target.value === '' ? undefined : parseFloat(e.target.value))}
-                      className="h-8 bg-muted/30 text-sm"
+                      className="h-8 text-sm"
                     />
                   </FormControl>
                   <FormMessage />

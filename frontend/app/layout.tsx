@@ -1,10 +1,19 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Roboto, Roboto_Mono } from 'next/font/google';
 import '../src/index.css';
 import { Providers } from './providers';
 import { Toaster } from 'sonner';
 
-const inter = Inter({ subsets: ['latin'] });
+const roboto = Roboto({ 
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '700'],
+  variable: '--font-roboto',
+});
+
+const robotoMono = Roboto_Mono({
+  subsets: ['latin'],
+  variable: '--font-roboto-mono',
+});
 
 export const metadata: Metadata = {
   title: {
@@ -41,13 +50,21 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
-        <div className="dark">
-          <Providers>
-            {children}
-            <Toaster theme="dark" position="top-right" />
-          </Providers>
-        </div>
+      <body className={`${roboto.variable} ${robotoMono.variable} font-sans antialiased`}>
+        <Providers>
+          {children}
+          <Toaster 
+            theme="light" 
+            position="top-right"
+            toastOptions={{
+              style: {
+                background: '#ffffff',
+                border: '1px solid #dadce0',
+                color: '#202124',
+              },
+            }}
+          />
+        </Providers>
       </body>
     </html>
   );

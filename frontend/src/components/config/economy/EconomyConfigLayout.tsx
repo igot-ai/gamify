@@ -224,12 +224,8 @@ export const EconomyConfigLayout = forwardRef<EconomyConfigLayoutRef, EconomyCon
   if (hideSidebar) {
     return (
       <FormProvider {...form}>
-        <form onSubmit={handleSubmit} className="h-full">
-          <div className="rounded-xl border border-border/40 bg-card/50 overflow-hidden shadow-stripe-md">
-            <ScrollArea className="h-full min-h-[600px]">
-              {renderContent()}
-            </ScrollArea>
-          </div>
+        <form onSubmit={handleSubmit} className="h-full space-y-6">
+          {renderContent()}
         </form>
       </FormProvider>
     );
@@ -238,11 +234,11 @@ export const EconomyConfigLayout = forwardRef<EconomyConfigLayoutRef, EconomyCon
   return (
     <FormProvider {...form}>
       <form onSubmit={handleSubmit} className="h-full">
-        <div className="flex h-full min-h-[600px] rounded-xl border border-border/40 bg-card/50 overflow-hidden shadow-stripe-md">
+        <div className="flex h-full min-h-[600px]">
           {/* Sidebar Navigation */}
-          <div className="w-[260px] border-r border-border/40 bg-muted/20 flex flex-col">
+          <div className="w-[260px] border-r border-border/30 flex flex-col">
             {/* Sidebar Header */}
-            <div className="px-5 py-4 border-b border-border/30">
+            <div className="px-5 py-4 border-b border-border/20">
               <h2 className="text-sm font-semibold text-foreground tracking-tight">
                 Economy Configuration
               </h2>
@@ -303,7 +299,7 @@ export const EconomyConfigLayout = forwardRef<EconomyConfigLayoutRef, EconomyCon
             </ScrollArea>
 
             {/* Sidebar Footer with Summary */}
-            <div className="px-4 py-3 border-t border-border/30 bg-muted/30">
+            <div className="px-4 py-3 border-t border-border/20 bg-gray-50/50">
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div className="flex items-center gap-1.5 text-muted-foreground">
                   <Coins className="h-3 w-3" />

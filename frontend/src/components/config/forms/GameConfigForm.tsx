@@ -36,7 +36,7 @@ export interface GameConfigFormRef {
 
 const Vector2Field = ({ control, baseName, label }: { control: any; baseName: string; label: string }) => (
   <div className="space-y-2">
-    <FormLabel className="text-sm text-muted-foreground">{label}</FormLabel>
+    <FormLabel className="text-sm">{label}</FormLabel>
     <div className="grid grid-cols-2 gap-4">
       <FormField
         control={control}
@@ -52,7 +52,7 @@ const Vector2Field = ({ control, baseName, label }: { control: any; baseName: st
                   {...field}
                   value={field.value ?? ''}
                   onChange={(e) => field.onChange(e.target.value === '' ? undefined : parseFloat(e.target.value))}
-                  className="h-9 bg-muted/30"
+                  className="h-9"
                 />
               </FormControl>
             </div>
@@ -74,7 +74,7 @@ const Vector2Field = ({ control, baseName, label }: { control: any; baseName: st
                   {...field}
                   value={field.value ?? ''}
                   onChange={(e) => field.onChange(e.target.value === '' ? undefined : parseFloat(e.target.value))}
-                  className="h-9 bg-muted/30"
+                  className="h-9"
                 />
               </FormControl>
             </div>
@@ -129,7 +129,7 @@ export const GameConfigForm = forwardRef<GameConfigFormRef, GameConfigFormProps>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <ConfigFormSection title="Game Logic" description="Configure game logic parameters and combo settings">
               <div className="space-y-4">
-                <div className="rounded-lg border border-border/30 bg-muted/10 p-4">
+                <div className="rounded-lg border border-border bg-muted/10 p-4">
                   <h4 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-4">
                     <span className="w-1.5 h-1.5 rounded-full bg-primary" />
                     Game Logic Config
@@ -140,14 +140,14 @@ export const GameConfigForm = forwardRef<GameConfigFormRef, GameConfigFormProps>
                       name="gameLogic.gameLogicConfig.matchCount"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm text-muted-foreground">Match Count</FormLabel>
+                          <FormLabel className="text-sm">Match Count</FormLabel>
                           <FormControl>
                             <Input
                               type="number"
                               {...field}
                               value={field.value ?? ''}
                               onChange={(e) => field.onChange(e.target.value === '' ? undefined : parseInt(e.target.value))}
-                              className="h-9 bg-muted/30"
+                              className="h-9"
                             />
                           </FormControl>
                           <FormMessage />
@@ -159,14 +159,14 @@ export const GameConfigForm = forwardRef<GameConfigFormRef, GameConfigFormProps>
                       name="gameLogic.gameLogicConfig.countUndoTileRevive"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm text-muted-foreground">Count Undo Tile Revive</FormLabel>
+                          <FormLabel className="text-sm">Count Undo Tile Revive</FormLabel>
                           <FormControl>
                             <Input
                               type="number"
                               {...field}
                               value={field.value ?? ''}
                               onChange={(e) => field.onChange(e.target.value === '' ? undefined : parseInt(e.target.value))}
-                              className="h-9 bg-muted/30"
+                              className="h-9"
                             />
                           </FormControl>
                           <FormMessage />
@@ -178,14 +178,14 @@ export const GameConfigForm = forwardRef<GameConfigFormRef, GameConfigFormProps>
                       name="gameLogic.gameLogicConfig.countShuffleTileRevive"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm text-muted-foreground">Count Shuffle Tile Revive</FormLabel>
+                          <FormLabel className="text-sm">Count Shuffle Tile Revive</FormLabel>
                           <FormControl>
                             <Input
                               type="number"
                               {...field}
                               value={field.value ?? ''}
                               onChange={(e) => field.onChange(e.target.value === '' ? undefined : parseInt(e.target.value))}
-                              className="h-9 bg-muted/30"
+                              className="h-9"
                             />
                           </FormControl>
                           <FormMessage />
@@ -197,14 +197,14 @@ export const GameConfigForm = forwardRef<GameConfigFormRef, GameConfigFormProps>
                       name="gameLogic.gameLogicConfig.countSlotHolder"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm text-muted-foreground">Count Slot Holder</FormLabel>
+                          <FormLabel className="text-sm">Count Slot Holder</FormLabel>
                           <FormControl>
                             <Input
                               type="number"
                               {...field}
                               value={field.value ?? ''}
                               onChange={(e) => field.onChange(e.target.value === '' ? undefined : parseInt(e.target.value))}
-                              className="h-9 bg-muted/30"
+                              className="h-9"
                             />
                           </FormControl>
                           <FormMessage />
@@ -216,14 +216,14 @@ export const GameConfigForm = forwardRef<GameConfigFormRef, GameConfigFormProps>
                       name="gameLogic.gameLogicConfig.warningThreshold"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm text-muted-foreground">Warning Threshold</FormLabel>
+                          <FormLabel className="text-sm">Warning Threshold</FormLabel>
                           <FormControl>
                             <Input
                               type="number"
                               {...field}
                               value={field.value ?? ''}
                               onChange={(e) => field.onChange(e.target.value === '' ? undefined : parseInt(e.target.value))}
-                              className="h-9 bg-muted/30"
+                              className="h-9"
                             />
                           </FormControl>
                           <FormMessage />
@@ -233,7 +233,7 @@ export const GameConfigForm = forwardRef<GameConfigFormRef, GameConfigFormProps>
                   </div>
                 </div>
 
-                <div className="rounded-lg border border-border/30 bg-muted/10 p-4">
+                <div className="rounded-lg border border-border bg-muted/10 p-4">
                   <h4 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-4">
                     <span className="w-1.5 h-1.5 rounded-full bg-primary" />
                     Combo
@@ -244,14 +244,14 @@ export const GameConfigForm = forwardRef<GameConfigFormRef, GameConfigFormProps>
                       name="gameLogic.combo.matchEffect"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm text-muted-foreground">Match Effect</FormLabel>
+                          <FormLabel className="text-sm">Match Effect</FormLabel>
                           <FormControl>
                             <Input
                               type="number"
                               {...field}
                               value={field.value ?? ''}
                               onChange={(e) => field.onChange(e.target.value === '' ? undefined : parseInt(e.target.value))}
-                              className="h-9 bg-muted/30"
+                              className="h-9"
                             />
                           </FormControl>
                           <FormMessage />
@@ -263,14 +263,14 @@ export const GameConfigForm = forwardRef<GameConfigFormRef, GameConfigFormProps>
                       name="gameLogic.combo.maxNoMatch"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm text-muted-foreground">Max No Match</FormLabel>
+                          <FormLabel className="text-sm">Max No Match</FormLabel>
                           <FormControl>
                             <Input
                               type="number"
                               {...field}
                               value={field.value ?? ''}
                               onChange={(e) => field.onChange(e.target.value === '' ? undefined : parseInt(e.target.value))}
-                              className="h-9 bg-muted/30"
+                              className="h-9"
                             />
                           </FormControl>
                           <FormMessage />
@@ -284,7 +284,7 @@ export const GameConfigForm = forwardRef<GameConfigFormRef, GameConfigFormProps>
 
             <ConfigFormSection title="View Config" description="Configure grid and holder view settings">
               <div className="space-y-4">
-                <div className="rounded-lg border border-border/30 bg-muted/10 p-4">
+                <div className="rounded-lg border border-border bg-muted/10 p-4">
                   <h4 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-4">
                     <span className="w-1.5 h-1.5 rounded-full bg-primary" />
                     Grid View
@@ -292,7 +292,7 @@ export const GameConfigForm = forwardRef<GameConfigFormRef, GameConfigFormProps>
                   <Vector2Field control={form.control} baseName="viewConfig.gridView.tileSize" label="Tile Size" />
                 </div>
 
-                <div className="rounded-lg border border-border/30 bg-muted/10 p-4">
+                <div className="rounded-lg border border-border bg-muted/10 p-4">
                   <h4 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-4">
                     <span className="w-1.5 h-1.5 rounded-full bg-primary" />
                     Holder View
@@ -305,7 +305,7 @@ export const GameConfigForm = forwardRef<GameConfigFormRef, GameConfigFormProps>
                         name="viewConfig.holderView.slotSpace"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-sm text-muted-foreground">Slot Space</FormLabel>
+                            <FormLabel className="text-sm">Slot Space</FormLabel>
                             <FormControl>
                               <Input
                                 type="number"
@@ -313,7 +313,7 @@ export const GameConfigForm = forwardRef<GameConfigFormRef, GameConfigFormProps>
                                 {...field}
                                 value={field.value ?? ''}
                                 onChange={(e) => field.onChange(e.target.value === '' ? undefined : parseFloat(e.target.value))}
-                                className="h-9 bg-muted/30"
+                                className="h-9"
                               />
                             </FormControl>
                             <FormMessage />
@@ -325,7 +325,7 @@ export const GameConfigForm = forwardRef<GameConfigFormRef, GameConfigFormProps>
                         name="viewConfig.holderView.ratioBetweenTwoTile"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-sm text-muted-foreground">Ratio Between Two Tile</FormLabel>
+                            <FormLabel className="text-sm">Ratio Between Two Tile</FormLabel>
                             <FormControl>
                               <Input
                                 type="number"
@@ -333,7 +333,7 @@ export const GameConfigForm = forwardRef<GameConfigFormRef, GameConfigFormProps>
                                 {...field}
                                 value={field.value ?? ''}
                                 onChange={(e) => field.onChange(e.target.value === '' ? undefined : parseFloat(e.target.value))}
-                                className="h-9 bg-muted/30"
+                                className="h-9"
                               />
                             </FormControl>
                             <FormMessage />
@@ -345,7 +345,7 @@ export const GameConfigForm = forwardRef<GameConfigFormRef, GameConfigFormProps>
                         name="viewConfig.holderView.slotYPadding"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-sm text-muted-foreground">Slot Y Padding</FormLabel>
+                            <FormLabel className="text-sm">Slot Y Padding</FormLabel>
                             <FormControl>
                               <Input
                                 type="number"
@@ -353,7 +353,7 @@ export const GameConfigForm = forwardRef<GameConfigFormRef, GameConfigFormProps>
                                 {...field}
                                 value={field.value ?? ''}
                                 onChange={(e) => field.onChange(e.target.value === '' ? undefined : parseFloat(e.target.value))}
-                                className="h-9 bg-muted/30"
+                                className="h-9"
                               />
                             </FormControl>
                             <FormMessage />
@@ -365,7 +365,7 @@ export const GameConfigForm = forwardRef<GameConfigFormRef, GameConfigFormProps>
                         name="viewConfig.holderView.tileInHolderYPadding"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-sm text-muted-foreground">Tile In Holder Y Padding</FormLabel>
+                            <FormLabel className="text-sm">Tile In Holder Y Padding</FormLabel>
                             <FormControl>
                               <Input
                                 type="number"
@@ -373,7 +373,7 @@ export const GameConfigForm = forwardRef<GameConfigFormRef, GameConfigFormProps>
                                 {...field}
                                 value={field.value ?? ''}
                                 onChange={(e) => field.onChange(e.target.value === '' ? undefined : parseFloat(e.target.value))}
-                                className="h-9 bg-muted/30"
+                                className="h-9"
                               />
                             </FormControl>
                             <FormMessage />

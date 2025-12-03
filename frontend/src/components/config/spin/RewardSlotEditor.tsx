@@ -152,7 +152,7 @@ export function RewardSlotEditor({
               return (
                 <div
                   key={index}
-                  className="flex items-center gap-2 p-3 rounded-lg border border-border/30 bg-muted/10 transition-colors hover:bg-muted/20"
+                  className="flex items-center gap-2 p-3 rounded-lg border border-border bg-muted/10 transition-colors hover:bg-muted/20"
                 >
                   {/* Type Selector */}
                   <Select

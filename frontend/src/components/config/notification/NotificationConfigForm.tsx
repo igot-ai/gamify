@@ -335,8 +335,8 @@ export const NotificationConfigForm = forwardRef<NotificationConfigFormRef, Noti
                         className={cn(
                           'rounded-lg border transition-all duration-200',
                           isExpanded
-                            ? 'border-primary/40 bg-card shadow-stripe-md'
-                            : 'border-border/40 bg-card/50 hover:border-border/60 hover:shadow-stripe-sm'
+                            ? 'border-primary/70 bg-card shadow-stripe-md'
+                            : 'border-border/80 bg-card/50 hover:border-border hover:shadow-stripe-sm'
                         )}
                       >
                         {/* Collapsed Header */}
@@ -728,8 +728,8 @@ function StrategyItem({ index, form, isExpanded, onToggle, onRemove, channelOpti
         className={cn(
           'rounded-lg border transition-all duration-200',
           isExpanded
-            ? 'border-primary/40 bg-card shadow-stripe-md'
-            : 'border-border/40 bg-card/50 hover:border-border/60 hover:shadow-stripe-sm'
+            ? 'border-primary/70 bg-card shadow-stripe-md'
+            : 'border-border/80 bg-card/50 hover:border-border hover:shadow-stripe-sm'
         )}
       >
         {/* Collapsed Header */}
