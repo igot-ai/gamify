@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useFormContext, useFieldArray } from 'react-hook-form';
 import { 
   ChevronDown, 
@@ -43,11 +43,24 @@ interface CurrenciesSectionProps {
 export function CurrenciesSection({ onSave, isSaving = false, readOnly = false }: CurrenciesSectionProps) {
   const form = useFormContext<EconomyConfig>();
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+  const [originalCurrencies, setOriginalCurrencies] = useState<Currency[]>([]);
+  const initializedRef = useRef(false);
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove, replace } = useFieldArray({
     control: form.control,
     name: 'currencies',
   });
+
+  // Get current currencies data for save and JSON sync
+  const currencies = form.watch('currencies');
+
+  // Store original currencies on initial load for diff comparison
+  useEffect(() => {
+    if (!initializedRef.current && currencies) {
+      setOriginalCurrencies(JSON.parse(JSON.stringify(currencies)));
+      initializedRef.current = true;
+    }
+  }, [currencies]);
 
   const handleAdd = () => {
     const newCurrency: Currency = {
@@ -80,13 +93,19 @@ export function CurrenciesSection({ onSave, isSaving = false, readOnly = false }
     setExpandedIndex(expandedIndex === index ? null : index);
   };
 
-  // Get current currencies data for save
-  const currencies = form.watch('currencies');
-
   // Handle save - pass current currencies data
   const handleSave = () => {
     if (onSave) {
       onSave(currencies);
+      // Update original after save
+      setOriginalCurrencies(JSON.parse(JSON.stringify(currencies)));
+    }
+  };
+
+  // Handle JSON changes from the JSON editor
+  const handleJsonChange = (data: Currency[]) => {
+    if (Array.isArray(data)) {
+      replace(data);
     }
   };
 
@@ -101,6 +120,9 @@ export function CurrenciesSection({ onSave, isSaving = false, readOnly = false }
       addButtonText="Add Currency"
       itemCount={fields.length}
       readOnly={readOnly}
+      jsonData={currencies}
+      originalJsonData={originalCurrencies}
+      onJsonChange={readOnly ? undefined : handleJsonChange}
     >
       {fields.length === 0 ? (
         <div className="empty-state">

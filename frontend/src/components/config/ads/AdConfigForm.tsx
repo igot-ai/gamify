@@ -38,6 +38,7 @@ import {
 } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
 import { ConfigFormSection } from '../shared/ConfigFormSection';
+import { FormWithJsonTabs } from '../shared/FormWithJsonTabs';
 import {
   adConfigSchema,
   type AdConfig,
@@ -68,6 +69,8 @@ export const AdConfigForm = forwardRef<AdConfigFormRef, AdConfigFormProps>(
     isSaving = false,
   }, ref) {
   const [expandedPlacement, setExpandedPlacement] = useState<number | null>(null);
+  const [originalData, setOriginalData] = useState<AdConfig | undefined>();
+  const initializedRef = React.useRef(false);
 
   // Merge initial data with defaults
   const mergedDefaults: AdConfig = {
@@ -98,6 +101,15 @@ export const AdConfigForm = forwardRef<AdConfigFormRef, AdConfigFormProps>(
     name: 'placements',
   });
 
+  React.useEffect(() => {
+    if (initialData) {
+      setOriginalData(JSON.parse(JSON.stringify(initialData)));
+      if (!initializedRef.current) {
+        initializedRef.current = true;
+      }
+    }
+  }, [initialData]);
+
   const isValid = form.formState.isValid;
   const handleSubmit = form.handleSubmit(onSubmit);
 
@@ -107,6 +119,7 @@ export const AdConfigForm = forwardRef<AdConfigFormRef, AdConfigFormProps>(
     reset: (data: AdConfig) => {
       console.log('resetting ad config', data);
       form.reset(data);
+      setOriginalData(JSON.parse(JSON.stringify(data)));
       // Also replace the field array to sync useFieldArray state
       if (data.placements) {
         replace(data.placements);
@@ -173,7 +186,17 @@ export const AdConfigForm = forwardRef<AdConfigFormRef, AdConfigFormProps>(
 
   return (
     <Form {...form}>
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <FormWithJsonTabs 
+        formData={form.watch()} 
+        originalData={originalData} 
+        onJsonChange={(data) => {
+          form.reset(data);
+          if (data.placements) {
+            replace(data.placements);
+          }
+        }}
+      >
+        <form onSubmit={handleSubmit} className="space-y-6">
         {/* Section 1: Ad Unit IDs */}
         <ConfigFormSection
           title="Ad Unit IDs"
@@ -859,7 +882,8 @@ export const AdConfigForm = forwardRef<AdConfigFormRef, AdConfigFormProps>(
             {isSaving ? 'Saving...' : 'Save Changes'}
           </Button>
         </div>
-      </form>
+        </form>
+      </FormWithJsonTabs>
     </Form>
   );
 });

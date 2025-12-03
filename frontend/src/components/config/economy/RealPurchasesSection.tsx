@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useFormContext, useFieldArray } from 'react-hook-form';
 import { 
   ChevronDown, 
@@ -52,8 +52,10 @@ interface RealPurchasesSectionProps {
 export function RealPurchasesSection({ onSave, isSaving = false, readOnly = false }: RealPurchasesSectionProps) {
   const form = useFormContext<EconomyConfig>();
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+  const [originalPurchases, setOriginalPurchases] = useState<RealPurchase[]>([]);
+  const initializedRef = useRef(false);
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove, replace } = useFieldArray({
     control: form.control,
     name: 'realPurchases',
   });
@@ -61,6 +63,17 @@ export function RealPurchasesSection({ onSave, isSaving = false, readOnly = fals
   // Get available currencies and items for reward selection
   const currencies = form.watch('currencies') || [];
   const inventoryItems = form.watch('inventoryItems') || [];
+
+  // Get current purchases data for save and JSON sync
+  const realPurchases = form.watch('realPurchases');
+
+  // Store original purchases on initial load for diff comparison
+  useEffect(() => {
+    if (!initializedRef.current && realPurchases) {
+      setOriginalPurchases(JSON.parse(JSON.stringify(realPurchases)));
+      initializedRef.current = true;
+    }
+  }, [realPurchases]);
 
   const handleAdd = () => {
     const newPurchase: RealPurchase = {
@@ -95,13 +108,19 @@ export function RealPurchasesSection({ onSave, isSaving = false, readOnly = fals
     setExpandedIndex(expandedIndex === index ? null : index);
   };
 
-  // Get current purchases data for save
-  const realPurchases = form.watch('realPurchases');
-
   // Handle save - pass current real purchases data
   const handleSave = () => {
     if (onSave) {
       onSave(realPurchases);
+      // Update original after save
+      setOriginalPurchases(JSON.parse(JSON.stringify(realPurchases)));
+    }
+  };
+
+  // Handle JSON changes from the JSON editor
+  const handleJsonChange = (data: RealPurchase[]) => {
+    if (Array.isArray(data)) {
+      replace(data);
     }
   };
 
@@ -116,6 +135,9 @@ export function RealPurchasesSection({ onSave, isSaving = false, readOnly = fals
       addButtonText="Add Product"
       itemCount={fields.length}
       readOnly={readOnly}
+      jsonData={realPurchases}
+      originalJsonData={originalPurchases}
+      onJsonChange={readOnly ? undefined : handleJsonChange}
     >
       {fields.length === 0 ? (
         <div className="empty-state">

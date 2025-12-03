@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useFormContext, useFieldArray } from 'react-hook-form';
 import { 
   ChevronDown, 
@@ -44,11 +44,24 @@ interface InventoryItemsSectionProps {
 export function InventoryItemsSection({ onSave, isSaving = false, readOnly = false }: InventoryItemsSectionProps) {
   const form = useFormContext<EconomyConfig>();
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+  const [originalItems, setOriginalItems] = useState<InventoryItem[]>([]);
+  const initializedRef = useRef(false);
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove, replace } = useFieldArray({
     control: form.control,
     name: 'inventoryItems',
   });
+
+  // Get current items data for save and JSON sync
+  const inventoryItems = form.watch('inventoryItems');
+
+  // Store original items on initial load for diff comparison
+  useEffect(() => {
+    if (!initializedRef.current && inventoryItems) {
+      setOriginalItems(JSON.parse(JSON.stringify(inventoryItems)));
+      initializedRef.current = true;
+    }
+  }, [inventoryItems]);
 
   const handleAdd = () => {
     const newItem: InventoryItem = {
@@ -80,13 +93,19 @@ export function InventoryItemsSection({ onSave, isSaving = false, readOnly = fal
     setExpandedIndex(expandedIndex === index ? null : index);
   };
 
-  // Get current items data for save
-  const inventoryItems = form.watch('inventoryItems');
-
   // Handle save - pass current inventory items data
   const handleSave = () => {
     if (onSave) {
       onSave(inventoryItems);
+      // Update original after save
+      setOriginalItems(JSON.parse(JSON.stringify(inventoryItems)));
+    }
+  };
+
+  // Handle JSON changes from the JSON editor
+  const handleJsonChange = (data: InventoryItem[]) => {
+    if (Array.isArray(data)) {
+      replace(data);
     }
   };
 
@@ -101,6 +120,9 @@ export function InventoryItemsSection({ onSave, isSaving = false, readOnly = fal
       addButtonText="Add Item"
       itemCount={fields.length}
       readOnly={readOnly}
+      jsonData={inventoryItems}
+      originalJsonData={originalItems}
+      onJsonChange={readOnly ? undefined : handleJsonChange}
     >
       {fields.length === 0 ? (
         <div className="empty-state">

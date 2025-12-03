@@ -1,9 +1,12 @@
 'use client';
 
 import * as React from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
-import { Plus, Trash2, Save, Loader2 } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
+import { Plus, Trash2, Save, Loader2, FileText, Code } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { JsonEditor } from './JsonEditor';
 
 interface SectionWrapperProps {
   title: string;
@@ -21,6 +24,12 @@ interface SectionWrapperProps {
   className?: string;
   /** Read-only mode - hides all action buttons */
   readOnly?: boolean;
+  /** JSON data for the JSON editor tab */
+  jsonData?: any;
+  /** Original JSON data for diff comparison */
+  originalJsonData?: any;
+  /** Callback when JSON is changed in the editor */
+  onJsonChange?: (data: any) => void;
 }
 
 export function SectionWrapper({
@@ -36,7 +45,15 @@ export function SectionWrapper({
   showClearAll = true,
   className,
   readOnly = false,
+  jsonData,
+  originalJsonData,
+  onJsonChange,
 }: SectionWrapperProps) {
+  const [activeTab, setActiveTab] = useState<'form' | 'json'>('form');
+
+  const hasJsonSupport = jsonData !== undefined && onJsonChange !== undefined;
+  const hasChanges = hasJsonSupport && JSON.stringify(jsonData) !== JSON.stringify(originalJsonData);
+
   return (
     <div className={cn('space-y-6', className)}>
       {/* Header */}
@@ -53,39 +70,105 @@ export function SectionWrapper({
         </div>
       </div>
 
-      {/* Actions */}
-      {!readOnly && (onAdd || (showClearAll && itemCount > 0 && onClearAll)) && (
-        <div className="flex items-center justify-end gap-2">
-          {showClearAll && itemCount > 0 && onClearAll && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={onClearAll}
-              className="h-9 px-3 text-muted-foreground hover:text-destructive hover:border-destructive/50"
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Clear All
-            </Button>
-          )}
-          {onAdd && (
-            <Button
-              type="button"
-              onClick={onAdd}
-              size="sm"
-              className="h-9 px-4 shadow-stripe-sm transition-all hover:shadow-stripe-md"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              {addButtonText}
-            </Button>
-          )}
-        </div>
-      )}
+      {/* Tabs for Form/JSON */}
+      {hasJsonSupport ? (
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'form' | 'json')}>
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="form" className="text-sm">
+              <FileText className="h-4 w-4 mr-2" />
+              Form
+            </TabsTrigger>
+            <TabsTrigger value="json" className="text-sm relative">
+              <Code className="h-4 w-4 mr-2" />
+              JSON
+              {hasChanges && (
+                <span className="ml-1.5 h-2 w-2 rounded-full bg-primary" />
+              )}
+            </TabsTrigger>
+          </TabsList>
 
-      {/* Content */}
-      <div className="animate-fade-in">
-        {children}
-      </div>
+          <TabsContent value="form" className="mt-4">
+            {/* Actions - only show in Form tab */}
+            {!readOnly && (onAdd || (showClearAll && itemCount > 0 && onClearAll)) && (
+              <div className="flex items-center justify-end gap-2 mb-4">
+                {showClearAll && itemCount > 0 && onClearAll && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={onClearAll}
+                    className="h-9 px-3 text-muted-foreground hover:text-destructive hover:border-destructive/50"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Clear All
+                  </Button>
+                )}
+                {onAdd && (
+                  <Button
+                    type="button"
+                    onClick={onAdd}
+                    size="sm"
+                    className="h-9 px-4 shadow-stripe-sm transition-all hover:shadow-stripe-md"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    {addButtonText}
+                  </Button>
+                )}
+              </div>
+            )}
+            {/* Form Content */}
+            <div className="animate-fade-in">
+              {children}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="json" className="mt-4">
+            {/* JSON Editor */}
+            <JsonEditor
+              value={jsonData}
+              originalValue={originalJsonData}
+              onChange={onJsonChange}
+              readOnly={readOnly}
+            />
+          </TabsContent>
+        </Tabs>
+      ) : (
+        <>
+          {/* Actions - when no JSON support */}
+          {!readOnly && (onAdd || (showClearAll && itemCount > 0 && onClearAll)) && (
+            <div className="flex items-center justify-end gap-2">
+              {showClearAll && itemCount > 0 && onClearAll && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={onClearAll}
+                  className="h-9 px-3 text-muted-foreground hover:text-destructive hover:border-destructive/50"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Clear All
+                </Button>
+              )}
+              {onAdd && (
+                <Button
+                  type="button"
+                  onClick={onAdd}
+                  size="sm"
+                  className="h-9 px-4 shadow-stripe-sm transition-all hover:shadow-stripe-md"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  {addButtonText}
+                </Button>
+              )}
+            </div>
+          )}
+
+          {/* Content */}
+          <div className="animate-fade-in">
+            {children}
+          </div>
+        </>
+      )}
 
       {/* Save Button */}
       {!readOnly && onSave && (
@@ -108,4 +191,3 @@ export function SectionWrapper({
     </div>
   );
 }
-

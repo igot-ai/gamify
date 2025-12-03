@@ -39,6 +39,7 @@ import {
 } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
 import { ConfigFormSection } from '../shared/ConfigFormSection';
+import { FormWithJsonTabs } from '../shared/FormWithJsonTabs';
 import {
   notificationConfigSchema,
   type NotificationConfig,
@@ -100,6 +101,8 @@ export const NotificationConfigForm = forwardRef<NotificationConfigFormRef, Noti
   }, ref) {
     const [expandedChannel, setExpandedChannel] = useState<number | null>(null);
     const [expandedStrategy, setExpandedStrategy] = useState<number | null>(null);
+    const [originalData, setOriginalData] = useState<NotificationConfig | undefined>();
+    const initializedRef = React.useRef(false);
 
     // Merge initial data with defaults
     const mergedDefaults: NotificationConfig = {
@@ -135,6 +138,15 @@ export const NotificationConfigForm = forwardRef<NotificationConfigFormRef, Noti
       name: 'strategies',
     });
 
+    React.useEffect(() => {
+      if (initialData) {
+        setOriginalData(JSON.parse(JSON.stringify(initialData)));
+        if (!initializedRef.current) {
+          initializedRef.current = true;
+        }
+      }
+    }, [initialData]);
+
     const isValid = form.formState.isValid;
     const handleSubmit = form.handleSubmit(onSubmit);
 
@@ -143,6 +155,7 @@ export const NotificationConfigForm = forwardRef<NotificationConfigFormRef, Noti
       getData: () => form.getValues(),
       reset: (data: NotificationConfig) => {
         form.reset(data);
+        setOriginalData(JSON.parse(JSON.stringify(data)));
         // Also replace field arrays to sync useFieldArray state
         if (data.channels) {
           replaceChannels(data.channels);
@@ -232,7 +245,12 @@ export const NotificationConfigForm = forwardRef<NotificationConfigFormRef, Noti
 
     return (
       <Form {...form}>
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <FormWithJsonTabs formData={form.watch()} originalData={originalData} onJsonChange={(data) => {
+          form.reset(data);
+          if (data.channels) replaceChannels(data.channels);
+          if (data.strategies) replaceStrategies(data.strategies);
+        }}>
+          <form onSubmit={handleSubmit} className="space-y-6">
           {/* Section 1: General Settings */}
           <ConfigFormSection
             title="General Settings"
@@ -656,7 +674,8 @@ export const NotificationConfigForm = forwardRef<NotificationConfigFormRef, Noti
               {isSaving ? 'Saving...' : 'Save Changes'}
             </Button>
           </div>
-        </form>
+          </form>
+        </FormWithJsonTabs>
       </Form>
     );
   }

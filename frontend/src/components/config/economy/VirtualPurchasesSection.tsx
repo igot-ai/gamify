@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useFormContext, useFieldArray } from 'react-hook-form';
 import { 
   ChevronDown, 
@@ -44,8 +44,10 @@ interface VirtualPurchasesSectionProps {
 export function VirtualPurchasesSection({ onSave, isSaving = false, readOnly = false }: VirtualPurchasesSectionProps) {
   const form = useFormContext<EconomyConfig>();
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+  const [originalPurchases, setOriginalPurchases] = useState<VirtualPurchase[]>([]);
+  const initializedRef = useRef(false);
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove, replace } = useFieldArray({
     control: form.control,
     name: 'virtualPurchases',
   });
@@ -53,6 +55,17 @@ export function VirtualPurchasesSection({ onSave, isSaving = false, readOnly = f
   // Get available currencies and items for cost/reward selection
   const currencies = form.watch('currencies') || [];
   const inventoryItems = form.watch('inventoryItems') || [];
+
+  // Get current purchases data for save and JSON sync
+  const virtualPurchases = form.watch('virtualPurchases');
+
+  // Store original purchases on initial load for diff comparison
+  useEffect(() => {
+    if (!initializedRef.current && virtualPurchases) {
+      setOriginalPurchases(JSON.parse(JSON.stringify(virtualPurchases)));
+      initializedRef.current = true;
+    }
+  }, [virtualPurchases]);
 
   const handleAdd = () => {
     const newPurchase: VirtualPurchase = {
@@ -87,13 +100,19 @@ export function VirtualPurchasesSection({ onSave, isSaving = false, readOnly = f
     setExpandedIndex(expandedIndex === index ? null : index);
   };
 
-  // Get current purchases data for save
-  const virtualPurchases = form.watch('virtualPurchases');
-
   // Handle save - pass current virtual purchases data
   const handleSave = () => {
     if (onSave) {
       onSave(virtualPurchases);
+      // Update original after save
+      setOriginalPurchases(JSON.parse(JSON.stringify(virtualPurchases)));
+    }
+  };
+
+  // Handle JSON changes from the JSON editor
+  const handleJsonChange = (data: VirtualPurchase[]) => {
+    if (Array.isArray(data)) {
+      replace(data);
     }
   };
 
@@ -108,6 +127,9 @@ export function VirtualPurchasesSection({ onSave, isSaving = false, readOnly = f
       addButtonText="Add Purchase"
       itemCount={fields.length}
       readOnly={readOnly}
+      jsonData={virtualPurchases}
+      originalJsonData={originalPurchases}
+      onJsonChange={readOnly ? undefined : handleJsonChange}
     >
       {fields.length === 0 ? (
         <div className="empty-state">
