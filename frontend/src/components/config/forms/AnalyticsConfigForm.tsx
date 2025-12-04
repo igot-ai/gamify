@@ -1,5 +1,6 @@
 'use client';
 
+import { forwardRef, useImperativeHandle } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Input } from '@/components/ui/Input';
@@ -26,19 +27,30 @@ interface AnalyticsConfigFormProps {
   isSaving?: boolean;
 }
 
-export function AnalyticsConfigForm({
+export interface AnalyticsConfigFormRef {
+  getData: () => AnalyticsConfig;
+  reset: (data: AnalyticsConfig) => void;
+}
+
+export const AnalyticsConfigForm = forwardRef<AnalyticsConfigFormRef, AnalyticsConfigFormProps>(
+  function AnalyticsConfigForm({
   initialData,
   onSubmit,
   onCancel,
   isSaving = false,
-}: AnalyticsConfigFormProps) {
+  }, ref) {
   const form = useForm<AnalyticsConfig>({
     resolver: zodResolver(analyticsConfigSchema),
-    defaultValues: initialData || {
+      defaultValues: initialData ?? {
       dev_key: '',
       app_id: '',
     },
   });
+
+    useImperativeHandle(ref, () => ({
+      getData: () => form.getValues(),
+      reset: (data: AnalyticsConfig) => form.reset(data),
+    }));
 
   const isValid = form.formState.isValid;
   const handleSubmit = form.handleSubmit(onSubmit);
@@ -112,5 +124,5 @@ export function AnalyticsConfigForm({
       </form>
     </Form>
   );
-}
+});
 

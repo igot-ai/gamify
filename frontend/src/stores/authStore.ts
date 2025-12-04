@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import axios from 'axios';
 import { apiClient, setToken, removeToken } from '@/lib/api';
 
 export type UserRole = 'admin' | 'game_operator';
@@ -52,14 +53,74 @@ export const useAuthStore = create<AuthState>((set) => ({
       });
     } catch (error: unknown) {
       removeToken();
-      const message = error instanceof Error 
-        ? error.message 
-        : (error as { response?: { data?: { detail?: string } } })?.response?.data?.detail || 'Login failed';
+      
+      // Extract specific error message from different error formats
+      let errorMessage = 'Login failed. Please try again.';
+      
+      if (axios.isAxiosError(error)) {
+        const status = error.response?.status;
+        const responseData = error.response?.data;
+        
+        // Handle validation errors (422)
+        if (status === 422) {
+          // FastAPI validation errors can be in different formats
+          if (Array.isArray(responseData?.detail)) {
+            // Multiple validation errors
+            const validationErrors = responseData.detail
+              .map((err: { msg?: string; loc?: unknown[]; type?: string }) => {
+                const field = Array.isArray(err.loc) && err.loc.length > 1 
+                  ? err.loc[err.loc.length - 1] 
+                  : 'field';
+                return err.msg || `${field} is invalid`;
+              })
+              .join(', ');
+            errorMessage = `Validation error: ${validationErrors}`;
+          } else if (typeof responseData?.detail === 'string') {
+            // Single validation error message
+            errorMessage = responseData.detail;
+          } else if (responseData?.detail) {
+            // Object with error details
+            errorMessage = typeof responseData.detail === 'object' 
+              ? JSON.stringify(responseData.detail)
+              : String(responseData.detail);
+          } else {
+            errorMessage = 'Invalid email or password format. Please check your input.';
+          }
+        }
+        // Handle unauthorized (401)
+        else if (status === 401) {
+          errorMessage = responseData?.detail || 'Invalid email or password. Please try again.';
+        }
+        // Handle not found (404)
+        else if (status === 404) {
+          errorMessage = 'Login endpoint not found. Please contact support.';
+        }
+        // Handle server errors (500+)
+        else if (status && status >= 500) {
+          errorMessage = 'Server error. Please try again later.';
+        }
+        // Handle other errors with detail message
+        else if (responseData?.detail) {
+          errorMessage = typeof responseData.detail === 'string' 
+            ? responseData.detail 
+            : 'An error occurred during login.';
+        }
+        // Handle network errors
+        else if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+          errorMessage = 'Request timed out. Please check your connection and try again.';
+        }
+        else if (error.code === 'ERR_NETWORK' || !error.response) {
+          errorMessage = 'Network error. Please check your internet connection.';
+        }
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      
       set({
         user: null,
         isAuthenticated: false,
         isLoading: false,
-        error: message,
+        error: errorMessage,
       });
       throw error;
     }

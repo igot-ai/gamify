@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { ChevronDown, Plus, Search, Gamepad2 } from 'lucide-react';
 import { useGames, useCreateGame } from '@/hooks/useGames';
-import { useGame } from '@/contexts/GameContext';
+import { useSelectedGame } from '@/hooks/useSelectedGame';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/Dialog';
 import { toast } from 'sonner';
 import type { Game } from '@/types/api';
+import { useIsAdmin } from '@/stores/authStore';
 
 interface GameLogoProps {
   game: Game;
@@ -171,10 +172,11 @@ export function GameSelector() {
   const router = useRouter();
   const pathname = usePathname();
   const { data: games, isLoading: isLoadingGames } = useGames();
-  const { selectedGame, selectedGameId, setSelectedGame, isLoading: isLoadingSelectedGame } = useGame();
+  const { selectedGame, selectedGameId, setSelectedGame, isLoading: isLoadingSelectedGame } = useSelectedGame();
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const isAdmin = useIsAdmin();
 
   // Auto-select first game if none selected
   useEffect(() => {
@@ -288,19 +290,21 @@ export function GameSelector() {
             </div>
           </ScrollArea>
           
-          <div className="p-2 border-t border-border">
-            <Button
-              variant="ghost"
-              className="w-full justify-start h-9 text-foreground hover:bg-muted hover:text-foreground"
-              onClick={() => {
-                setOpen(false);
-                setCreateDialogOpen(true);
-              }}
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              New Game
-            </Button>
-          </div>
+          {isAdmin && (
+            <div className="p-2 border-t border-border">
+              <Button
+                variant="ghost"
+                className="w-full justify-start h-9 text-foreground hover:bg-muted hover:text-foreground"
+                onClick={() => {
+                  setOpen(false);
+                  setCreateDialogOpen(true);
+                }}
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                New Game
+              </Button>
+            </div>
+          )}
         </PopoverContent>
       </Popover>
 

@@ -1,8 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { useState, useEffect, useRef } from 'react';
-import { useFormContext, useFieldArray } from 'react-hook-form';
+import { useFormContext } from 'react-hook-form';
 import { 
   ChevronDown, 
   X, 
@@ -37,6 +36,7 @@ import { SectionWrapper } from './shared/SectionWrapper';
 import { CostRewardEditor } from './shared/CostRewardEditor';
 import { BonusEditor } from './shared/BonusEditor';
 import { ReadOnlyField, ReadOnlyFieldGroup } from '@/components/ui/ReadOnlyField';
+import { useArrayFieldManagement } from '@/hooks/useArrayFieldManagement';
 import { 
   type EconomyConfig, 
   type RealPurchase,
@@ -51,83 +51,35 @@ interface RealPurchasesSectionProps {
 
 export function RealPurchasesSection({ onSave, isSaving = false, readOnly = false }: RealPurchasesSectionProps) {
   const form = useFormContext<EconomyConfig>();
-  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
-  const [originalPurchases, setOriginalPurchases] = useState<RealPurchase[]>([]);
-  const initializedRef = useRef(false);
-
-  const { fields, append, remove, replace } = useFieldArray({
-    control: form.control,
-    name: 'realPurchases',
-  });
 
   // Get available currencies and items for reward selection
   const currencies = form.watch('currencies') || [];
   const inventoryItems = form.watch('inventoryItems') || [];
 
-  // Get current purchases data for save and JSON sync
-  const realPurchases = form.watch('realPurchases');
-
-  // Store original purchases on initial load for diff comparison
-  useEffect(() => {
-    if (!initializedRef.current && realPurchases && Array.isArray(realPurchases)) {
-      setOriginalPurchases(JSON.parse(JSON.stringify(realPurchases)));
-      initializedRef.current = true;
-    }
-  }, [realPurchases]);
-
-  const handleAdd = () => {
-    const newPurchase: RealPurchase = {
+  const {
+    fields,
+    expandedIndex,
+    originalData: originalPurchases,
+    currentData: realPurchases,
+    handleAdd,
+    handleClearAll,
+    handleRemove,
+    toggleExpanded,
+    handleSave,
+    handleJsonChange,
+  } = useArrayFieldManagement({
+    form,
+    fieldName: 'realPurchases',
+    createDefaultItem: (fieldsLength) => ({
       ...defaultRealPurchase,
-      productId: `studio.game.product${fields.length + 1}`,
-      displayName: `Product ${fields.length + 1}`,
-      productType: 'Consumable',
+      productId: `studio.game.product${fieldsLength + 1}`,
+      displayName: `Product ${fieldsLength + 1}`,
+      productType: 'Consumable' as const,
       rewards: [],
       bonuses: [],
-    };
-    append(newPurchase);
-    setExpandedIndex(fields.length);
-  };
-
-  const handleClearAll = () => {
-    for (let i = fields.length - 1; i >= 0; i--) {
-      remove(i);
-    }
-    setExpandedIndex(null);
-  };
-
-  const handleRemove = (index: number) => {
-    remove(index);
-    if (expandedIndex === index) {
-      setExpandedIndex(null);
-    } else if (expandedIndex !== null && expandedIndex > index) {
-      setExpandedIndex(expandedIndex - 1);
-    }
-  };
-
-  const toggleExpanded = (index: number) => {
-    setExpandedIndex(expandedIndex === index ? null : index);
-  };
-
-  // Handle save - pass current real purchases data
-  const handleSave = () => {
-    if (onSave) {
-      const purchasesToSave = realPurchases || [];
-      onSave(purchasesToSave);
-      // Update original after save
-      if (Array.isArray(purchasesToSave)) {
-        setOriginalPurchases(JSON.parse(JSON.stringify(purchasesToSave)));
-      } else {
-        setOriginalPurchases([]);
-      }
-    }
-  };
-
-  // Handle JSON changes from the JSON editor
-  const handleJsonChange = (data: RealPurchase[]) => {
-    if (Array.isArray(data)) {
-      replace(data);
-    }
-  };
+    }),
+    onSave,
+  });
 
   return (
     <SectionWrapper
@@ -146,9 +98,9 @@ export function RealPurchasesSection({ onSave, isSaving = false, readOnly = fals
     >
       {fields.length === 0 ? (
         <div className="empty-state">
-          <CreditCard className="h-12 w-12 text-muted-foreground/50 mb-3" />
-          <p className="text-sm text-muted-foreground mb-1">No IAP products defined</p>
-          <p className="text-xs text-muted-foreground/70">
+          <CreditCard className="h-12 w-12 text-foreground/50 mb-3" />
+          <p className="text-sm text-foreground/80 mb-1">No IAP products defined</p>
+          <p className="text-xs text-foreground/60">
             {readOnly ? 'No IAP products in this configuration' : 'Add your first real money product to get started'}
           </p>
         </div>
@@ -185,7 +137,7 @@ export function RealPurchasesSection({ onSave, isSaving = false, readOnly = fals
                           <p className="text-sm font-medium text-foreground">
                             {purchase?.productId} ({displayName})
                           </p>
-                          <p className="text-xs text-muted-foreground">
+                          <p className="text-xs text-foreground/70">
                             <span className="inline-flex items-center gap-1">
                               <PlusIcon className="h-3 w-3" />
                               Rewards: {purchase?.rewards?.length || 0}
@@ -251,12 +203,12 @@ export function RealPurchasesSection({ onSave, isSaving = false, readOnly = fals
                                 purchase.rewards.map((reward: any, idx: number) => (
                                   <div key={idx} className="text-sm py-2 px-3 bg-muted/30 rounded-md border border-border/50">
                                     <span className="font-medium">{reward.id}</span>
-                                    <span className="text-muted-foreground ml-2">× {reward.amount}</span>
-                                    <span className="text-xs text-muted-foreground ml-2">({reward.type})</span>
+                                    <span className="text-foreground/70 ml-2">× {reward.amount}</span>
+                                    <span className="text-xs text-foreground/70 ml-2">({reward.type})</span>
                                   </div>
                                 ))
                               ) : (
-                                <p className="text-sm text-muted-foreground italic">No rewards defined</p>
+                                <p className="text-sm text-foreground/70 italic">No rewards defined</p>
                               )}
                             </div>
                           </div>
@@ -271,7 +223,7 @@ export function RealPurchasesSection({ onSave, isSaving = false, readOnly = fals
                                 {purchase.bonuses.map((bonus: any, idx: number) => (
                                   <div key={idx} className="text-sm py-2 px-3 bg-amber-500/10 rounded-md border border-amber-500/30">
                                     <span className="font-medium">{bonus.triggerType}</span>
-                                    <span className="text-muted-foreground ml-2">
+                                    <span className="text-foreground/70 ml-2">
                                       {bonus.rewards?.length || 0} bonus rewards
                                     </span>
                                   </div>

@@ -26,7 +26,7 @@ import {
   useDeleteVersion,
   useDuplicateVersion 
 } from '@/hooks/useSectionConfigs';
-import { cn } from '@/lib/utils';
+import { cn, formatDate } from '@/lib/utils';
 import { toast } from 'sonner';
 
 interface VersionDropdownProps {
@@ -144,15 +144,6 @@ export function VersionDropdown({
     } catch (error: any) {
       toast.error(error?.response?.data?.detail || 'Failed to delete version');
     }
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString(undefined, {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
   };
 
   return (

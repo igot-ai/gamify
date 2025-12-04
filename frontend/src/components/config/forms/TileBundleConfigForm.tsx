@@ -76,7 +76,7 @@ export const TileBundleConfigForm = forwardRef<TileBundleConfigFormRef, TileBund
             <div className="space-y-4">
               {/* Enabled Toggle and Discount */}
               <div className="rounded-lg border border-border bg-muted/10 p-4">
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="space-y-4">
                   <FormField
                     control={form.control}
                     name="enabled"

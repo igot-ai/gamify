@@ -6,7 +6,6 @@ import { useFormContext } from 'react-hook-form';
 import { 
   Settings, 
   Save, 
-  Info,
   Loader2,
   FileText,
   Code
@@ -88,7 +87,7 @@ export function EconomySettingsSection({
         <h3 className="text-xl font-semibold tracking-tight text-foreground">
           Economy Settings
         </h3>
-        <p className="text-sm text-muted-foreground mt-1">
+        <p className="text-sm text-foreground/70 mt-1">
           Configure IAP settings and manage your configuration
         </p>
       </div>
@@ -124,7 +123,7 @@ export function EconomySettingsSection({
             <CardContent className="space-y-4">
               {/* IAP Configuration */}
               <div className="space-y-4">
-                <h4 className="text-sm font-medium text-muted-foreground">IAP Configuration</h4>
+                <h4 className="text-sm font-medium text-foreground/80">IAP Configuration</h4>
                 
                 {readOnly ? (
                   <>
@@ -182,42 +181,6 @@ export function EconomySettingsSection({
               </div>
             </CardContent>
           </Card>
-
-          {/* Only show action cards when not read-only */}
-          {!readOnly && (
-            <>
-              {/* Save Settings */}
-              <Card className="border-border/80 shadow-stripe-sm">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-base font-semibold flex items-center gap-2">
-                    <Save className="h-4 w-4 text-primary" />
-                    Save Settings
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <Button
-                    type="button"
-                    onClick={handleSaveNow}
-                    disabled={isSaving}
-                    className="w-full h-10"
-                  >
-                    {isSaving ? (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    ) : (
-                    <Save className="h-4 w-4 mr-2" />
-                    )}
-                    {isSaving ? 'Saving...' : 'Save Now'}
-                  </Button>
-                  <div className="flex items-start gap-2 p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
-                    <Info className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
-                    <p className="text-xs text-blue-600">
-                      Save Settings to the ScriptableObject
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            </>
-          )}
         </TabsContent>
 
         <TabsContent value="json" className="mt-4">

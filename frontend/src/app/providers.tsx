@@ -1,7 +1,6 @@
 'use client';
 
 import { QueryClientProvider } from '@tanstack/react-query';
-import { GameProvider } from '@/contexts/GameContext';
 import { queryClient } from '@/lib/queryClient';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 
@@ -9,7 +8,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <GameProvider>{children}</GameProvider>
+        {children}
       </QueryClientProvider>
     </ErrorBoundary>
   );

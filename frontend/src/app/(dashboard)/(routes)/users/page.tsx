@@ -92,6 +92,8 @@ export default function UsersPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<UserListItem | null>(null);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [formData, setFormData] = useState<UserFormData>({
     email: '',
@@ -171,6 +173,8 @@ export default function UsersPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
+      setIsDeleteDialogOpen(false);
+      setUserToDelete(null);
       toast.success('User deleted');
     },
     onError: (error: unknown) => {
@@ -359,9 +363,8 @@ export default function UsersPage() {
                             variant="ghost"
                             size="sm"
                             onClick={() => {
-                            if (confirm('Are you sure you want to delete this user?')) {
-                              deleteUserMutation.mutate(user.id);
-                              }
+                              setUserToDelete(user);
+                              setIsDeleteDialogOpen(true);
                             }}
                           >
                             <UserX className="w-4 h-4 text-red-500" />
@@ -602,6 +605,46 @@ export default function UsersPage() {
           </div>
           <DialogFooter>
             <Button onClick={() => setIsAssignDialogOpen(false)}>Done</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete User Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete User</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete <strong>{userToDelete?.name}</strong> ({userToDelete?.email})? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setIsDeleteDialogOpen(false);
+                setUserToDelete(null);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={() => {
+                if (userToDelete) {
+                  deleteUserMutation.mutate(userToDelete.id);
+                }
+              }}
+              disabled={deleteUserMutation.isPending}
+            >
+              {deleteUserMutation.isPending ? (
+                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Deleting...</>
+              ) : (
+                'Delete User'
+              )}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

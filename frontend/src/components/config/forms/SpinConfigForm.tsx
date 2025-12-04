@@ -24,7 +24,7 @@ import {
   type SpinConfig,
 } from '@/lib/validations/spinConfig';
 import { useSectionConfig, useSectionConfigVersions } from '@/hooks/useSectionConfigs';
-import { useGame } from '@/contexts/GameContext';
+import { useSelectedGame } from '@/hooks/useSelectedGame';
 import type { EconomyConfig, Currency, InventoryItem } from '@/lib/validations/economyConfig';
 
 interface SpinConfigFormProps {
@@ -49,7 +49,7 @@ export const SpinConfigForm = forwardRef<SpinConfigFormRef, SpinConfigFormProps>
     isSaving = false,
   }, ref) {
     // Fetch economy config to get currencies and inventory items
-    const { selectedGame } = useGame();
+    const { selectedGame } = useSelectedGame();
     const { data: economyConfig } = useSectionConfig({
       game_id: selectedGame?.app_id || '',
       section_type: 'economy',

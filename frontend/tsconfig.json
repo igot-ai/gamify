@@ -44,20 +44,8 @@
       "@/contexts/*": [
         "./src/contexts/*"
       ],
-      "@/services/*": [
-        "./src/services/*"
-      ],
       "@/stores/*": [
         "./src/stores/*"
-      ],
-      "@/validations/*": [
-        "./src/validations/*"
-      ],
-      "@/constants/*": [
-        "./src/constants/*"
-      ],
-      "@/styles/*": [
-        "./src/styles/*"
       ]
     },
     "allowJs": true,

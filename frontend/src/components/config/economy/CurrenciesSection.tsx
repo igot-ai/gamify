@@ -1,8 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { useState, useEffect, useRef } from 'react';
-import { useFormContext, useFieldArray } from 'react-hook-form';
+import { useFormContext } from 'react-hook-form';
 import { 
   ChevronDown, 
   X, 
@@ -28,6 +27,7 @@ import {
 import { cn } from '@/lib/utils';
 import { SectionWrapper } from './shared/SectionWrapper';
 import { ReadOnlyField, ReadOnlyFieldGroup } from '@/components/ui/ReadOnlyField';
+import { useArrayFieldManagement } from '@/hooks/useArrayFieldManagement';
 import { 
   type EconomyConfig, 
   type Currency,
@@ -42,77 +42,28 @@ interface CurrenciesSectionProps {
 
 export function CurrenciesSection({ onSave, isSaving = false, readOnly = false }: CurrenciesSectionProps) {
   const form = useFormContext<EconomyConfig>();
-  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
-  const [originalCurrencies, setOriginalCurrencies] = useState<Currency[]>([]);
-  const initializedRef = useRef(false);
-
-  const { fields, append, remove, replace } = useFieldArray({
-    control: form.control,
-    name: 'currencies',
-  });
-
-  // Get current currencies data for save and JSON sync
-  const currencies = form.watch('currencies');
-
-  // Store original currencies on initial load for diff comparison
-  useEffect(() => {
-    if (!initializedRef.current && currencies && Array.isArray(currencies)) {
-      setOriginalCurrencies(JSON.parse(JSON.stringify(currencies)));
-      initializedRef.current = true;
-    }
-  }, [currencies]);
-
-  const handleAdd = () => {
-    const newCurrency: Currency = {
+  
+  const {
+    fields,
+    expandedIndex,
+    originalData: originalCurrencies,
+    currentData: currencies,
+    handleAdd,
+    handleClearAll,
+    handleRemove,
+    toggleExpanded,
+    handleSave,
+    handleJsonChange,
+  } = useArrayFieldManagement({
+    form,
+    fieldName: 'currencies',
+    createDefaultItem: (fieldsLength) => ({
       ...defaultCurrency,
-      id: `currency_${fields.length + 1}`,
-      displayName: `Currency ${fields.length + 1}`,
-    };
-    append(newCurrency);
-    setExpandedIndex(fields.length);
-  };
-
-  const handleClearAll = () => {
-    // Remove all items
-    for (let i = fields.length - 1; i >= 0; i--) {
-      remove(i);
-    }
-    setExpandedIndex(null);
-  };
-
-  const handleRemove = (index: number) => {
-    remove(index);
-    if (expandedIndex === index) {
-      setExpandedIndex(null);
-    } else if (expandedIndex !== null && expandedIndex > index) {
-      setExpandedIndex(expandedIndex - 1);
-    }
-  };
-
-  const toggleExpanded = (index: number) => {
-    setExpandedIndex(expandedIndex === index ? null : index);
-  };
-
-  // Handle save - pass current currencies data
-  const handleSave = () => {
-    if (onSave) {
-      const currenciesToSave = currencies || [];
-      onSave(currenciesToSave);
-      // Update original after save
-      if (Array.isArray(currenciesToSave)) {
-        setOriginalCurrencies(JSON.parse(JSON.stringify(currenciesToSave)));
-      } else {
-        setOriginalCurrencies([]);
-      }
-    }
-  };
-
-  // Handle JSON changes from the JSON editor
-  const handleJsonChange = (data: Currency[]) => {
-    if (Array.isArray(data)) {
-      replace(data);
-    }
-  };
+      id: `currency_${fieldsLength + 1}`,
+      displayName: `Currency ${fieldsLength + 1}`,
+    }),
+    onSave,
+  });
 
   return (
     <SectionWrapper
@@ -131,9 +82,9 @@ export function CurrenciesSection({ onSave, isSaving = false, readOnly = false }
     >
       {fields.length === 0 ? (
         <div className="empty-state">
-          <Coins className="h-12 w-12 text-muted-foreground/50 mb-3" />
-          <p className="text-sm text-muted-foreground mb-1">No currencies defined</p>
-          <p className="text-xs text-muted-foreground/70">
+          <Coins className="h-12 w-12 text-foreground/50 mb-3" />
+          <p className="text-sm text-foreground/80 mb-1">No currencies defined</p>
+          <p className="text-xs text-foreground/60">
             Add your first currency to get started
           </p>
         </div>
@@ -169,7 +120,7 @@ export function CurrenciesSection({ onSave, isSaving = false, readOnly = false }
                           <p className="text-sm font-medium text-foreground">
                             {currency?.id} ({displayName})
                           </p>
-                          <p className="text-xs text-muted-foreground">
+                          <p className="text-xs text-foreground/70">
                             Starting: {currency?.startingBalance || 0} • Max: {currency?.maxValue === 0 ? 'Unlimited' : currency?.maxValue}
                           </p>
                         </div>

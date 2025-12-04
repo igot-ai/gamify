@@ -1,8 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { useState, useEffect, useRef } from 'react';
-import { useFormContext, useFieldArray } from 'react-hook-form';
+import { useFormContext } from 'react-hook-form';
 import { 
   ChevronDown, 
   X, 
@@ -29,6 +28,7 @@ import { SectionWrapper } from './shared/SectionWrapper';
 import { CostRewardEditor } from './shared/CostRewardEditor';
 import { BonusEditor } from './shared/BonusEditor';
 import { ReadOnlyField, ReadOnlyFieldGroup } from '@/components/ui/ReadOnlyField';
+import { useArrayFieldManagement } from '@/hooks/useArrayFieldManagement';
 import { 
   type EconomyConfig, 
   type VirtualPurchase,
@@ -43,83 +43,35 @@ interface VirtualPurchasesSectionProps {
 
 export function VirtualPurchasesSection({ onSave, isSaving = false, readOnly = false }: VirtualPurchasesSectionProps) {
   const form = useFormContext<EconomyConfig>();
-  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
-  const [originalPurchases, setOriginalPurchases] = useState<VirtualPurchase[]>([]);
-  const initializedRef = useRef(false);
-
-  const { fields, append, remove, replace } = useFieldArray({
-    control: form.control,
-    name: 'virtualPurchases',
-  });
 
   // Get available currencies and items for cost/reward selection
   const currencies = form.watch('currencies') || [];
   const inventoryItems = form.watch('inventoryItems') || [];
 
-  // Get current purchases data for save and JSON sync
-  const virtualPurchases = form.watch('virtualPurchases');
-
-  // Store original purchases on initial load for diff comparison
-  useEffect(() => {
-    if (!initializedRef.current && virtualPurchases && Array.isArray(virtualPurchases)) {
-      setOriginalPurchases(JSON.parse(JSON.stringify(virtualPurchases)));
-      initializedRef.current = true;
-    }
-  }, [virtualPurchases]);
-
-  const handleAdd = () => {
-    const newPurchase: VirtualPurchase = {
+  const {
+    fields,
+    expandedIndex,
+    originalData: originalPurchases,
+    currentData: virtualPurchases,
+    handleAdd,
+    handleClearAll,
+    handleRemove,
+    toggleExpanded,
+    handleSave,
+    handleJsonChange,
+  } = useArrayFieldManagement({
+    form,
+    fieldName: 'virtualPurchases',
+    createDefaultItem: (fieldsLength) => ({
       ...defaultVirtualPurchase,
-      id: `purchase_${fields.length + 1}`,
-      name: `Purchase ${fields.length + 1}`,
+      id: `purchase_${fieldsLength + 1}`,
+      name: `Purchase ${fieldsLength + 1}`,
       costs: [],
       rewards: [],
       bonuses: [],
-    };
-    append(newPurchase);
-    setExpandedIndex(fields.length);
-  };
-
-  const handleClearAll = () => {
-    for (let i = fields.length - 1; i >= 0; i--) {
-      remove(i);
-    }
-    setExpandedIndex(null);
-  };
-
-  const handleRemove = (index: number) => {
-    remove(index);
-    if (expandedIndex === index) {
-      setExpandedIndex(null);
-    } else if (expandedIndex !== null && expandedIndex > index) {
-      setExpandedIndex(expandedIndex - 1);
-    }
-  };
-
-  const toggleExpanded = (index: number) => {
-    setExpandedIndex(expandedIndex === index ? null : index);
-  };
-
-  // Handle save - pass current virtual purchases data
-  const handleSave = () => {
-    if (onSave) {
-      const purchasesToSave = virtualPurchases || [];
-      onSave(purchasesToSave);
-      // Update original after save
-      if (Array.isArray(purchasesToSave)) {
-        setOriginalPurchases(JSON.parse(JSON.stringify(purchasesToSave)));
-      } else {
-        setOriginalPurchases([]);
-      }
-    }
-  };
-
-  // Handle JSON changes from the JSON editor
-  const handleJsonChange = (data: VirtualPurchase[]) => {
-    if (Array.isArray(data)) {
-      replace(data);
-    }
-  };
+    }),
+    onSave,
+  });
 
   return (
     <SectionWrapper
@@ -138,9 +90,9 @@ export function VirtualPurchasesSection({ onSave, isSaving = false, readOnly = f
     >
       {fields.length === 0 ? (
         <div className="empty-state">
-          <ShoppingCart className="h-12 w-12 text-muted-foreground/50 mb-3" />
-          <p className="text-sm text-muted-foreground mb-1">No virtual purchases defined</p>
-          <p className="text-xs text-muted-foreground/70">
+          <ShoppingCart className="h-12 w-12 text-foreground/50 mb-3" />
+          <p className="text-sm text-foreground/80 mb-1">No virtual purchases defined</p>
+          <p className="text-xs text-foreground/60">
             {readOnly ? 'No virtual purchases in this configuration' : 'Add your first virtual purchase to get started'}
           </p>
         </div>
@@ -176,7 +128,7 @@ export function VirtualPurchasesSection({ onSave, isSaving = false, readOnly = f
                           <p className="text-sm font-medium text-foreground">
                             {purchase?.id} ({displayName})
                           </p>
-                          <p className="text-xs text-muted-foreground">
+                          <p className="text-xs text-foreground/70">
                             <span className="inline-flex items-center gap-1">
                               <Minus className="h-3 w-3" />
                               Costs: {purchase?.costs?.length || 0}
@@ -235,12 +187,12 @@ export function VirtualPurchasesSection({ onSave, isSaving = false, readOnly = f
                                 purchase.costs.map((cost: any, idx: number) => (
                                   <div key={idx} className="text-sm py-2 px-3 bg-muted/30 rounded-md border border-border/50">
                                     <span className="font-medium">{cost.id}</span>
-                                    <span className="text-muted-foreground ml-2">× {cost.amount}</span>
-                                    <span className="text-xs text-muted-foreground ml-2">({cost.type})</span>
+                                    <span className="text-foreground/70 ml-2">× {cost.amount}</span>
+                                    <span className="text-xs text-foreground/70 ml-2">({cost.type})</span>
                                   </div>
                                 ))
                               ) : (
-                                <p className="text-sm text-muted-foreground italic">No costs defined</p>
+                                <p className="text-sm text-foreground/70 italic">No costs defined</p>
                               )}
                             </div>
                           </div>
@@ -255,12 +207,12 @@ export function VirtualPurchasesSection({ onSave, isSaving = false, readOnly = f
                                 purchase.rewards.map((reward: any, idx: number) => (
                                   <div key={idx} className="text-sm py-2 px-3 bg-muted/30 rounded-md border border-border/50">
                                     <span className="font-medium">{reward.id}</span>
-                                    <span className="text-muted-foreground ml-2">× {reward.amount}</span>
-                                    <span className="text-xs text-muted-foreground ml-2">({reward.type})</span>
+                                    <span className="text-foreground/70 ml-2">× {reward.amount}</span>
+                                    <span className="text-xs text-foreground/70 ml-2">({reward.type})</span>
                                   </div>
                                 ))
                               ) : (
-                                <p className="text-sm text-muted-foreground italic">No rewards defined</p>
+                                <p className="text-sm text-foreground/70 italic">No rewards defined</p>
                               )}
                             </div>
                           </div>
@@ -275,7 +227,7 @@ export function VirtualPurchasesSection({ onSave, isSaving = false, readOnly = f
                                 {purchase.bonuses.map((bonus: any, idx: number) => (
                                   <div key={idx} className="text-sm py-2 px-3 bg-amber-500/10 rounded-md border border-amber-500/30">
                                     <span className="font-medium">{bonus.triggerType}</span>
-                                    <span className="text-muted-foreground ml-2">
+                                    <span className="text-foreground/70 ml-2">
                                       {bonus.rewards?.length || 0} bonus rewards
                                     </span>
                                   </div>

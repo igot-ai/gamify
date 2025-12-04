@@ -22,7 +22,7 @@ import {
   Layers,
   Users,
 } from 'lucide-react';
-import { useGame } from '@/contexts/GameContext';
+import { useSelectedGame } from '@/hooks/useSelectedGame';
 import { useIsAdmin } from '@/stores/authStore';
 import type { SectionType } from '@/types/api';
 import { cn } from '@/lib/utils';
@@ -99,7 +99,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { selectedGame, selectedGameId } = useGame();
+  const { selectedGame, selectedGameId } = useSelectedGame();
   const isAdmin = useIsAdmin();
 
   const isActive = (path: string) => {

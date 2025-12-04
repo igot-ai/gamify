@@ -55,7 +55,7 @@ export default function DashboardPage() {
   return (
     <div className="p-8 space-y-8 animate-fade-in">
       <div>
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+        <h1 className="text-4xl font-bold from-primary to-accent bg-clip-text text-transparent">
           Dashboard
         </h1>
         <p className="text-muted-foreground mt-2">
@@ -65,7 +65,7 @@ export default function DashboardPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card
-          className="bg-gradient-to-br from-primary/10 to-accent/10 border-primary/20 hover:border-primary/40 transition cursor-pointer"
+          className="from-primary/10 to-accent/10 border-primary/20 hover:border-primary/40 transition cursor-pointer"
           onClick={() => router.push('/games')}
         >
           <CardHeader>
@@ -83,7 +83,7 @@ export default function DashboardPage() {
 
         {isAdmin && (
           <Card
-            className="bg-gradient-to-br from-accent/10 to-primary/10 border-accent/20 hover:border-accent/40 transition cursor-pointer"
+            className="from-accent/10 to-primary/10 border-accent/20 hover:border-accent/40 transition cursor-pointer"
             onClick={() => router.push('/users')}
           >
             <CardHeader>

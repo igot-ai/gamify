@@ -5,14 +5,14 @@ import { Plus, Trash2, Edit, X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 
-interface ConfigArrayFieldProps {
+interface ConfigArrayFieldProps<T> {
   title?: string;
-  items: any[];
+  items: T[];
   onAdd: () => void;
   onRemove: (index: number) => void;
   onEdit?: (index: number) => void;
-  renderItem: (item: any, index: number) => React.ReactNode;
-  renderSummary?: (item: any, index: number) => React.ReactNode;
+  renderItem: (item: T, index: number) => React.ReactNode;
+  renderSummary?: (item: T, index: number) => React.ReactNode;
   addButtonText?: string;
   emptyMessage?: string;
   className?: string;
@@ -23,7 +23,7 @@ interface ConfigArrayFieldProps {
   onClearAll?: () => void;
 }
 
-export function ConfigArrayField({
+export function ConfigArrayField<T>({
   title,
   items,
   onAdd,
@@ -39,7 +39,7 @@ export function ConfigArrayField({
   setEditingIndex,
   showClearAll = false,
   onClearAll,
-}: ConfigArrayFieldProps) {
+}: ConfigArrayFieldProps<T>): React.ReactNode {
   return (
     <div className={`space-y-4 ${className}`}>
       {title && (

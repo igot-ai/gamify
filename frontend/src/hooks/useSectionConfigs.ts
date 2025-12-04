@@ -69,18 +69,14 @@ export function useSectionConfigsSummary(gameId: string) {
 }
 
 /**
- * Fetch total configuration count across all games
- * Aggregates summaries from all accessible games
+ * Fetch all summaries for multiple games in parallel
+ * Shared utility for aggregation hooks
  */
-export function useTotalConfigurationsCount(gameIds: string[]) {
-  return useQuery({
-    queryKey: ['total-configurations-count', gameIds.sort().join(',')],
-    queryFn: async () => {
+async function fetchAllGameSummaries(gameIds: string[]): Promise<SectionConfigSummary[]> {
       if (!gameIds || gameIds.length === 0) {
-        return 0;
+    return [];
       }
 
-      // Fetch summaries for all games in parallel
       const summaryPromises = gameIds.map(async (gameId) => {
         try {
           const response = await apiClient.get<SectionConfigSummary[]>(
@@ -95,13 +91,20 @@ export function useTotalConfigurationsCount(gameIds: string[]) {
       });
 
       const allSummaries = await Promise.all(summaryPromises);
-      
-      // Count configurations that have at least one version
-      const totalCount = allSummaries.flat().filter(
-        (summary) => summary.version_count > 0
-      ).length;
+  return allSummaries.flat();
+}
 
-      return totalCount;
+/**
+ * Fetch total configuration count across all games
+ * Aggregates summaries from all accessible games
+ */
+export function useTotalConfigurationsCount(gameIds: string[]) {
+  return useQuery({
+    queryKey: ['total-configurations-count', gameIds.sort().join(',')],
+    queryFn: async () => {
+      const allSummaries = await fetchAllGameSummaries(gameIds);
+      // Count configurations that have at least one version
+      return allSummaries.filter((summary) => summary.version_count > 0).length;
     },
     enabled: gameIds.length > 0,
   });
@@ -115,33 +118,9 @@ export function useTotalConfigurationVersions(gameIds: string[]) {
   return useQuery({
     queryKey: ['total-configuration-versions', gameIds.sort().join(',')],
     queryFn: async () => {
-      if (!gameIds || gameIds.length === 0) {
-        return 0;
-      }
-
-      // Fetch summaries for all games in parallel
-      const summaryPromises = gameIds.map(async (gameId) => {
-        try {
-          const response = await apiClient.get<SectionConfigSummary[]>(
-            `/section-configs/summary?game_id=${gameId}`
-          );
-          return response.data || [];
-        } catch (error) {
-          // If a game fails, return empty array
-          console.error(`Failed to fetch configs for game ${gameId}:`, error);
-          return [];
-        }
-      });
-
-      const allSummaries = await Promise.all(summaryPromises);
-      
+      const allSummaries = await fetchAllGameSummaries(gameIds);
       // Sum all version counts across all configurations
-      const totalVersions = allSummaries.flat().reduce(
-        (sum, summary) => sum + summary.version_count,
-        0
-      );
-
-      return totalVersions;
+      return allSummaries.reduce((sum, summary) => sum + summary.version_count, 0);
     },
     enabled: gameIds.length > 0,
   });

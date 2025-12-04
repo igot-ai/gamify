@@ -45,8 +45,7 @@ class ProfileUpdate(BaseModel):
 
 class AssignedGameInfo(ORMBaseModel):
     """Minimal game info for user's assigned games"""
-    id: str
-    app_id: str
+    app_id: str  # Primary key
     name: str
 
 

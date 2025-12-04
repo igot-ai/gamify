@@ -1,14 +1,11 @@
 """Authentication service - business logic for auth operations"""
 
-from datetime import timedelta
-
 from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.auth import create_access_token, verify_password
-from app.core.config import settings
 from app.models.user import User
 
 
@@ -46,11 +43,10 @@ class AuthService:
                 detail="Incorrect email or password",
             )
         
-        # Create access token
-        access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+        # Create access token without expiration (never expires)
         access_token = create_access_token(
             data={"sub": user.id},
-            expires_delta=access_token_expires
+            expires_delta=None  # None means token never expires
         )
         
         return access_token

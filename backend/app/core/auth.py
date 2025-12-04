@@ -23,21 +23,28 @@ def get_password_hash(password: str) -> str:
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
-    """Create a JWT access token"""
+    """Create a JWT access token. If expires_delta is None, token will not expire."""
     to_encode = data.copy()
-    if expires_delta:
+    # Only add expiration if expires_delta is explicitly provided (not None)
+    # If expires_delta is None, token will never expire
+    if expires_delta is not None:
         expire = datetime.now(timezone.utc) + expires_delta
-    else:
-        expire = datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    to_encode.update({"exp": expire})
+        to_encode.update({"exp": expire})
+    # If expires_delta is None, don't add exp claim - token never expires
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encoded_jwt
 
 
 def decode_access_token(token: str) -> Optional[dict]:
-    """Decode and verify a JWT access token"""
+    """Decode and verify a JWT access token. Expiration is optional (tokens can be non-expiring)."""
     try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        # Disable expiration verification to allow non-expiring tokens
+        payload = jwt.decode(
+            token, 
+            settings.SECRET_KEY, 
+            algorithms=[settings.ALGORITHM],
+            options={"verify_exp": False}
+        )
         return payload
     except JWTError:
         return None

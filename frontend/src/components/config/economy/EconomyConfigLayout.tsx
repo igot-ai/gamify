@@ -114,7 +114,9 @@ export const EconomyConfigLayout = forwardRef<EconomyConfigLayoutRef, EconomyCon
   // Reset form when initialData changes (e.g., after page refresh or version switch)
   useEffect(() => {
     if (initialData) {
-      form.reset(initialData);
+      // Use default config when initialData is empty
+      const resetData = Object.keys(initialData).length > 0 ? initialData : defaultEconomyConfig;
+      form.reset(resetData);
     }
   }, [initialData, form]);
 
@@ -134,7 +136,9 @@ export const EconomyConfigLayout = forwardRef<EconomyConfigLayoutRef, EconomyCon
     },
     reset: (data: EconomyConfig) => {
       console.log('Resetting economy form with data:', data);
-      form.reset(data);
+      // Use default config when data is empty or null
+      const resetData = data && Object.keys(data).length > 0 ? data : defaultEconomyConfig;
+      form.reset(resetData);
     },
   }));
 

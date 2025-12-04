@@ -8,7 +8,7 @@ import { Plus, Trash2, Save, Loader2, FileText, Code } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { JsonEditor } from './JsonEditor';
 
-interface SectionWrapperProps {
+interface SectionWrapperProps<T = unknown> {
   title: string;
   description?: string;
   children: React.ReactNode;
@@ -25,14 +25,14 @@ interface SectionWrapperProps {
   /** Read-only mode - hides all action buttons */
   readOnly?: boolean;
   /** JSON data for the JSON editor tab */
-  jsonData?: any;
+  jsonData?: T;
   /** Original JSON data for diff comparison */
-  originalJsonData?: any;
+  originalJsonData?: T;
   /** Callback when JSON is changed in the editor */
-  onJsonChange?: (data: any) => void;
+  onJsonChange?: (data: T) => void;
 }
 
-export function SectionWrapper({
+export function SectionWrapper<T = unknown>({
   title,
   description,
   children,
@@ -48,7 +48,7 @@ export function SectionWrapper({
   jsonData,
   originalJsonData,
   onJsonChange,
-}: SectionWrapperProps) {
+}: SectionWrapperProps<T>): React.ReactNode {
   const [activeTab, setActiveTab] = useState<'form' | 'json'>('form');
 
   const hasJsonSupport = jsonData !== undefined && onJsonChange !== undefined;
@@ -63,7 +63,7 @@ export function SectionWrapper({
             {title}
           </h3>
           {description && (
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-sm text-foreground/70 mt-1">
               {description}
             </p>
           )}

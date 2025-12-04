@@ -24,11 +24,13 @@ import {
 } from '@/components/ui/Table';
 import { Plus, Edit, Trash2, Gamepad2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useIsAdmin } from '@/stores/authStore';
 
 export default function GamesPage() {
   const router = useRouter();
   const { data: games, isLoading } = useGames();
   const deleteGame = useDeleteGame();
+  const isAdmin = useIsAdmin();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -60,7 +62,7 @@ export default function GamesPage() {
   return (
     <div className="p-8 space-y-8">
       <div className="space-y-2">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+        <h1 className="text-4xl font-bold from-primary to-accent bg-clip-text text-transparent">
           Games
         </h1>
         <p className="text-muted-foreground">
@@ -75,22 +77,24 @@ export default function GamesPage() {
           onChange={(e) => setSearchTerm(e.target.value)}
           className="max-w-md"
         />
-        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              New Game
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <GameForm
-              onSuccess={() => {
-                setIsCreateOpen(false);
-                toast.success('Game created successfully');
-              }}
-            />
-          </DialogContent>
-        </Dialog>
+        {isAdmin && (
+          <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                New Game
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <GameForm
+                onSuccess={() => {
+                  setIsCreateOpen(false);
+                  toast.success('Game created successfully');
+                }}
+              />
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
 
       <Card>

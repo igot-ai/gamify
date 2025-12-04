@@ -93,11 +93,11 @@ export function BonusEditor({
             type="button"
             className="flex items-center gap-2 text-left text-foreground hover:text-primary transition-colors"
           >
-            <Gift className="h-4 w-4 text-muted-foreground" />
+            <Gift className="h-4 w-4 text-foreground/70" />
             <div>
-              <Label className="text-sm font-medium cursor-pointer">{title}</Label>
+              <Label className="text-sm font-medium cursor-pointer text-foreground">{title}</Label>
               {description && (
-                <p className="text-xs text-muted-foreground mt-0.5">{description}</p>
+                <p className="text-xs text-foreground/70 mt-0.5">{description}</p>
               )}
             </div>
           </button>
@@ -117,7 +117,7 @@ export function BonusEditor({
       <CollapsibleContent className="animate-slide-up">
         {items.length === 0 ? (
           <div className="rounded-lg border border-dashed border-border/50 bg-muted/10 p-4 text-center">
-            <p className="text-xs text-muted-foreground">No bonuses configured</p>
+            <p className="text-xs text-foreground/70">No bonuses configured</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -192,7 +192,7 @@ export function BonusEditor({
 
                 {/* Condition (optional) */}
                 <div className="flex items-center gap-2">
-                  <Label className="text-xs text-muted-foreground w-[120px]">Condition:</Label>
+                  <Label className="text-xs text-foreground/70 w-[120px]">Condition:</Label>
                   <Input
                     value={item.condition || ''}
                     onChange={(e) => handleChange(index, 'condition', e.target.value)}

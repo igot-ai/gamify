@@ -1,8 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { useState, useEffect, useRef } from 'react';
-import { useFormContext, useFieldArray } from 'react-hook-form';
+import { useFormContext } from 'react-hook-form';
 import { 
   ChevronDown, 
   X, 
@@ -29,6 +28,7 @@ import {
 import { cn } from '@/lib/utils';
 import { SectionWrapper } from './shared/SectionWrapper';
 import { ReadOnlyField, ReadOnlyFieldGroup } from '@/components/ui/ReadOnlyField';
+import { useArrayFieldManagement } from '@/hooks/useArrayFieldManagement';
 import { 
   type EconomyConfig, 
   type InventoryItem,
@@ -43,76 +43,28 @@ interface InventoryItemsSectionProps {
 
 export function InventoryItemsSection({ onSave, isSaving = false, readOnly = false }: InventoryItemsSectionProps) {
   const form = useFormContext<EconomyConfig>();
-  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
-  const [originalItems, setOriginalItems] = useState<InventoryItem[]>([]);
-  const initializedRef = useRef(false);
-
-  const { fields, append, remove, replace } = useFieldArray({
-    control: form.control,
-    name: 'inventoryItems',
-  });
-
-  // Get current items data for save and JSON sync
-  const inventoryItems = form.watch('inventoryItems');
-
-  // Store original items on initial load for diff comparison
-  useEffect(() => {
-    if (!initializedRef.current && inventoryItems && Array.isArray(inventoryItems)) {
-      setOriginalItems(JSON.parse(JSON.stringify(inventoryItems)));
-      initializedRef.current = true;
-    }
-  }, [inventoryItems]);
-
-  const handleAdd = () => {
-    const newItem: InventoryItem = {
+  
+  const {
+    fields,
+    expandedIndex,
+    originalData: originalItems,
+    currentData: inventoryItems,
+    handleAdd,
+    handleClearAll,
+    handleRemove,
+    toggleExpanded,
+    handleSave,
+    handleJsonChange,
+  } = useArrayFieldManagement({
+    form,
+    fieldName: 'inventoryItems',
+    createDefaultItem: (fieldsLength) => ({
       ...defaultInventoryItem,
-      id: `item_${fields.length + 1}`,
-      displayName: `Item ${fields.length + 1}`,
-    };
-    append(newItem);
-    setExpandedIndex(fields.length);
-  };
-
-  const handleClearAll = () => {
-    for (let i = fields.length - 1; i >= 0; i--) {
-      remove(i);
-    }
-    setExpandedIndex(null);
-  };
-
-  const handleRemove = (index: number) => {
-    remove(index);
-    if (expandedIndex === index) {
-      setExpandedIndex(null);
-    } else if (expandedIndex !== null && expandedIndex > index) {
-      setExpandedIndex(expandedIndex - 1);
-    }
-  };
-
-  const toggleExpanded = (index: number) => {
-    setExpandedIndex(expandedIndex === index ? null : index);
-  };
-
-  // Handle save - pass current inventory items data
-  const handleSave = () => {
-    if (onSave) {
-      const itemsToSave = inventoryItems || [];
-      onSave(itemsToSave);
-      // Update original after save
-      if (Array.isArray(itemsToSave)) {
-        setOriginalItems(JSON.parse(JSON.stringify(itemsToSave)));
-      } else {
-        setOriginalItems([]);
-      }
-    }
-  };
-
-  // Handle JSON changes from the JSON editor
-  const handleJsonChange = (data: InventoryItem[]) => {
-    if (Array.isArray(data)) {
-      replace(data);
-    }
-  };
+      id: `item_${fieldsLength + 1}`,
+      displayName: `Item ${fieldsLength + 1}`,
+    }),
+    onSave,
+  });
 
   return (
     <SectionWrapper
@@ -131,9 +83,9 @@ export function InventoryItemsSection({ onSave, isSaving = false, readOnly = fal
     >
       {fields.length === 0 ? (
         <div className="empty-state">
-          <Package className="h-12 w-12 text-muted-foreground/50 mb-3" />
-          <p className="text-sm text-muted-foreground mb-1">No items defined</p>
-          <p className="text-xs text-muted-foreground/70">
+          <Package className="h-12 w-12 text-foreground/50 mb-3" />
+          <p className="text-sm text-foreground/80 mb-1">No items defined</p>
+          <p className="text-xs text-foreground/60">
             {readOnly ? 'No inventory items in this configuration' : 'Add your first inventory item to get started'}
           </p>
         </div>
@@ -169,7 +121,7 @@ export function InventoryItemsSection({ onSave, isSaving = false, readOnly = fal
                           <p className="text-sm font-medium text-foreground">
                             {item?.id} ({displayName})
                           </p>
-                          <p className="text-xs text-muted-foreground">
+                          <p className="text-xs text-foreground/70">
                             Qty: {item?.startingQuantity || 0} • 
                             {item?.isStackable ? ` Stackable (max: ${item?.maxStackSize === 0 ? '∞' : item?.maxStackSize})` : ' Not stackable'}
                           </p>

@@ -81,9 +81,9 @@ export function CostRewardEditor({
     <div className={cn('space-y-3', className)}>
       <div className="flex items-center justify-between">
         <div>
-          <Label className="text-sm font-medium">{title}</Label>
+          <Label className="text-sm font-medium text-foreground">{title}</Label>
           {description && (
-            <p className="text-xs text-muted-foreground mt-0.5">{description}</p>
+            <p className="text-xs text-foreground/70 mt-0.5">{description}</p>
           )}
         </div>
         <Button
@@ -100,7 +100,7 @@ export function CostRewardEditor({
 
       {items.length === 0 ? (
         <div className="rounded-lg border border-dashed border-border/50 bg-muted/10 p-4 text-center">
-          <p className="text-xs text-muted-foreground">No items added yet</p>
+          <p className="text-xs text-foreground/70">No items added yet</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -166,7 +166,7 @@ export function CostRewardEditor({
               />
 
               {/* Info Badge */}
-              <div className="text-xs text-muted-foreground min-w-[80px]">
+              <div className="text-xs text-foreground/70 min-w-[80px]">
                 {item.type === 'Currency' ? 'Currency' : 'Item'}
               </div>
 
