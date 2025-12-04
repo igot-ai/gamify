@@ -1,31 +1,15 @@
-"""Authentication and authorization utilities"""
+"""Authentication utilities - password hashing and JWT token management"""
 
-import logging
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
-from fastapi import Depends, HTTPException, Request, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
 from passlib.context import CryptContext
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
 from app.core.config import settings
-from app.core.database import get_db
-from app.models.user import User, UserRole
-
-logger = logging.getLogger(__name__)
 
 # Password hashing context
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-# Security scheme for bearer token (optional, we primarily use cookies)
-security = HTTPBearer(auto_error=False)
-
-# Cookie name for JWT token
-AUTH_COOKIE_NAME = "access_token"
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -57,143 +41,3 @@ def decode_access_token(token: str) -> Optional[dict]:
         return payload
     except JWTError:
         return None
-
-
-async def get_current_user(
-    request: Request,
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
-    db: AsyncSession = Depends(get_db)
-) -> User:
-    """
-    Get current authenticated user from JWT token.
-    
-    Token can be provided via:
-    1. httpOnly cookie (preferred)
-    2. Authorization header (Bearer token)
-    """
-    token = None
-    
-    # Try to get token from cookie first
-    token = request.cookies.get(AUTH_COOKIE_NAME)
-    
-    # Fall back to Authorization header
-    if not token and credentials:
-        token = credentials.credentials
-    
-    if not token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    
-    # Decode token
-    payload = decode_access_token(token)
-    if payload is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    
-    user_id: str = payload.get("sub")
-    if user_id is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token payload",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    
-    # Get user from database with assigned games loaded
-    result = await db.execute(
-        select(User)
-        .options(selectinload(User.assigned_games))
-        .where(User.id == user_id)
-    )
-    user = result.scalar_one_or_none()
-    
-    if user is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User not found",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    
-    if not user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User is deactivated",
-        )
-    
-    return user
-
-
-async def get_optional_user(
-    request: Request,
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
-    db: AsyncSession = Depends(get_db)
-) -> Optional[User]:
-    """
-    Get current user if authenticated, otherwise return None.
-    Useful for endpoints that work for both authenticated and anonymous users.
-    """
-    try:
-        return await get_current_user(request, credentials, db)
-    except HTTPException:
-        return None
-
-
-def require_admin(current_user: User = Depends(get_current_user)) -> User:
-    """
-    Dependency that requires the current user to be an admin.
-    
-    Usage:
-        @router.post("/admin-only")
-        async def admin_endpoint(current_user: User = Depends(require_admin)):
-            ...
-    """
-    if current_user.role != UserRole.admin:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Admin access required",
-        )
-    return current_user
-
-
-def can_access_game(user: User, game_id: str) -> bool:
-    """
-    Check if a user can access a specific game.
-    
-    - Admins can access all games
-    - Game operators can only access their assigned games
-    """
-    if user.role == UserRole.admin:
-        return True
-    
-    # Check if game is in user's assigned games
-    return any(game.id == game_id for game in user.assigned_games)
-
-
-def require_game_access(game_id: str):
-    """
-    Dependency factory for game-specific access control.
-    
-    Usage:
-        @router.get("/games/{game_id}")
-        async def get_game(
-            game_id: str,
-            current_user: User = Depends(require_game_access(game_id))
-        ):
-            ...
-    """
-    async def game_access_checker(
-        current_user: User = Depends(get_current_user)
-    ) -> User:
-        if not can_access_game(current_user, game_id):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="You don't have access to this game",
-            )
-        return current_user
-    
-    return game_access_checker

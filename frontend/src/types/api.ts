@@ -4,8 +4,7 @@
  */
 
 export interface Game {
-  id: string;
-  app_id: string;  // User-defined App ID
+  app_id: string;  // Primary key - User-defined App ID
   name: string;
   description: string | null;
   logo_url?: string | null;

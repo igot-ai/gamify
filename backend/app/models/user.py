@@ -17,7 +17,7 @@ user_game_assignments = Table(
     'user_game_assignments',
     Base.metadata,
     Column('user_id', String, ForeignKey('users.id', ondelete='CASCADE'), primary_key=True),
-    Column('game_id', String, ForeignKey('games.id', ondelete='CASCADE'), primary_key=True)
+    Column('game_id', String, ForeignKey('games.app_id', ondelete='CASCADE'), primary_key=True)
 )
 
 
@@ -29,7 +29,6 @@ class User(BaseModel):
     hashed_password = Column(String, nullable=False)
     name = Column(String, nullable=False)
     role = Column(SQLEnum(UserRole), nullable=False, default=UserRole.game_operator)
-    is_active = Column(Boolean, default=True, nullable=False)
     
     # Relationships - games assigned to this user (for game operators)
     assigned_games = relationship(

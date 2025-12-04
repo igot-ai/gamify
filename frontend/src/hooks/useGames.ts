@@ -1,29 +1,27 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../lib/api';
-import type { Game, ApiResponse } from '../types/api';
+import type { Game } from '../types/api';
 
 // Fetch all games
 export function useGames() {
     return useQuery({
         queryKey: ['games'],
         queryFn: async () => {
-            const response = await apiClient.get<ApiResponse<Game[]>>('/games');
-            // Backend now returns ApiResponse wrapper with data field
-            return response.data.data;
+            const response = await apiClient.get<Game[]>('/games');
+            return response.data;
         },
     });
 }
 
-// Fetch single game
-export function useGame(gameId: string) {
+// Fetch single game by app_id (primary key)
+export function useGame(appId: string) {
     return useQuery({
-        queryKey: ['games', gameId],
+        queryKey: ['games', appId],
         queryFn: async () => {
-            const response = await apiClient.get<ApiResponse<Game>>(`/games/${gameId}`);
-            // Backend now returns ApiResponse wrapper with data field
-            return response.data.data;
+            const response = await apiClient.get<Game>(`/games/${appId}`);
+            return response.data;
         },
-        enabled: !!gameId,
+        enabled: !!appId,
     });
 }
 
@@ -35,8 +33,8 @@ export function useCreateGame() {
         mutationFn: async (data: FormData) => {
             // Don't set Content-Type header manually - axios will set it automatically
             // with the correct boundary for multipart/form-data
-            const response = await apiClient.post<ApiResponse<Game>>('/games', data);
-            return response.data.data;
+            const response = await apiClient.post<Game>('/games', data);
+            return response.data;
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['games'] });
@@ -44,29 +42,29 @@ export function useCreateGame() {
     });
 }
 
-// Update game
-export function useUpdateGame(gameId: string) {
+// Update game by app_id (primary key)
+export function useUpdateGame(appId: string) {
     const queryClient = useQueryClient();
 
     return useMutation({
         mutationFn: async (data: Partial<Game>) => {
-            const response = await apiClient.patch<ApiResponse<Game>>(`/games/${gameId}`, data);
-            return response.data.data;
+            const response = await apiClient.patch<Game>(`/games/${appId}`, data);
+            return response.data;
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['games'] });
-            queryClient.invalidateQueries({ queryKey: ['games', gameId] });
+            queryClient.invalidateQueries({ queryKey: ['games', appId] });
         },
     });
 }
 
-// Delete game
+// Delete game by app_id (primary key)
 export function useDeleteGame() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async (gameId: string) => {
-            await apiClient.delete(`/games/${gameId}`);
+        mutationFn: async (appId: string) => {
+            await apiClient.delete(`/games/${appId}`);
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['games'] });

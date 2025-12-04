@@ -51,7 +51,7 @@ export const SpinConfigForm = forwardRef<SpinConfigFormRef, SpinConfigFormProps>
     // Fetch economy config to get currencies and inventory items
     const { selectedGame } = useGame();
     const { data: economyConfig } = useSectionConfig({
-      game_id: selectedGame?.id || '',
+      game_id: selectedGame?.app_id || '',
       section_type: 'economy',
     });
     

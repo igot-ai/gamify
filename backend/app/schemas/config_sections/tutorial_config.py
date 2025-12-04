@@ -24,10 +24,6 @@ class ToastModel(BaseModel):
     X: float = Field(..., ge=0, le=1, description="X position (0-1 viewport)")
     Y: float = Field(..., ge=0, le=1, description="Y position (0-1 viewport)")
     
-    class Config:
-        json_schema_extra = {
-            "example": {"M": "TAP_3_TILES", "W": 8.05, "H": 2.23, "X": 0.5, "Y": 0.35}
-        }
 
 
 class HintTapInfo(BaseModel):
@@ -56,15 +52,6 @@ class LoadBoardData(BaseModel):
     GridTiles: List[List[float]] = Field(default_factory=list, description="Grid tiles as [column, -row, skinId]")
     HolderTiles: List[int] = Field(default_factory=list, description="Holder tiles skin IDs")
     
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "Level": 1,
-                "Moves": 10,
-                "GridTiles": [[0, 0, 1], [1, 0, 2], [2, 0, 3]],
-                "HolderTiles": [1, 2, 3]
-            }
-        }
 
 
 class ShowToastData(BaseModel):
@@ -97,19 +84,6 @@ class TutorialStep(BaseModel):
     Data: Any = Field(..., description="Step-specific data")
     Focus: bool = Field(default=False, description="Dim background for focus")
     
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "Type": 0,
-                "Data": {
-                    "Level": 1,
-                    "Moves": 10,
-                    "GridTiles": [[0, 0, 1], [1, 0, 2]],
-                    "HolderTiles": [1, 2, 3]
-                },
-                "Focus": False
-            }
-        }
 
 
 class TutorialLevel(BaseModel):
@@ -117,13 +91,6 @@ class TutorialLevel(BaseModel):
     Level: int = Field(..., ge=1, description="Level number")
     Steps: List[TutorialStep] = Field(default_factory=list, description="Tutorial steps")
     
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "Level": 1,
-                "Steps": []
-            }
-        }
 
 
 class TutorialData(BaseModel):
@@ -131,13 +98,6 @@ class TutorialData(BaseModel):
     Id: str = Field(..., min_length=1, description="Tutorial ID")
     Levels: List[TutorialLevel] = Field(default_factory=list, description="Tutorial levels")
     
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "Id": "1",
-                "Levels": []
-            }
-        }
 
 
 class TutorialConfig(BaseModel):
@@ -145,14 +105,4 @@ class TutorialConfig(BaseModel):
     option: int = Field(default=1, ge=1, description="Tutorial option (determines which Option_X.json to load)")
     data: TutorialData = Field(..., description="Tutorial data")
     
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "option": 1,
-                "data": {
-                    "Id": "1",
-                    "Levels": []
-                }
-            }
-        }
 

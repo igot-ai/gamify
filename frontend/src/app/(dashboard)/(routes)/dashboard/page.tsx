@@ -20,7 +20,6 @@ interface UserListItem {
   email: string;
   name: string;
   role: string;
-  is_active: boolean;
 }
 
 export default function DashboardPage() {
@@ -118,9 +117,9 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {games?.map((game) => (
             <Card
-              key={game.id}
+              key={game.app_id}
               className="hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer border-border/50 bg-card/50 backdrop-blur-sm"
-              onClick={() => router.push(`/sections/economy?appId=${game.id}`)}
+              onClick={() => router.push(`/sections/economy?appId=${game.app_id}`)}
             >
               <CardHeader>
                 <CardTitle className="text-xl">{game.name}</CardTitle>

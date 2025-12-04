@@ -27,7 +27,7 @@ export function useSelectedGame() {
     const params = new URLSearchParams(searchParams.toString());
     
     if (game) {
-      params.set('appId', game.id);
+      params.set('appId', game.app_id);
     } else {
       params.delete('appId');
     }

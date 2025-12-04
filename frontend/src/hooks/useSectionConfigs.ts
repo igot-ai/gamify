@@ -8,7 +8,6 @@ import type {
   SectionConfigVersionListResponse,
   SectionConfigVersionCreate,
   SectionConfigVersionUpdate,
-  ApiResponse,
 } from '../types/api';
 
 interface SectionConfigFilters {
@@ -28,10 +27,10 @@ export function useSectionConfig(filters: SectionConfigFilters) {
       params.append('game_id', filters.game_id);
       params.append('section_type', filters.section_type);
 
-      const response = await apiClient.get<ApiResponse<SectionConfig>>(
+      const response = await apiClient.get<SectionConfig>(
         `/section-configs?${params.toString()}`
       );
-      return response.data.data;
+      return response.data;
     },
     enabled: !!filters.game_id && !!filters.section_type,
   });
@@ -44,10 +43,10 @@ export function useSectionConfigById(sectionConfigId: string) {
   return useQuery({
     queryKey: ['section-config', sectionConfigId],
     queryFn: async () => {
-      const response = await apiClient.get<ApiResponse<SectionConfig>>(
+      const response = await apiClient.get<SectionConfig>(
         `/section-configs/${sectionConfigId}`
       );
-      return response.data.data;
+      return response.data;
     },
     enabled: !!sectionConfigId,
   });
@@ -60,10 +59,10 @@ export function useSectionConfigsSummary(gameId: string) {
   return useQuery({
     queryKey: ['section-configs-summary', gameId],
     queryFn: async () => {
-      const response = await apiClient.get<ApiResponse<SectionConfigSummary[]>>(
+      const response = await apiClient.get<SectionConfigSummary[]>(
         `/section-configs/summary?game_id=${gameId}`
       );
-      return response.data.data || [];
+      return response.data || [];
     },
     enabled: !!gameId,
   });
@@ -84,10 +83,10 @@ export function useTotalConfigurationsCount(gameIds: string[]) {
       // Fetch summaries for all games in parallel
       const summaryPromises = gameIds.map(async (gameId) => {
         try {
-          const response = await apiClient.get<ApiResponse<SectionConfigSummary[]>>(
+          const response = await apiClient.get<SectionConfigSummary[]>(
             `/section-configs/summary?game_id=${gameId}`
           );
-          return response.data.data || [];
+          return response.data || [];
         } catch (error) {
           // If a game fails, return empty array
           console.error(`Failed to fetch configs for game ${gameId}:`, error);
@@ -123,10 +122,10 @@ export function useTotalConfigurationVersions(gameIds: string[]) {
       // Fetch summaries for all games in parallel
       const summaryPromises = gameIds.map(async (gameId) => {
         try {
-          const response = await apiClient.get<ApiResponse<SectionConfigSummary[]>>(
+          const response = await apiClient.get<SectionConfigSummary[]>(
             `/section-configs/summary?game_id=${gameId}`
           );
-          return response.data.data || [];
+          return response.data || [];
         } catch (error) {
           // If a game fails, return empty array
           console.error(`Failed to fetch configs for game ${gameId}:`, error);
@@ -157,10 +156,10 @@ export function useSectionConfigVersions(sectionConfigId: string) {
   return useQuery({
     queryKey: ['section-config-versions', sectionConfigId],
     queryFn: async () => {
-      const response = await apiClient.get<ApiResponse<SectionConfigVersionListResponse>>(
+      const response = await apiClient.get<SectionConfigVersionListResponse>(
         `/section-configs/${sectionConfigId}/versions`
       );
-      return response.data.data;
+      return response.data;
     },
     enabled: !!sectionConfigId,
   });
@@ -173,10 +172,10 @@ export function useSectionConfigVersion(sectionConfigId: string, versionId: stri
   return useQuery({
     queryKey: ['section-config-version', sectionConfigId, versionId],
     queryFn: async () => {
-      const response = await apiClient.get<ApiResponse<SectionConfigVersion>>(
+      const response = await apiClient.get<SectionConfigVersion>(
         `/section-configs/${sectionConfigId}/versions/${versionId}`
       );
-      return response.data.data;
+      return response.data;
     },
     enabled: !!sectionConfigId && !!versionId,
   });
@@ -196,11 +195,11 @@ export function useCreateVersion() {
       sectionConfigId: string; 
       data: SectionConfigVersionCreate;
     }) => {
-      const response = await apiClient.post<ApiResponse<SectionConfigVersion>>(
+      const response = await apiClient.post<SectionConfigVersion>(
         `/section-configs/${sectionConfigId}/versions`,
         data
       );
-      return response.data.data;
+      return response.data;
     },
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['section-config-versions', variables.sectionConfigId] });
@@ -225,11 +224,11 @@ export function useUpdateVersion() {
       versionId: string; 
       data: SectionConfigVersionUpdate;
     }) => {
-      const response = await apiClient.patch<ApiResponse<SectionConfigVersion>>(
+      const response = await apiClient.patch<SectionConfigVersion>(
         `/section-configs/${sectionConfigId}/versions/${versionId}`,
         data
       );
-      return response.data.data;
+      return response.data;
     },
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['section-config-versions', variables.sectionConfigId] });
@@ -278,10 +277,10 @@ export function useDuplicateVersion() {
       sectionConfigId: string;
       versionId: string;
     }) => {
-      const response = await apiClient.post<ApiResponse<SectionConfigVersion>>(
+      const response = await apiClient.post<SectionConfigVersion>(
         `/section-configs/${sectionConfigId}/versions/${versionId}/duplicate`
       );
-      return response.data.data;
+      return response.data;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['section-config-versions', variables.sectionConfigId] });

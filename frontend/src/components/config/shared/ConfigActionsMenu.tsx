@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useRef } from 'react';
-import { Download, Upload, Copy, Zap } from 'lucide-react';
+import { Download, Upload, Copy, MoreVertical } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import {
   DropdownMenu,
@@ -113,8 +113,8 @@ export function ConfigActionsMenu({
                 size="sm"
                 className={`h-9 w-9 p-0 ${className || ''}`}
               >
-                <Zap className="h-4 w-4" />
-                <span className="sr-only">Actions</span>
+                <MoreVertical className="h-4 w-4" />
+                <span className="sr-only">Actions menu</span>
               </Button>
             </DropdownMenuTrigger>
           </TooltipTrigger>

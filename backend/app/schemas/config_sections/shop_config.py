@@ -9,10 +9,3 @@ class ShopConfig(BaseModel):
     featured_items: list = Field(default_factory=list, description="Featured items")
     rotation_enabled: bool = Field(default=False, description="Enable shop rotation")
     
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "Enabled": True,
-                "RestoreMinLevel": 1
-            }
-        }

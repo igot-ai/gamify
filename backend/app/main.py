@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from fastapi.exceptions import RequestValidationError
-from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+from sqlalchemy.exc import IntegrityError
 
 from app.core.config import settings
 from app.api.v1.router import api_router
@@ -13,7 +13,6 @@ from app.core.error_handlers import (
     app_exception_handler,
     validation_exception_handler,
     integrity_error_handler,
-    sqlalchemy_error_handler,
     general_exception_handler
 )
 
@@ -25,8 +24,8 @@ app = FastAPI(
 )
 
 # Create uploads directory if it doesn't exist
-# Note: uploads are stored under app/uploads to match the save_avatar helper
-UPLOADS_DIR = Path(__file__).parent / "uploads"
+# Uploads are stored at backend/uploads (same level as app/) for easier volume mounting and backup
+UPLOADS_DIR = Path(__file__).parent.parent / "uploads"
 UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
 
 # Mount static files for uploads (at /api/v1/uploads to match API base URL)
@@ -61,7 +60,6 @@ app.add_middleware(
 app.add_exception_handler(AppException, app_exception_handler)
 app.add_exception_handler(RequestValidationError, validation_exception_handler)
 app.add_exception_handler(IntegrityError, integrity_error_handler)
-app.add_exception_handler(SQLAlchemyError, sqlalchemy_error_handler)
 app.add_exception_handler(Exception, general_exception_handler)
 
 # Include API routes

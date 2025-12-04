@@ -3,8 +3,7 @@
 from fastapi import Request, status
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
-from pydantic import ValidationError as PydanticValidationError
-from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+from sqlalchemy.exc import IntegrityError
 import logging
 
 from app.core.exceptions import AppException
@@ -57,19 +56,6 @@ async def integrity_error_handler(request: Request, exc: IntegrityError) -> JSON
         content={
             "error": "IntegrityError",
             "message": message,
-            "path": str(request.url.path)
-        }
-    )
-
-
-async def sqlalchemy_error_handler(request: Request, exc: SQLAlchemyError) -> JSONResponse:
-    """Handle general SQLAlchemy errors"""
-    logger.error(f"Database error: {str(exc)}", exc_info=True)
-    return JSONResponse(
-        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        content={
-            "error": "DatabaseError",
-            "message": "An error occurred while processing your request",
             "path": str(request.url.path)
         }
     )

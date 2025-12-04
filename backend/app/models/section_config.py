@@ -34,7 +34,7 @@ class SectionConfig(BaseModel):
     """
     __tablename__ = "section_configs"
     
-    game_id = Column(String, ForeignKey("games.id", ondelete="CASCADE"), nullable=False)
+    game_id = Column(String, ForeignKey("games.app_id", ondelete="CASCADE"), nullable=False)
     section_type = Column(SQLEnum(SectionType), nullable=False, index=True)
     
     # Relationships

@@ -27,8 +27,7 @@ class GameUpdate(BaseModel):
 
 
 class GameResponse(GameBase):
-    """Schema for game response"""
-    id: str
+    """Schema for game response - app_id is the primary key"""
     created_at: datetime
     updated_at: datetime
     

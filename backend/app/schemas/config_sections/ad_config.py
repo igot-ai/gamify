@@ -27,7 +27,7 @@ class BannerPosition(str, Enum):
 
 
 # ============================================
-# New Schema Models (matching frontend)
+# Schema Models
 # ============================================
 class AdUnitIds(BaseModel):
     """Ad unit IDs for different ad types"""
@@ -71,36 +71,11 @@ class OptionalSettings(BaseModel):
 
 
 # ============================================
-# Legacy Schema Models (kept for backward compatibility)
-# ============================================
-class AdNetwork(BaseModel):
-    """Ad network configuration (legacy)"""
-    id: str
-    enabled: bool = True
-    app_id: str
-    priority: int = Field(ge=1, description="Priority order (1=highest)")
-
-
-class FrequencyCap(BaseModel):
-    """Ad frequency cap configuration (legacy)"""
-    count: int = Field(gt=0, description="Number of ads allowed")
-    period_minutes: int = Field(gt=0, description="Time period in minutes")
-
-
-class AdPlacement(BaseModel):
-    """Ad placement configuration (legacy)"""
-    enabled: bool = True
-    frequency_cap: Optional[FrequencyCap] = None
-    reward: dict = Field(default_factory=dict, description="Optional reward for rewarded ads")
-
-
-# ============================================
 # Main Ad Config Schema
 # ============================================
 class AdConfig(BaseModel):
     """Advertisement configuration schema"""
     
-    # New fields (matching frontend)
     adUnitIds: AdUnitIds = Field(
         default_factory=lambda: AdUnitIds(),
         description="Ad unit IDs for different ad types"
@@ -117,71 +92,3 @@ class AdConfig(BaseModel):
         default_factory=lambda: OptionalSettings(),
         description="Optional ad settings"
     )
-    
-    # Legacy fields (kept for backward compatibility)
-    networks: List[AdNetwork] = Field(
-        default_factory=list,
-        description="Ad network configurations (legacy)"
-    )
-    interstitial: Optional[AdPlacement] = Field(
-        default=None,
-        description="Interstitial ad placement (legacy)"
-    )
-    rewarded: Optional[AdPlacement] = Field(
-        default=None,
-        description="Rewarded ad placement (legacy)"
-    )
-    banner: Optional[AdPlacement] = Field(
-        default=None,
-        description="Banner ad placement (legacy)"
-    )
-    remove_ads_product_id: str = Field(
-        default="",
-        description="IAP product ID for removing ads (legacy)"
-    )
-    
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "adUnitIds": {
-                    "banner": "ca-app-pub-xxx/banner",
-                    "interstitial": "ca-app-pub-xxx/interstitial",
-                    "rewarded": "ca-app-pub-xxx/rewarded"
-                },
-                "placements": [
-                    {
-                        "name": "AppReady", "type": "Banner", "action": "LoadAndShow", "enabled": True,
-                        "minLevel": 2, "timeBetween": 0, "showLoading": False, "timeOut": 30,
-                        "retry": 3, "showAdNotice": False, "delayTime": 0, "customAdUnitId": ""
-                    },
-                    {
-                        "name": "Button/Undo/Click", "type": "Rewarded", "action": "LoadAndShow", "enabled": True,
-                        "minLevel": 1, "timeBetween": 0, "showLoading": True, "timeOut": 30,
-                        "retry": 0, "showAdNotice": False, "delayTime": 0, "customAdUnitId": ""
-                    },
-                    {
-                        "name": "Screen/NoMoreMoves", "type": "Interstitial", "action": "Show", "enabled": True,
-                        "minLevel": 9, "timeBetween": 60, "showLoading": False, "timeOut": 20,
-                        "retry": 0, "showAdNotice": False, "delayTime": 0, "customAdUnitId": ""
-                    }
-                ],
-                "advancedSettings": {
-                    "autoHideBanner": True,
-                    "preloadInterstitial": False,
-                    "preloadRewarded": True,
-                    "bannerPosition": "Bottom",
-                    "bannerRefreshRate": 0,
-                    "bannerMemoryThreshold": 1536,
-                    "destroyBannerOnLowMemory": True
-                },
-                "optionalSettings": {
-                    "enableConsentFlow": True,
-                    "forceTestMode": False,
-                    "removeAdsEnabled": False
-                },
-                "networks": [
-                    {"id": "admob", "enabled": True, "app_id": "ca-app-pub-xxx", "priority": 1}
-                ],
-                "remove_ads_product_id": "com.sunstudio.game.noads"
-            }
-        }

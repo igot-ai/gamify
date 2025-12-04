@@ -13,20 +13,6 @@ class RemoveAdsConfig(BaseModel):
     cooldownPopupHours: int = Field(..., ge=0, description="Cooldown between popup shows in hours")
     cooldownOfferHours: int = Field(..., ge=0, description="Cooldown between offer shows in hours")
     
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "enabled": True,
-                "minLevel": 5,
-                "adWatchedTrigger": 4,
-                "daysPlayedTrigger": 2,
-                "durationHours": 24,
-                "maxLifetimeShows": 4,
-                "maxSessionShows": 1,
-                "cooldownPopupHours": 24,
-                "cooldownOfferHours": 24
-            }
-        }
 
 
 

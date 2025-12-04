@@ -14,21 +14,6 @@ class TileBundleConfig(BaseModel):
     cooldownPopupHours: int = Field(..., ge=0, description="Cooldown between popup shows in hours")
     cooldownOfferHours: int = Field(..., ge=0, description="Cooldown between offer shows in hours")
     
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "enabled": True,
-                "discount": 80,
-                "minLevel": 20,
-                "daysPlayedTrigger": 2,
-                "sessionsPlayedTrigger": 1,
-                "durationHours": 24,
-                "maxLifetimeShows": 2,
-                "maxSessionShows": 1,
-                "cooldownPopupHours": 48,
-                "cooldownOfferHours": 48
-            }
-        }
 
 
 

@@ -197,7 +197,7 @@ export function GameSelector() {
     
     // If not on a section page, navigate to the economy section with the new game
     if (!pathname?.startsWith('/sections/')) {
-      router.push(`/sections/economy?appId=${game.id}`);
+      router.push(`/sections/economy?appId=${game.app_id}`);
     } else {
       // On section pages, just update the URL param (setSelectedGame does this)
       setSelectedGame(game);
@@ -206,9 +206,9 @@ export function GameSelector() {
 
   const handleCreateSuccess = (newGame: Game) => {
     setCreateDialogOpen(false);
-    // Select the newly created game and navigate to it
+    // Select the newly created game and navigate to economy section with currencies tab
     setSelectedGame(newGame);
-    router.push(`/sections/economy?appId=${newGame.id}`);
+    router.push(`/sections/economy?appId=${newGame.app_id}&tab=currencies`);
   };
 
   if (isLoadingGames) {
@@ -265,17 +265,17 @@ export function GameSelector() {
               ) : (
                 filteredGames.map((game) => (
                   <button
-                    key={game.id}
+                    key={game.app_id}
                     onClick={() => handleSelectGame(game)}
                     className={`w-full flex items-center gap-3 px-2 py-2 rounded-md text-left transition-colors ${
-                      selectedGame?.id === game.id
+                      selectedGame?.app_id === game.app_id
                         ? 'bg-amber-500/20 border border-amber-500/50'
                         : 'hover:bg-muted'
                     }`}
                   >
                     <GameLogo game={game} size="md" />
                     <div className="flex-1 min-w-0">
-                      <div className={`font-medium text-sm truncate ${selectedGame?.id === game.id ? 'text-amber-600' : 'text-foreground'}`}>{game.name}</div>
+                      <div className={`font-medium text-sm truncate ${selectedGame?.app_id === game.app_id ? 'text-amber-600' : 'text-foreground'}`}>{game.name}</div>
                       {game.app_id && (
                         <div className="text-xs text-muted-foreground truncate font-mono">
                           {game.app_id}

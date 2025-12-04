@@ -48,13 +48,11 @@ import { toast } from 'sonner';
 type UserRole = 'admin' | 'game_operator';
 
 interface Game {
-  id: string;
   app_id: string;
   name: string;
 }
 
 interface AssignedGame {
-  id: string;
   app_id: string;
   name: string;
 }
@@ -64,7 +62,6 @@ interface User {
   email: string;
   name: string;
   role: UserRole;
-  is_active: boolean;
   created_at: string;
   updated_at: string;
   assigned_games?: AssignedGame[];
@@ -75,7 +72,6 @@ interface UserListItem {
   email: string;
   name: string;
   role: UserRole;
-  is_active: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -125,16 +121,16 @@ export default function UsersPage() {
   const { data: gamesResponse, isLoading: gamesLoading } = useQuery({
     queryKey: ['all-games-for-assignment'],
     queryFn: async () => {
-      const response = await apiClient.get<{ data: Game[] }>('/games');
+      const response = await apiClient.get<Game[]>('/games');
       return response.data;
     },
   });
-  const games = gamesResponse?.data ?? [];
+  const games = gamesResponse ?? [];
 
   // Create user mutation
   const createUserMutation = useMutation({
     mutationFn: async (data: UserFormData) => {
-      const response = await apiClient.post('/users', data);
+      const response = await apiClient.post<User>('/users', data);
       return response.data;
     },
     onSuccess: () => {
@@ -152,7 +148,7 @@ export default function UsersPage() {
   // Update user mutation
   const updateUserMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<UserFormData> }) => {
-      const response = await apiClient.patch(`/users/${id}`, data);
+      const response = await apiClient.patch<User>(`/users/${id}`, data);
       return response.data;
     },
     onSuccess: () => {
@@ -168,17 +164,17 @@ export default function UsersPage() {
     },
   });
 
-  // Deactivate user mutation
-  const deactivateUserMutation = useMutation({
+  // Delete user mutation
+  const deleteUserMutation = useMutation({
     mutationFn: async (id: string) => {
       await apiClient.delete(`/users/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
-      toast.success('User deactivated');
+      toast.success('User deleted');
     },
     onError: (error: unknown) => {
-      const message = (error as { response?: { data?: { detail?: string } } })?.response?.data?.detail || 'Failed to deactivate user';
+      const message = (error as { response?: { data?: { detail?: string } } })?.response?.data?.detail || 'Failed to delete user';
       toast.error(message);
     },
   });
@@ -186,7 +182,7 @@ export default function UsersPage() {
   // Assign game mutation
   const assignGameMutation = useMutation({
     mutationFn: async ({ userId, gameId }: { userId: string; gameId: string }) => {
-      const response = await apiClient.post(`/users/${userId}/games/${gameId}`);
+      const response = await apiClient.post<User>(`/users/${userId}/games/${gameId}`);
       return response.data;
     },
     onSuccess: (data) => {
@@ -203,7 +199,7 @@ export default function UsersPage() {
   // Remove game assignment mutation
   const removeGameMutation = useMutation({
     mutationFn: async ({ userId, gameId }: { userId: string; gameId: string }) => {
-      const response = await apiClient.delete(`/users/${userId}/games/${gameId}`);
+      const response = await apiClient.delete<User>(`/users/${userId}/games/${gameId}`);
       return response.data;
     },
     onSuccess: (data) => {
@@ -278,8 +274,8 @@ export default function UsersPage() {
 
   const getUnassignedGames = () => {
     if (!selectedUser?.assigned_games) return games;
-    const assignedIds = new Set(selectedUser.assigned_games.map(g => g.id));
-    return games.filter(game => !assignedIds.has(game.id));
+    const assignedAppIds = new Set(selectedUser.assigned_games.map(g => g.app_id));
+    return games.filter(game => !assignedAppIds.has(game.app_id));
   };
 
   if (authLoading || !isAdmin) {
@@ -324,7 +320,6 @@ export default function UsersPage() {
                   <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Role</TableHead>
-                  <TableHead>Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -340,11 +335,6 @@ export default function UsersPage() {
                         ) : (
                           <><Gamepad2 className="w-3 h-3 mr-1" /> Operator</>
                         )}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={user.is_active ? 'success' : 'destructive'}>
-                        {user.is_active ? 'Active' : 'Inactive'}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
@@ -365,19 +355,17 @@ export default function UsersPage() {
                         >
                           <Pencil className="w-4 h-4" />
                         </Button>
-                        {user.is_active && (
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => {
-                              if (confirm('Are you sure you want to deactivate this user?')) {
-                                deactivateUserMutation.mutate(user.id);
+                            if (confirm('Are you sure you want to delete this user?')) {
+                              deleteUserMutation.mutate(user.id);
                               }
                             }}
                           >
                             <UserX className="w-4 h-4 text-red-500" />
                           </Button>
-                        )}
                       </div>
                     </TableCell>
                   </TableRow>
@@ -554,7 +542,7 @@ export default function UsersPage() {
                 {selectedUser?.assigned_games && selectedUser.assigned_games.length > 0 ? (
                   selectedUser.assigned_games.map((game) => (
                     <div
-                      key={game.id}
+                      key={game.app_id}
                       className="flex items-center justify-between p-2 bg-slate-50 rounded-lg"
                     >
                       <div>
@@ -566,7 +554,7 @@ export default function UsersPage() {
                         size="sm"
                         onClick={() => removeGameMutation.mutate({
                           userId: selectedUser.id,
-                          gameId: game.id,
+                          gameId: game.app_id,
                         })}
                         disabled={removeGameMutation.isPending}
                       >
@@ -590,9 +578,9 @@ export default function UsersPage() {
                 </div>
               ) : getUnassignedGames().length > 0 ? (
                 <Select
-                  onValueChange={(gameId) => {
+                  onValueChange={(appId) => {
                     if (selectedUser) {
-                      assignGameMutation.mutate({ userId: selectedUser.id, gameId });
+                      assignGameMutation.mutate({ userId: selectedUser.id, gameId: appId });
                     }
                   }}
                 >
@@ -601,7 +589,7 @@ export default function UsersPage() {
                   </SelectTrigger>
                   <SelectContent>
                     {getUnassignedGames().map((game) => (
-                      <SelectItem key={game.id} value={game.id}>
+                      <SelectItem key={game.app_id} value={game.app_id}>
                         {game.name} ({game.app_id})
                       </SelectItem>
                     ))}

@@ -123,9 +123,9 @@ export default function GamesPage() {
               <TableBody>
                 {filteredGames.map((game) => (
                   <TableRow 
-                    key={game.id}
+                    key={game.app_id}
                     className="cursor-pointer hover:bg-muted/50"
-                    onClick={() => router.push(`/sections/economy?appId=${game.id}`)}
+                    onClick={() => router.push(`/sections/economy?appId=${game.app_id}`)}
                   >
                     <TableCell>
                       <div className="flex items-center gap-3">
@@ -191,7 +191,7 @@ export default function GamesPage() {
                             <Button variant="outline">Cancel</Button>
                             <Button
                               variant="destructive"
-                              onClick={() => handleDeleteConfirm(game.id)}
+                              onClick={() => handleDeleteConfirm(game.app_id)}
                               disabled={deleteGame.isPending}
                             >
                               {deleteGame.isPending ? 'Deleting...' : 'Delete'}
@@ -217,6 +217,7 @@ interface GameFormProps {
 }
 
 function GameForm({ game, onSuccess }: GameFormProps) {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     app_id: game?.app_id || '',
     name: game?.name || '',
@@ -228,7 +229,7 @@ function GameForm({ game, onSuccess }: GameFormProps) {
   );
 
   const createGame = useCreateGame();
-  const updateGameMutation = useUpdateGame(game?.id || '');
+  const updateGameMutation = useUpdateGame(game?.app_id || '');
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -250,6 +251,7 @@ function GameForm({ game, onSuccess }: GameFormProps) {
         // For updates, use JSON (logo and app_id updates not supported in edit mode)
         const { app_id, ...updateData } = formData;
         await updateGameMutation.mutateAsync(updateData);
+        onSuccess?.();
       } else {
         // For creation, use FormData to support file uploads
         const submitData = new FormData();
@@ -261,9 +263,13 @@ function GameForm({ game, onSuccess }: GameFormProps) {
         if (logo) {
           submitData.append('logo', logo);
         }
-        await createGame.mutateAsync(submitData);
+        const newGame = await createGame.mutateAsync(submitData);
+        onSuccess?.();
+        // Redirect to economy section with currencies tab for newly created game
+        if (newGame) {
+          router.push(`/sections/economy?appId=${newGame.app_id}&tab=currencies`);
+        }
       }
-      onSuccess?.();
     } catch {
       toast.error('Failed to save game');
     }

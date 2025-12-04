@@ -67,17 +67,6 @@ class Currency(BaseModel):
             
         return self
     
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "id": "coins",
-                "name": "Coins",
-                "displayName": "Coins",
-                "type": "soft",
-                "starting_amount": 1000,
-                "startingBalance": 1000
-            }
-        }
 
 
 # ============================================
@@ -94,18 +83,6 @@ class InventoryItem(BaseModel):
     isStackable: bool = Field(default=True, description="Whether item can stack")
     maxStackSize: int = Field(default=0, ge=0, description="Max stack size (0 = unlimited)")
     
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "id": "item_undo",
-                "displayName": "Undo",
-                "description": "Allows you to undo a move",
-                "iconPath": "Assets/Icons/undo.png",
-                "startingQuantity": 3,
-                "isStackable": True,
-                "maxStackSize": 99
-            }
-        }
 
 
 # ============================================
@@ -118,14 +95,6 @@ class ResourceReference(BaseModel):
     resourceId: str = Field(..., min_length=1, description="ID of the currency or item")
     amount: int = Field(..., gt=0, description="Amount of resource")
     
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "type": "Currency",
-                "resourceId": "coins",
-                "amount": 100
-            }
-        }
 
 
 # ============================================
@@ -140,16 +109,6 @@ class Bonus(BaseModel):
     amount: int = Field(..., gt=0, description="Amount of resource")
     condition: Optional[str] = Field(default=None, description="Condition for bonus (e.g., 'first_purchase', 'vip_member')")
     
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "id": "first_purchase_bonus",
-                "type": "Currency",
-                "resourceId": "gems",
-                "amount": 50,
-                "condition": "first_purchase"
-            }
-        }
 
 
 # ============================================
@@ -164,20 +123,6 @@ class VirtualPurchase(BaseModel):
     rewards: List[ResourceReference] = Field(default_factory=list, description="What player receives")
     bonuses: List[Bonus] = Field(default_factory=list, description="Conditional bonus rewards")
     
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "id": "purchase_hint_with_coin",
-                "name": "Buy Hint with Coins",
-                "costs": [
-                    {"type": "Currency", "resourceId": "coins", "amount": 100}
-                ],
-                "rewards": [
-                    {"type": "Item", "resourceId": "item_hint", "amount": 1}
-                ],
-                "bonuses": []
-            }
-        }
 
 
 # ============================================
@@ -192,20 +137,6 @@ class RealPurchase(BaseModel):
     rewards: List[ResourceReference] = Field(default_factory=list, description="What player receives")
     bonuses: List[Bonus] = Field(default_factory=list, description="Conditional bonus rewards")
     
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "productId": "studio.sun.game.gems100",
-                "displayName": "100 Gems Pack",
-                "productType": "Consumable",
-                "rewards": [
-                    {"type": "Currency", "resourceId": "gems", "amount": 100}
-                ],
-                "bonuses": [
-                    {"type": "Currency", "resourceId": "gems", "amount": 10, "condition": "first_purchase"}
-                ]
-            }
-        }
 
 
 # ============================================
@@ -217,13 +148,6 @@ class EconomySettings(BaseModel):
     enableRefundProcessing: bool = Field(default=False, description="Enable refund processing")
     remoteConfigKey: Optional[str] = Field(default="ECONOMY_CONFIG", description="Remote config key")
     
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "enableRefundProcessing": False,
-                "remoteConfigKey": "ECONOMY_CONFIG"
-            }
-        }
 
 
 # ============================================
@@ -293,35 +217,3 @@ class EconomyConfig(BaseModel):
             self.settings = EconomySettings()
         return self
     
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "currencies": [
-                    {"id": "coins", "displayName": "Coins", "type": "soft", "startingBalance": 1000},
-                    {"id": "gems", "displayName": "Gems", "type": "hard", "startingBalance": 50}
-                ],
-                "inventoryItems": [
-                    {"id": "item_hint", "displayName": "Hint", "startingQuantity": 3, "isStackable": True}
-                ],
-                "virtualPurchases": [
-                    {
-                        "id": "buy_hint",
-                        "name": "Buy Hint",
-                        "costs": [{"type": "Currency", "resourceId": "coins", "amount": 100}],
-                        "rewards": [{"type": "Item", "resourceId": "item_hint", "amount": 1}]
-                    }
-                ],
-                "realPurchases": [
-                    {
-                        "productId": "studio.game.gems100",
-                        "displayName": "100 Gems",
-                        "productType": "Consumable",
-                        "rewards": [{"type": "Currency", "resourceId": "gems", "amount": 100}]
-                    }
-                ],
-                "settings": {
-                    "enableRefundProcessing": False,
-                    "remoteConfigKey": "ECONOMY_CONFIG"
-                }
-            }
-        }

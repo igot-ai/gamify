@@ -35,7 +35,12 @@ class UserUpdate(BaseModel):
     name: Optional[str] = None
     role: Optional[UserRole] = None
     password: Optional[str] = Field(None, min_length=6)
-    is_active: Optional[bool] = None
+
+
+class ProfileUpdate(BaseModel):
+    """Schema for updating current user profile (name and password only)"""
+    name: Optional[str] = None
+    password: Optional[str] = Field(None, min_length=6)
 
 
 class AssignedGameInfo(BaseModel):
@@ -51,7 +56,6 @@ class AssignedGameInfo(BaseModel):
 class UserResponse(UserBase):
     """Schema for user response"""
     id: str
-    is_active: bool
     created_at: datetime
     updated_at: datetime
     assigned_games: List[AssignedGameInfo] = []
@@ -66,7 +70,6 @@ class UserListResponse(BaseModel):
     email: str
     name: str
     role: UserRole
-    is_active: bool
     created_at: datetime
     updated_at: datetime
     
@@ -77,7 +80,6 @@ class UserListResponse(BaseModel):
 class CurrentUserResponse(UserBase):
     """Schema for current user response with assigned game IDs"""
     id: str
-    is_active: bool
     assigned_game_ids: List[str] = []
     
     class Config:
