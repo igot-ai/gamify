@@ -2,8 +2,8 @@ from typing import Optional, List
 from datetime import datetime
 from pydantic import BaseModel, EmailStr, Field
 
+from app.schemas import ORMBaseModel
 from app.models.user import UserRole
-
 
 class LoginRequest(BaseModel):
     """Schema for login request"""
@@ -43,28 +43,22 @@ class ProfileUpdate(BaseModel):
     password: Optional[str] = Field(None, min_length=6)
 
 
-class AssignedGameInfo(BaseModel):
+class AssignedGameInfo(ORMBaseModel):
     """Minimal game info for user's assigned games"""
     id: str
     app_id: str
     name: str
-    
-    class Config:
-        from_attributes = True
 
 
-class UserResponse(UserBase):
+class UserResponse(UserBase, ORMBaseModel):
     """Schema for user response"""
     id: str
     created_at: datetime
     updated_at: datetime
     assigned_games: List[AssignedGameInfo] = []
-    
-    class Config:
-        from_attributes = True
 
 
-class UserListResponse(BaseModel):
+class UserListResponse(ORMBaseModel):
     """Schema for user list response (without assigned games for performance)"""
     id: str
     email: str
@@ -72,16 +66,10 @@ class UserListResponse(BaseModel):
     role: UserRole
     created_at: datetime
     updated_at: datetime
-    
-    class Config:
-        from_attributes = True
 
 
-class CurrentUserResponse(UserBase):
+class CurrentUserResponse(UserBase, ORMBaseModel):
     """Schema for current user response with assigned game IDs"""
     id: str
     assigned_game_ids: List[str] = []
-    
-    class Config:
-        from_attributes = True
 

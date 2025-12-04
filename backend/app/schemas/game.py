@@ -2,6 +2,8 @@ from typing import Optional
 from datetime import datetime
 from pydantic import BaseModel
 
+from app.schemas import ORMBaseModel
+
 
 class GameBase(BaseModel):
     """Base game schema"""
@@ -26,10 +28,7 @@ class GameUpdate(BaseModel):
     # app_id cannot be updated after creation
 
 
-class GameResponse(GameBase):
+class GameResponse(GameBase, ORMBaseModel):
     """Schema for game response - app_id is the primary key"""
     created_at: datetime
     updated_at: datetime
-    
-    class Config:
-        from_attributes = True

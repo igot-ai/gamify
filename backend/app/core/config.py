@@ -1,6 +1,6 @@
 from typing import List
-from pydantic import Field, field_validator
-from pydantic_settings import BaseSettings
+from pydantic import Field, field_validator, ConfigDict
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -23,6 +23,12 @@ class Settings(BaseSettings):
     # CORS - Parse from comma-separated string or JSON array
     BACKEND_CORS_ORIGINS: List[str] = Field(default_factory=list)
     
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        case_sensitive=True,
+        extra="ignore"
+    )
+    
     @field_validator("BACKEND_CORS_ORIGINS", mode="before")
     @classmethod
     def parse_cors_origins(cls, v):
@@ -40,11 +46,6 @@ class Settings(BaseSettings):
         if v not in ["development", "staging", "production"]:
             raise ValueError("ENVIRONMENT must be development, staging, or production")
         return v
-    
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
-        extra = "ignore"
 
 
 settings = Settings()

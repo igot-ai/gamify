@@ -1,19 +1,18 @@
 from typing import Optional, Any, List
 from datetime import datetime
 from pydantic import BaseModel
+
+from app.schemas import ORMBaseModel
 from app.models.section_config import SectionType
 
 
-class SectionConfigResponse(BaseModel):
+class SectionConfigResponse(ORMBaseModel):
     """Schema for section configuration response"""
     id: str
     game_id: str
     section_type: SectionType
     created_at: datetime
     updated_at: datetime
-    
-    class Config:
-        from_attributes = True
 
 
 class SectionConfigVersionCreate(BaseModel):
@@ -34,7 +33,7 @@ class SectionConfigVersionUpdate(BaseModel):
     config_data: Optional[Any] = None
 
 
-class SectionConfigVersionResponse(BaseModel):
+class SectionConfigVersionResponse(ORMBaseModel):
     """Schema for version response"""
     id: str
     section_config_id: str
@@ -45,9 +44,6 @@ class SectionConfigVersionResponse(BaseModel):
     config_data: Optional[Any] = None
     created_at: datetime
     updated_at: datetime
-    
-    class Config:
-        from_attributes = True
 
 
 class SectionConfigVersionListResponse(BaseModel):
