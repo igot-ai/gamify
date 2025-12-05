@@ -16,7 +16,7 @@ A unified configuration management platform for mobile games. Manage game config
 ```bash
 cd backend
 poetry install
-cp .env.example .env  # Configure your database
+# Create .env file with your database configuration (see Environment Variables section)
 poetry run alembic upgrade head
 poetry run uvicorn app.main:app --reload
 ```
@@ -46,8 +46,8 @@ Access at `http://localhost:8866`
 
 ## Tech Stack
 
-**Backend:** FastAPI, PostgreSQL, SQLAlchemy, Alembic, Pydantic  
-**Frontend:** Next.js 15, TypeScript, React 19, Radix UI, Tailwind CSS  
+**Backend:** FastAPI, PostgreSQL, SQLAlchemy, Alembic, Pydantic, Python-JOSE, Passlib  
+**Frontend:** Next.js 15, TypeScript, React 19, Radix UI, Tailwind CSS, TanStack Query, Zustand, React Hook Form, Zod  
 **Infrastructure:** Docker, Nginx
 
 ## Project Structure
@@ -57,16 +57,20 @@ Access at `http://localhost:8866`
 ```
 backend/
 ├── app/
-│   ├── api/v1/endpoints/       # API routes (auth, games, configs, users)
+│   ├── api/
+│   │   ├── dependencies/       # Auth dependencies, common utilities
+│   │   └── v1/endpoints/       # API routes (auth, games, section_configs, users)
 │   ├── core/                   # Auth, config, database, error handlers
 │   ├── models/                 # SQLAlchemy models (game, section_config, user)
 │   ├── schemas/                # Pydantic schemas
-│   │   └── config_sections/    # Config type schemas (9 types)
-│   ├── services/               # Business logic
+│   │   └── config_sections/    # Config type schemas (11 types: ad, booster, chapter_reward, economy, game, haptic, notification, remove_ads, shop, tile_bundle, tutorial)
+│   ├── services/               # Business logic (auth, game, section_config, user)
+│   ├── utils/                  # Utility functions (file_utils, unity_transform)
 │   ├── uploads/                # File uploads (avatars, logos)
 │   ├── cli.py                  # CLI commands
 │   └── main.py                 # FastAPI app entry
 ├── alembic/                    # Database migrations
+├── tests/                      # Test suite (api, services, utils)
 ├── Dockerfile
 └── pyproject.toml              # Poetry dependencies
 ```
@@ -79,13 +83,19 @@ frontend/
 │   ├── app/                    # Next.js App Router
 │   │   ├── (auth)/             # Login page
 │   │   └── (dashboard)/        # Protected routes
-│   │       └── (routes)/       # dashboard, games, sections, users
+│   │       └── (routes)/       # dashboard, games, sections, settings, users
 │   ├── components/
-│   │   ├── config/             # Config forms (economy, ads, tutorial, etc.)
-│   │   ├── layout/             # Dashboard layout, header, sidebar
-│   │   └── ui/                 # Radix UI components (23 components)
-│   ├── hooks/                  # Custom hooks (useGames, useSectionConfigs)
+│   │   ├── config/             # Config forms (14 form types: economy, ads, tutorial, etc.)
+│   │   │   ├── forms/          # Form components for each config type
+│   │   │   ├── shared/         # Shared form components
+│   │   │   └── ...             # Config-specific components (economy, ads, notification, etc.)
+│   │   ├── layout/             # Dashboard layout, header, sidebar, game selector
+│   │   ├── section/            # Section form renderer, version metadata dialog
+│   │   └── ui/                 # Radix UI components (24 components)
+│   ├── hooks/                  # Custom hooks (useGames, useSectionConfigs, useSelectedGame, useArrayFieldManagement)
 │   ├── lib/                    # API client, validations, export transforms
+│   │   ├── validations/        # Zod schemas for each config type (19 types)
+│   │   └── utils/              # Utility functions (diff, etc.)
 │   ├── stores/                 # Zustand stores (auth)
 │   └── types/                  # TypeScript types
 ├── middleware.ts               # Auth protection
@@ -99,6 +109,32 @@ infrastructure/
 ├── docker-compose.yml          # Multi-container setup
 └── nginx.conf                  # Reverse proxy config
 ```
+
+## Config Section Types
+
+The platform supports **19 config section types** for managing different aspects of game configuration:
+
+1. **economy** - Currencies, IAP packages, inventory items, rewards
+2. **ads** - Ad networks and placements
+3. **notification** - Push and local notifications
+4. **shop** - Shop items and bundles
+5. **booster** - Power-ups and boosters
+6. **chapter_reward** - Level progression rewards
+7. **game** - Game logic and view configuration
+8. **analytics** - Analytics configuration
+9. **ux** - User experience settings
+10. **haptic** - Haptic feedback configuration
+11. **remove_ads** - Remove ads offer settings
+12. **tile_bundle** - Tile bundle offer settings
+13. **rating** - In-app rating prompt settings
+14. **link** - Privacy and terms links
+15. **game_economy** - Coin costs and rewards configuration
+16. **shop_settings** - Shop enable and restore settings
+17. **spin** - Spin wheel rewards and settings
+18. **hint_offer** - Hint offer popup settings
+19. **tutorial** - Tutorial levels and step configurations
+
+Each section supports versioning, status management (DRAFT, IN_REVIEW, APPROVED, DEPLOYED, ARCHIVED), and Unity-compatible export transforms.
 
 ## Development
 
@@ -116,8 +152,11 @@ poetry run pytest                           # Run tests
 ```bash
 npm run dev          # Dev server
 npm run build        # Production build
+npm run start        # Production server
 npm run lint         # Lint code
-npm run test         # Run tests
+npm run lint:fix     # Fix linting issues
+npm run format       # Format code with Prettier
+npm run type-check   # TypeScript type checking
 ```
 
 
@@ -127,10 +166,11 @@ npm run test         # Run tests
 ### Backend (.env)
 
 ```env
-DATABASE_URL=postgresql://user:password@localhost:5432/gamify
+DATABASE_URL=postgresql+asyncpg://user:password@localhost:5432/gamify_config
 SECRET_KEY=your-secret-key-here
 ACCESS_TOKEN_EXPIRE_MINUTES=60
 CORS_ORIGINS=["http://localhost:3000"]
+ENVIRONMENT=development
 ```
 
 ### Frontend (.env.local)
