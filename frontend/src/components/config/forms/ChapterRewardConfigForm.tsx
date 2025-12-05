@@ -17,12 +17,12 @@ import {
 } from '@/components/ui/Form';
 import { ConfigFormSection } from '../shared/ConfigFormSection';
 import { FormWithJsonTabs } from '../shared/FormWithJsonTabs';
-import { chapterRewardConfigSchema, type ChapterRewardConfig } from '@/lib/validations/chapterRewardConfig';
+import { chapterRewardConfigSchema, type ChapterRewardConfig, defaultChapterRewardConfig } from '@/lib/validations/chapterRewardConfig';
+import { transformChapterRewardConfigToExport } from '@/lib/chapterRewardExportTransform';
+import { transformChapterRewardConfigFromImport } from '@/lib/importTransforms';
 
-const DEFAULT_CONFIG: ChapterRewardConfig = {
-  undo: 1,
-  hint: 1,
-  shuffle: 1,
+const isValidConfig = (data: any): data is ChapterRewardConfig => {
+  return data && typeof data.undo === 'number';
 };
 
 interface ChapterRewardConfigFormProps {
@@ -43,14 +43,21 @@ export const ChapterRewardConfigForm = forwardRef<ChapterRewardConfigFormRef, Ch
     const [originalData, setOriginalData] = useState<ChapterRewardConfig | undefined>();
     const initializedRef = useRef(false);
 
+    const effectiveInitialData = isValidConfig(initialData) 
+      ? { ...defaultChapterRewardConfig, ...initialData } 
+      : defaultChapterRewardConfig;
+
     const form = useForm<ChapterRewardConfig>({
       resolver: zodResolver(chapterRewardConfigSchema),
-      defaultValues: initialData ? { ...DEFAULT_CONFIG, ...initialData } : DEFAULT_CONFIG,
+      defaultValues: effectiveInitialData,
     });
 
     useEffect(() => {
       if (initialData) {
-        setOriginalData(JSON.parse(JSON.stringify(initialData)));
+        const data = isValidConfig(initialData) 
+          ? { ...defaultChapterRewardConfig, ...initialData } 
+          : defaultChapterRewardConfig;
+        setOriginalData(JSON.parse(JSON.stringify(data)));
         if (!initializedRef.current) {
           initializedRef.current = true;
         }
@@ -65,14 +72,25 @@ export const ChapterRewardConfigForm = forwardRef<ChapterRewardConfigFormRef, Ch
     useImperativeHandle(ref, () => ({
       getData: () => form.getValues(),
       reset: (data: ChapterRewardConfig) => {
-        form.reset(data);
-        setOriginalData(JSON.parse(JSON.stringify(data)));
+        const resetData = isValidConfig(data) 
+          ? { ...defaultChapterRewardConfig, ...data } 
+          : defaultChapterRewardConfig;
+        form.reset(resetData);
+        setOriginalData(JSON.parse(JSON.stringify(resetData)));
       },
     }));
 
     return (
       <Form {...form}>
-        <FormWithJsonTabs formData={form.watch()} originalData={originalData} onJsonChange={(data) => form.reset(data)}>
+        <FormWithJsonTabs 
+          formData={form.watch()} 
+          originalData={originalData} 
+          onJsonChange={(data) => form.reset(data)}
+          transformToUnity={transformChapterRewardConfigToExport}
+          transformFromUnity={transformChapterRewardConfigFromImport}
+          onSave={() => onSubmit(form.getValues())}
+          isSaving={isSaving}
+        >
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <ConfigFormSection title="Chapter Completion Rewards" description="Configure rewards given when players complete a chapter" collapsible={false}>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-3">

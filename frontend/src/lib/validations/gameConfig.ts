@@ -63,3 +63,32 @@ export type GameLogic = z.infer<typeof gameLogicSchema>;
 export type ViewConfig = z.infer<typeof viewConfigSchema>;
 export type GameConfig = z.infer<typeof gameConfigSchema>;
 
+// Default config for new versions
+export const defaultGameConfig: GameConfig = {
+  gameLogic: {
+    gameLogicConfig: {
+      matchCount: 0,
+      countUndoTileRevive: 0,
+      countShuffleTileRevive: 0,
+      countSlotHolder: 0,
+      warningThreshold: 0,
+    },
+    combo: {
+      matchEffect: 0,
+      maxNoMatch: 0,
+    },
+  },
+  viewConfig: {
+    gridView: {
+      tileSize: { x: 0, y: 0 },
+    },
+    holderView: {
+      slotSize: { x: 0, y: 0 },
+      slotSpace: 0,
+      ratioBetweenTwoTile: 0,
+      slotYPadding: 0,
+      tileInHolderYPadding: 0,
+    },
+  },
+};
+

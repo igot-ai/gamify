@@ -34,6 +34,10 @@ import {
   type InventoryItem,
   defaultInventoryItem 
 } from '@/lib/validations/economyConfig';
+import { 
+  transformInventoryItemsToUnity, 
+  transformInventoryItemsFromUnity 
+} from '@/lib/economyExportTransform';
 
 interface InventoryItemsSectionProps {
   onSave?: (data: InventoryItem[]) => void;
@@ -80,6 +84,8 @@ export function InventoryItemsSection({ onSave, isSaving = false, readOnly = fal
       jsonData={inventoryItems}
       originalJsonData={originalItems}
       onJsonChange={readOnly ? undefined : handleJsonChange}
+      transformToUnity={transformInventoryItemsToUnity}
+      transformFromUnity={transformInventoryItemsFromUnity}
     >
       {fields.length === 0 ? (
         <div className="empty-state">

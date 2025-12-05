@@ -33,6 +33,10 @@ import {
   type Currency,
   defaultCurrency 
 } from '@/lib/validations/economyConfig';
+import { 
+  transformCurrenciesToUnity, 
+  transformCurrenciesFromUnity 
+} from '@/lib/economyExportTransform';
 
 interface CurrenciesSectionProps {
   onSave?: (data: Currency[]) => void;
@@ -79,6 +83,8 @@ export function CurrenciesSection({ onSave, isSaving = false, readOnly = false }
       jsonData={currencies}
       originalJsonData={originalCurrencies}
       onJsonChange={readOnly ? undefined : handleJsonChange}
+      transformToUnity={transformCurrenciesToUnity}
+      transformFromUnity={transformCurrenciesFromUnity}
     >
       {fields.length === 0 ? (
         <div className="empty-state">

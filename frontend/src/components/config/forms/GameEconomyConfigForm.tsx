@@ -17,12 +17,12 @@ import {
 } from '@/components/ui/Form';
 import { ConfigFormSection } from '../shared/ConfigFormSection';
 import { FormWithJsonTabs } from '../shared/FormWithJsonTabs';
-import { gameEconomyConfigSchema, type GameEconomyConfig } from '@/lib/validations/gameEconomyConfig';
+import { gameEconomyConfigSchema, type GameEconomyConfig, defaultGameEconomyConfig } from '@/lib/validations/gameEconomyConfig';
+import { transformGameEconomyConfigToExport } from '@/lib/gameEconomyExportTransform';
+import { transformGameEconomyConfigFromImport } from '@/lib/importTransforms';
 
-const DEFAULT_CONFIG: GameEconomyConfig = {
-  revive_coin_cost: 300,
-  ad_level_complete_coin_reward: 50,
-  scenery_complete_coin_reward: 50,
+const isValidConfig = (data: any): data is GameEconomyConfig => {
+  return data && typeof data.revive_coin_cost === 'number';
 };
 
 interface GameEconomyConfigFormProps {
@@ -43,14 +43,21 @@ export const GameEconomyConfigForm = forwardRef<GameEconomyConfigFormRef, GameEc
     const [originalData, setOriginalData] = useState<GameEconomyConfig | undefined>();
     const initializedRef = useRef(false);
 
+    const effectiveInitialData = isValidConfig(initialData) 
+      ? { ...defaultGameEconomyConfig, ...initialData } 
+      : defaultGameEconomyConfig;
+
     const form = useForm<GameEconomyConfig>({
       resolver: zodResolver(gameEconomyConfigSchema),
-      defaultValues: initialData ? { ...DEFAULT_CONFIG, ...initialData } : DEFAULT_CONFIG,
+      defaultValues: effectiveInitialData,
     });
 
     useEffect(() => {
       if (initialData) {
-        setOriginalData(JSON.parse(JSON.stringify(initialData)));
+        const data = isValidConfig(initialData) 
+          ? { ...defaultGameEconomyConfig, ...initialData } 
+          : defaultGameEconomyConfig;
+        setOriginalData(JSON.parse(JSON.stringify(data)));
         if (!initializedRef.current) {
           initializedRef.current = true;
         }
@@ -65,14 +72,25 @@ export const GameEconomyConfigForm = forwardRef<GameEconomyConfigFormRef, GameEc
     useImperativeHandle(ref, () => ({
       getData: () => form.getValues(),
       reset: (data: GameEconomyConfig) => {
-        form.reset(data);
-        setOriginalData(JSON.parse(JSON.stringify(data)));
+        const resetData = isValidConfig(data) 
+          ? { ...defaultGameEconomyConfig, ...data } 
+          : defaultGameEconomyConfig;
+        form.reset(resetData);
+        setOriginalData(JSON.parse(JSON.stringify(resetData)));
       },
     }));
 
     return (
       <Form {...form}>
-        <FormWithJsonTabs formData={form.watch()} originalData={originalData} onJsonChange={(data) => form.reset(data)}>
+        <FormWithJsonTabs 
+          formData={form.watch()} 
+          originalData={originalData} 
+          onJsonChange={(data) => form.reset(data)}
+          transformToUnity={transformGameEconomyConfigToExport}
+          transformFromUnity={transformGameEconomyConfigFromImport}
+          onSave={() => onSubmit(form.getValues())}
+          isSaving={isSaving}
+        >
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <ConfigFormSection title="Game Economy Settings" description="Configure coin costs and rewards for game economy" collapsible={false}>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-3">

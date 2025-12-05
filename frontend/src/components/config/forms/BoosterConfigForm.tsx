@@ -21,27 +21,13 @@ import { FormWithJsonTabs } from '../shared/FormWithJsonTabs';
 import {
   boosterConfigSchema,
   type BoosterConfig,
+  defaultBoosterConfig,
 } from '@/lib/validations/boosterConfig';
+import { transformBoosterConfigToExport } from '@/lib/boosterExportTransform';
+import { transformBoosterConfigFromImport } from '@/lib/importTransforms';
 
-const DEFAULT_CONFIG: BoosterConfig = {
-  undo: {
-    unlock_level: 2,
-    refill_amount: 1,
-    start: 2,
-  },
-  hint: {
-    unlock_level: 4,
-    refill_amount: 1,
-    start: 2,
-  },
-  shuffle: {
-    unlock_level: 3,
-    refill_amount: 1,
-    start: 2,
-  },
-  auto_use_after_ads: true,
-  time_auto_suggestion: 5,
-  auto_suggestion_enabled: true,
+const isValidConfig = (data: any): data is BoosterConfig => {
+  return data && data.undo && data.hint && data.shuffle;
 };
 
 interface BoosterConfigFormProps {
@@ -62,24 +48,33 @@ export const BoosterConfigForm = forwardRef<BoosterConfigFormRef, BoosterConfigF
     const [originalData, setOriginalData] = useState<BoosterConfig | undefined>();
     const initializedRef = useRef(false);
 
-    const mergedDefaults = initialData
+    const effectiveInitialData = isValidConfig(initialData)
       ? {
-          ...DEFAULT_CONFIG,
+          ...defaultBoosterConfig,
           ...initialData,
-          auto_use_after_ads: initialData.auto_use_after_ads ?? DEFAULT_CONFIG.auto_use_after_ads,
-          time_auto_suggestion: initialData.time_auto_suggestion ?? DEFAULT_CONFIG.time_auto_suggestion,
-          auto_suggestion_enabled: initialData.auto_suggestion_enabled ?? DEFAULT_CONFIG.auto_suggestion_enabled,
+          auto_use_after_ads: initialData.auto_use_after_ads ?? defaultBoosterConfig.auto_use_after_ads,
+          time_auto_suggestion: initialData.time_auto_suggestion ?? defaultBoosterConfig.time_auto_suggestion,
+          auto_suggestion_enabled: initialData.auto_suggestion_enabled ?? defaultBoosterConfig.auto_suggestion_enabled,
         }
-      : DEFAULT_CONFIG;
+      : defaultBoosterConfig;
 
     const form = useForm<BoosterConfig>({
       resolver: zodResolver(boosterConfigSchema),
-      defaultValues: mergedDefaults,
+      defaultValues: effectiveInitialData,
     });
 
     useEffect(() => {
       if (initialData) {
-        setOriginalData(JSON.parse(JSON.stringify(initialData)));
+        const data = isValidConfig(initialData)
+          ? {
+              ...defaultBoosterConfig,
+              ...initialData,
+              auto_use_after_ads: initialData.auto_use_after_ads ?? defaultBoosterConfig.auto_use_after_ads,
+              time_auto_suggestion: initialData.time_auto_suggestion ?? defaultBoosterConfig.time_auto_suggestion,
+              auto_suggestion_enabled: initialData.auto_suggestion_enabled ?? defaultBoosterConfig.auto_suggestion_enabled,
+            }
+          : defaultBoosterConfig;
+        setOriginalData(JSON.parse(JSON.stringify(data)));
         if (!initializedRef.current) {
           initializedRef.current = true;
         }
@@ -94,14 +89,31 @@ export const BoosterConfigForm = forwardRef<BoosterConfigFormRef, BoosterConfigF
     useImperativeHandle(ref, () => ({
       getData: () => form.getValues(),
       reset: (data: BoosterConfig) => {
-        form.reset(data);
-        setOriginalData(JSON.parse(JSON.stringify(data)));
+        const resetData = isValidConfig(data)
+          ? {
+              ...defaultBoosterConfig,
+              ...data,
+              auto_use_after_ads: data.auto_use_after_ads ?? defaultBoosterConfig.auto_use_after_ads,
+              time_auto_suggestion: data.time_auto_suggestion ?? defaultBoosterConfig.time_auto_suggestion,
+              auto_suggestion_enabled: data.auto_suggestion_enabled ?? defaultBoosterConfig.auto_suggestion_enabled,
+            }
+          : defaultBoosterConfig;
+        form.reset(resetData);
+        setOriginalData(JSON.parse(JSON.stringify(resetData)));
       },
     }));
 
     return (
       <Form {...form}>
-        <FormWithJsonTabs formData={form.watch()} originalData={originalData} onJsonChange={(data) => form.reset(data)}>
+        <FormWithJsonTabs 
+          formData={form.watch()} 
+          originalData={originalData} 
+          onJsonChange={(data) => form.reset(data)}
+          transformToUnity={transformBoosterConfigToExport}
+          transformFromUnity={transformBoosterConfigFromImport}
+          onSave={() => onSubmit(form.getValues())}
+          isSaving={isSaving}
+        >
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <ConfigFormSection title="Undo Booster" description="Configure Undo booster settings">
               <div className="grid grid-cols-1 gap-4 md:grid-cols-3">

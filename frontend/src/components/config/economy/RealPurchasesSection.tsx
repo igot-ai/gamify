@@ -42,6 +42,10 @@ import {
   type RealPurchase,
   defaultRealPurchase 
 } from '@/lib/validations/economyConfig';
+import { 
+  transformRealPurchasesToUnity, 
+  transformRealPurchasesFromUnity 
+} from '@/lib/economyExportTransform';
 
 interface RealPurchasesSectionProps {
   onSave?: (data: RealPurchase[]) => void;
@@ -95,6 +99,8 @@ export function RealPurchasesSection({ onSave, isSaving = false, readOnly = fals
       jsonData={realPurchases}
       originalJsonData={originalPurchases}
       onJsonChange={readOnly ? undefined : handleJsonChange}
+      transformToUnity={transformRealPurchasesToUnity}
+      transformFromUnity={transformRealPurchasesFromUnity}
     >
       {fields.length === 0 ? (
         <div className="empty-state">

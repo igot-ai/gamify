@@ -7,3 +7,8 @@ export const shopSettingsConfigSchema = z.object({
 
 export type ShopSettingsConfig = z.infer<typeof shopSettingsConfigSchema>;
 
+export const defaultShopSettingsConfig: ShopSettingsConfig = {
+  enabled: false,
+  restore_min_level: 0,
+};
+

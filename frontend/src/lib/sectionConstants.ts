@@ -17,6 +17,7 @@ import { transformShopSettingsConfigToExport } from '@/lib/shopSettingsExportTra
 import { transformSpinConfigToExport } from '@/lib/spinExportTransform';
 import { transformHintOfferConfigToExport } from '@/lib/hintOfferExportTransform';
 import { transformTutorialConfigToExport } from '@/lib/tutorialExportTransform';
+import { transformAnalyticsConfigToExport } from '@/lib/analyticsExportTransform';
 
 // Map URL path to section type
 export const pathToSectionType: Record<string, SectionType> = {
@@ -59,6 +60,7 @@ export const sectionTransformMap: Partial<Record<SectionType, (data: any) => any
   'spin': transformSpinConfigToExport,
   'hint_offer': transformHintOfferConfigToExport,
   'tutorial': transformTutorialConfigToExport,
+  'analytics': transformAnalyticsConfigToExport,
 };
 
 // Map section type to export file name

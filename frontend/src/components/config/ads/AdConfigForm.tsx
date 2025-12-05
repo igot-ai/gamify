@@ -46,6 +46,8 @@ import {
   defaultAdConfig,
   defaultPlacement,
 } from '@/lib/validations/adConfig';
+import { transformAdConfigToExport } from '@/lib/adsExportTransform';
+import { transformAdConfigFromImport } from '@/lib/importTransforms';
 
 interface AdConfigFormProps {
   initialData?: AdConfig;
@@ -195,6 +197,10 @@ export const AdConfigForm = forwardRef<AdConfigFormRef, AdConfigFormProps>(
             replace(data.placements);
           }
         }}
+        transformToUnity={transformAdConfigToExport}
+        transformFromUnity={transformAdConfigFromImport}
+        onSave={() => onSubmit(form.getValues())}
+        isSaving={isSaving}
       >
         <form onSubmit={handleSubmit} className="space-y-6">
         {/* Section 1: Ad Unit IDs */}

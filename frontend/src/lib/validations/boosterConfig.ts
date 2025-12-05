@@ -18,3 +18,18 @@ export const boosterConfigSchema = z.object({
 export type BoosterItem = z.infer<typeof boosterItemSchema>;
 export type BoosterConfig = z.infer<typeof boosterConfigSchema>;
 
+const defaultBoosterItem: BoosterItem = {
+  unlock_level: 0,
+  refill_amount: 0,
+  start: 0,
+};
+
+export const defaultBoosterConfig: BoosterConfig = {
+  undo: { ...defaultBoosterItem },
+  hint: { ...defaultBoosterItem },
+  shuffle: { ...defaultBoosterItem },
+  auto_use_after_ads: false,
+  time_auto_suggestion: 0,
+  auto_suggestion_enabled: false,
+};
+

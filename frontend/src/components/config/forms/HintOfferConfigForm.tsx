@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { forwardRef, useImperativeHandle, useEffect } from 'react';
+import { forwardRef, useImperativeHandle, useEffect, useState, useRef } from 'react';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import {
@@ -17,11 +17,18 @@ import {
 } from '@/components/ui/Form';
 import { Switch } from '@/components/ui/switch';
 import { ConfigFormSection } from '../shared/ConfigFormSection';
+import { FormWithJsonTabs } from '../shared/FormWithJsonTabs';
 import {
   hintOfferConfigSchema,
   defaultHintOfferConfig,
   type HintOfferConfig,
 } from '@/lib/validations/hintOfferConfig';
+import { transformHintOfferConfigToExport } from '@/lib/hintOfferExportTransform';
+import { transformHintOfferConfigFromImport } from '@/lib/importTransforms';
+
+const isValidConfig = (data: any): data is HintOfferConfig => {
+  return data && typeof data.enabled === 'boolean';
+};
 
 interface HintOfferConfigFormProps {
   initialData?: HintOfferConfig;
@@ -44,40 +51,58 @@ export const HintOfferConfigForm = forwardRef<HintOfferConfigFormRef, HintOfferC
     onCancel,
     isSaving = false,
   }, ref) {
-    const mergedDefaults = initialData
-      ? {
-          ...defaultHintOfferConfig,
-          ...initialData,
-        }
+    const [originalData, setOriginalData] = useState<HintOfferConfig | undefined>();
+    const initializedRef = useRef(false);
+
+    const effectiveInitialData = isValidConfig(initialData)
+      ? { ...defaultHintOfferConfig, ...initialData }
       : defaultHintOfferConfig;
 
     const form = useForm<HintOfferConfig>({
       resolver: zodResolver(hintOfferConfigSchema),
-      defaultValues: mergedDefaults,
+      defaultValues: effectiveInitialData,
     });
+
+    useEffect(() => {
+      if (initialData) {
+        const data = isValidConfig(initialData)
+          ? { ...defaultHintOfferConfig, ...initialData }
+          : defaultHintOfferConfig;
+        setOriginalData(JSON.parse(JSON.stringify(data)));
+        if (!initializedRef.current) {
+          initializedRef.current = true;
+        }
+      }
+    }, [initialData]);
 
     useImperativeHandle(ref, () => ({
       getData: () => form.getValues(),
-      reset: (data: HintOfferConfig) => form.reset(data),
+      reset: (data: HintOfferConfig) => {
+        const resetData = isValidConfig(data)
+          ? { ...defaultHintOfferConfig, ...data }
+          : defaultHintOfferConfig;
+        form.reset(resetData);
+        setOriginalData(JSON.parse(JSON.stringify(resetData)));
+      },
     }));
 
-    const watchedValues = form.watch();
     useEffect(() => {
-      if (onChange) {
-        const currentValues = JSON.stringify(watchedValues);
-        const initialValues = JSON.stringify(initialData);
-        if (currentValues !== initialValues) {
-          onChange(watchedValues);
-        }
-      }
-    }, [watchedValues, onChange, initialData]);
-
-    const isValid = form.formState.isValid;
-    const handleSubmit = form.handleSubmit(onSubmit);
+      const sub = form.watch((data) => onChange?.(data as HintOfferConfig));
+      return () => sub.unsubscribe();
+    }, [form, onChange]);
 
     return (
       <Form {...form}>
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <FormWithJsonTabs
+          formData={form.watch()}
+          originalData={originalData}
+          onJsonChange={(data) => form.reset(data)}
+          transformToUnity={transformHintOfferConfigToExport}
+          transformFromUnity={transformHintOfferConfigFromImport}
+          onSave={() => onSubmit(form.getValues())}
+          isSaving={isSaving}
+        >
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <ConfigFormSection
             title="Hint Offer Settings"
             description="Configure when and how hint offers appear to players"
@@ -233,13 +258,14 @@ export const HintOfferConfigForm = forwardRef<HintOfferConfigFormRef, HintOfferC
             )}
             <Button
               type="submit"
-              disabled={!isValid || isSaving}
+              disabled={!form.formState.isValid || isSaving}
               className="shadow-stripe-sm transition-all hover:shadow-stripe-md hover:-translate-y-0.5"
             >
               {isSaving ? 'Saving...' : 'Save Changes'}
             </Button>
           </div>
         </form>
+        </FormWithJsonTabs>
       </Form>
     );
   }

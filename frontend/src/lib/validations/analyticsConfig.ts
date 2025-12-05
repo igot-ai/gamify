@@ -7,3 +7,8 @@ export const analyticsConfigSchema = z.object({
 
 export type AnalyticsConfig = z.infer<typeof analyticsConfigSchema>;
 
+export const defaultAnalyticsConfig: AnalyticsConfig = {
+  dev_key: '',
+  app_id: '',
+};
+

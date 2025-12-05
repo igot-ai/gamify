@@ -3,8 +3,9 @@
 import * as React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { forwardRef, useImperativeHandle, useEffect, useState, useRef } from 'react';
+import { forwardRef, useImperativeHandle, useEffect, useState, useRef, useMemo } from 'react';
 import { Button } from '@/components/ui/Button';
+import { Save, Loader2 } from 'lucide-react';
 import { Form } from '@/components/ui/Form';
 import { JsonEditor } from '../economy/shared/JsonEditor';
 import {
@@ -12,6 +13,8 @@ import {
   defaultTutorialConfig,
   type TutorialConfig,
 } from '@/lib/validations/tutorialConfig';
+import { transformTutorialConfigToExport } from '@/lib/tutorialExportTransform';
+import { transformTutorialConfigFromImport } from '@/lib/importTransforms';
 
 interface TutorialConfigFormProps {
   initialData?: TutorialConfig;
@@ -37,7 +40,7 @@ export const TutorialConfigForm = forwardRef<TutorialConfigFormRef, TutorialConf
     isSaving = false,
   }, ref) {
     const [originalData, setOriginalData] = useState<TutorialConfig | undefined>();
-    const initializedRef = useRef(false);
+    const isResettingRef = useRef(false);
 
     const mergedDefaults = initialData
       ? {
@@ -55,51 +58,86 @@ export const TutorialConfigForm = forwardRef<TutorialConfigFormRef, TutorialConf
       defaultValues: mergedDefaults,
     });
 
+    // Update form and originalData when initialData changes (version switch)
     useEffect(() => {
       if (initialData) {
-        setOriginalData(JSON.parse(JSON.stringify(initialData)));
-        if (!initializedRef.current) {
-          initializedRef.current = true;
-        }
+        isResettingRef.current = true;
+        const data = {
+          ...defaultTutorialConfig,
+          ...initialData,
+          data: {
+            ...defaultTutorialConfig.data,
+            ...initialData?.data,
+          },
+        };
+        form.reset(data);
+        setOriginalData(JSON.parse(JSON.stringify(data)));
+        // Allow onChange to work again after a short delay
+        setTimeout(() => {
+          isResettingRef.current = false;
+        }, 100);
       }
-    }, [initialData]);
+    }, [initialData, form]);
 
+    // Watch for changes but skip during reset
     useEffect(() => {
-      const sub = form.watch((data) => onChange?.(data as TutorialConfig));
+      const sub = form.watch((data) => {
+        if (!isResettingRef.current && onChange) {
+          onChange(data as TutorialConfig);
+        }
+      });
       return () => sub.unsubscribe();
     }, [form, onChange]);
 
     useImperativeHandle(ref, () => ({
       getData: () => form.getValues(),
       reset: (data: TutorialConfig) => {
+        isResettingRef.current = true;
         form.reset(data);
         setOriginalData(JSON.parse(JSON.stringify(data)));
+        setTimeout(() => {
+          isResettingRef.current = false;
+        }, 100);
       },
     }));
 
-    const handleJsonChange = (data: TutorialConfig) => {
+    // Transform data for JSON display (to Unity/PascalCase format)
+    const jsonDisplayData = useMemo(
+      () => transformTutorialConfigToExport(form.watch()),
+      [form.watch()]
+    );
+
+    const jsonOriginalData = useMemo(
+      () => originalData ? transformTutorialConfigToExport(originalData) : undefined,
+      [originalData]
+    );
+
+    const handleJsonChange = (data: any) => {
       if (data && typeof data === 'object') {
-        form.reset(data);
+        const internalData = transformTutorialConfigFromImport(data);
+        form.reset(internalData);
       }
     };
 
     return (
       <Form {...form}>
-        <div className="space-y-6">
+        <div className="space-y-4">
           <JsonEditor
-            value={form.watch()}
-            originalValue={originalData}
+            value={jsonDisplayData}
+            originalValue={jsonOriginalData}
             onChange={handleJsonChange}
             readOnly={false}
           />
 
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-border/30">
+          {/* Save Button */}
+          <div className="flex items-center justify-end pt-4 border-t border-border/30">
             {onCancel && (
               <Button
                 type="button"
                 variant="outline"
                 onClick={onCancel}
                 disabled={isSaving}
+                className="mr-3"
               >
                 Cancel
               </Button>
@@ -107,9 +145,14 @@ export const TutorialConfigForm = forwardRef<TutorialConfigFormRef, TutorialConf
             <Button
               type="button"
               onClick={() => onSubmit(form.getValues())}
-              disabled={!form.formState.isValid || isSaving}
-              className="shadow-stripe-sm transition-all hover:shadow-stripe-md hover:-translate-y-0.5"
+              disabled={isSaving}
+              className="h-9 shadow-stripe-sm transition-all hover:shadow-stripe-md hover:-translate-y-0.5"
             >
+              {isSaving ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="mr-2 h-4 w-4" />
+              )}
               {isSaving ? 'Saving...' : 'Save Changes'}
             </Button>
           </div>

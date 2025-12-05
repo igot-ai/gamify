@@ -1,14 +1,14 @@
 'use client';
 
 import * as React from 'react';
-import { useState } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import { Plus, Trash2, Save, Loader2, FileText, Code } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { JsonEditor } from './JsonEditor';
 
-interface SectionWrapperProps<T = unknown> {
+interface SectionWrapperProps<T = unknown, U = T> {
   title: string;
   description?: string;
   children: React.ReactNode;
@@ -30,9 +30,13 @@ interface SectionWrapperProps<T = unknown> {
   originalJsonData?: T;
   /** Callback when JSON is changed in the editor */
   onJsonChange?: (data: T) => void;
+  /** Transform form data (camelCase) to Unity format (PascalCase) for JSON display */
+  transformToUnity?: (data: T) => U;
+  /** Transform Unity format (PascalCase) back to form data (camelCase) */
+  transformFromUnity?: (data: U) => T;
 }
 
-export function SectionWrapper<T = unknown>({
+export function SectionWrapper<T = unknown, U = T>({
   title,
   description,
   children,
@@ -48,11 +52,34 @@ export function SectionWrapper<T = unknown>({
   jsonData,
   originalJsonData,
   onJsonChange,
-}: SectionWrapperProps<T>): React.ReactNode {
+  transformToUnity,
+  transformFromUnity,
+}: SectionWrapperProps<T, U>): React.ReactNode {
   const [activeTab, setActiveTab] = useState<'form' | 'json'>('form');
 
   const hasJsonSupport = jsonData !== undefined && onJsonChange !== undefined;
   const hasChanges = hasJsonSupport && JSON.stringify(jsonData) !== JSON.stringify(originalJsonData);
+
+  // Transform data for JSON display (to Unity/PascalCase format)
+  const jsonDisplayData = useMemo(
+    () => (transformToUnity && jsonData ? transformToUnity(jsonData) : jsonData),
+    [jsonData, transformToUnity]
+  );
+
+  const jsonOriginalDisplayData = useMemo(
+    () => (transformToUnity && originalJsonData ? transformToUnity(originalJsonData) : originalJsonData),
+    [originalJsonData, transformToUnity]
+  );
+
+  // Handle JSON changes - transform back to form format (camelCase) if needed
+  const handleJsonChange = useCallback(
+    (data: any) => {
+      if (!onJsonChange) return;
+      const formFormatData = transformFromUnity ? transformFromUnity(data) : data;
+      onJsonChange(formFormatData);
+    },
+    [onJsonChange, transformFromUnity]
+  );
 
   return (
     <div className={cn('space-y-6', className)}>
@@ -125,9 +152,9 @@ export function SectionWrapper<T = unknown>({
           <TabsContent value="json" className="mt-4">
             {/* JSON Editor */}
             <JsonEditor
-              value={jsonData}
-              originalValue={originalJsonData}
-              onChange={onJsonChange}
+              value={jsonDisplayData}
+              originalValue={jsonOriginalDisplayData}
+              onChange={readOnly ? undefined : handleJsonChange}
               readOnly={readOnly}
             />
           </TabsContent>

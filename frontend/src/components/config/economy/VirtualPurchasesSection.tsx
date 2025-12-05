@@ -34,6 +34,10 @@ import {
   type VirtualPurchase,
   defaultVirtualPurchase 
 } from '@/lib/validations/economyConfig';
+import { 
+  transformVirtualPurchasesToUnity, 
+  transformVirtualPurchasesFromUnity 
+} from '@/lib/economyExportTransform';
 
 interface VirtualPurchasesSectionProps {
   onSave?: (data: VirtualPurchase[]) => void;
@@ -87,6 +91,8 @@ export function VirtualPurchasesSection({ onSave, isSaving = false, readOnly = f
       jsonData={virtualPurchases}
       originalJsonData={originalPurchases}
       onJsonChange={readOnly ? undefined : handleJsonChange}
+      transformToUnity={transformVirtualPurchasesToUnity}
+      transformFromUnity={transformVirtualPurchasesFromUnity}
     >
       {fields.length === 0 ? (
         <div className="empty-state">

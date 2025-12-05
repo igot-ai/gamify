@@ -12,11 +12,11 @@ export const hintOfferConfigSchema = z.object({
 export type HintOfferConfig = z.infer<typeof hintOfferConfigSchema>;
 
 export const defaultHintOfferConfig: HintOfferConfig = {
-  enabled: true,
-  duration: 20,
-  delay_before_countdown: 2,
-  min_level: 10,
-  idle_time_trigger: 20,
-  max_appearances_per_level: 2,
+  enabled: false,
+  duration: 0,
+  delay_before_countdown: 0,
+  min_level: 0,
+  idle_time_trigger: 0,
+  max_appearances_per_level: 0,
 };
 

@@ -21,11 +21,13 @@ import { FormWithJsonTabs } from '../shared/FormWithJsonTabs';
 import {
   shopSettingsConfigSchema,
   type ShopSettingsConfig,
+  defaultShopSettingsConfig,
 } from '@/lib/validations/shopSettingsConfig';
+import { transformShopSettingsConfigToExport } from '@/lib/shopSettingsExportTransform';
+import { transformShopSettingsConfigFromImport } from '@/lib/importTransforms';
 
-const DEFAULT_CONFIG: ShopSettingsConfig = {
-  enabled: true,
-  restore_min_level: 1,
+const isValidConfig = (data: any): data is ShopSettingsConfig => {
+  return data && typeof data.enabled === 'boolean';
 };
 
 interface ShopSettingsConfigFormProps {
@@ -46,14 +48,21 @@ export const ShopSettingsConfigForm = forwardRef<ShopSettingsConfigFormRef, Shop
     const [originalData, setOriginalData] = useState<ShopSettingsConfig | undefined>();
     const initializedRef = useRef(false);
 
+    const effectiveInitialData = isValidConfig(initialData) 
+      ? { ...defaultShopSettingsConfig, ...initialData } 
+      : defaultShopSettingsConfig;
+
     const form = useForm<ShopSettingsConfig>({
       resolver: zodResolver(shopSettingsConfigSchema),
-      defaultValues: initialData ? { ...DEFAULT_CONFIG, ...initialData } : DEFAULT_CONFIG,
+      defaultValues: effectiveInitialData,
     });
 
     useEffect(() => {
       if (initialData) {
-        setOriginalData(JSON.parse(JSON.stringify(initialData)));
+        const data = isValidConfig(initialData) 
+          ? { ...defaultShopSettingsConfig, ...initialData } 
+          : defaultShopSettingsConfig;
+        setOriginalData(JSON.parse(JSON.stringify(data)));
         if (!initializedRef.current) {
           initializedRef.current = true;
         }
@@ -68,14 +77,25 @@ export const ShopSettingsConfigForm = forwardRef<ShopSettingsConfigFormRef, Shop
     useImperativeHandle(ref, () => ({
       getData: () => form.getValues(),
       reset: (data: ShopSettingsConfig) => {
-        form.reset(data);
-        setOriginalData(JSON.parse(JSON.stringify(data)));
+        const resetData = isValidConfig(data) 
+          ? { ...defaultShopSettingsConfig, ...data } 
+          : defaultShopSettingsConfig;
+        form.reset(resetData);
+        setOriginalData(JSON.parse(JSON.stringify(resetData)));
       },
     }));
 
     return (
       <Form {...form}>
-        <FormWithJsonTabs formData={form.watch()} originalData={originalData} onJsonChange={(data) => form.reset(data)}>
+        <FormWithJsonTabs 
+          formData={form.watch()} 
+          originalData={originalData} 
+          onJsonChange={(data) => form.reset(data)}
+          transformToUnity={transformShopSettingsConfigToExport}
+          transformFromUnity={transformShopSettingsConfigFromImport}
+          onSave={() => onSubmit(form.getValues())}
+          isSaving={isSaving}
+        >
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <ConfigFormSection title="Shop Settings" description="Configure shop behavior and restore settings" collapsible={false}>
               <div className="space-y-4">

@@ -8,3 +8,9 @@ export const gameEconomyConfigSchema = z.object({
 
 export type GameEconomyConfig = z.infer<typeof gameEconomyConfigSchema>;
 
+export const defaultGameEconomyConfig: GameEconomyConfig = {
+  revive_coin_cost: 0,
+  ad_level_complete_coin_reward: 0,
+  scenery_complete_coin_reward: 0,
+};
+

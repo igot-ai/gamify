@@ -22,21 +22,31 @@ export interface ExportSpinConfig {
 
 function transformRewardSlot(slot: RewardSlot): ExportRewardSlot {
   return {
-    Probability: slot.probability,
-    ItemId: slot.item_id,
-    Amount: slot.amount,
-    UpgradeMultiplier: slot.upgrade_multiplier,
+    Probability: slot.probability ?? 0,
+    ItemId: slot.item_id ?? '',
+    Amount: slot.amount ?? 0,
+    UpgradeMultiplier: slot.upgrade_multiplier ?? 1,
   };
 }
 
 export function transformSpinConfigToExport(config: SpinConfig): ExportSpinConfig {
+  if (!config) {
+    return {
+      Enabled: true,
+      MinLevel: 1,
+      FreeSpinCount: 1,
+      AdSpinCount: 3,
+      CooldownHours: 24,
+      RewardSlots: [],
+    };
+  }
   return {
-    Enabled: config.enabled,
-    MinLevel: config.min_level,
-    FreeSpinCount: config.free_spin_count,
-    AdSpinCount: config.ad_spin_count,
-    CooldownHours: config.cooldown_hours,
-    RewardSlots: config.reward_slots.map(transformRewardSlot),
+    Enabled: config.enabled ?? true,
+    MinLevel: config.min_level ?? 1,
+    FreeSpinCount: config.free_spin_count ?? 1,
+    AdSpinCount: config.ad_spin_count ?? 3,
+    CooldownHours: config.cooldown_hours ?? 24,
+    RewardSlots: (config.reward_slots || []).filter(Boolean).map(transformRewardSlot),
   };
 }
 

@@ -11,10 +11,17 @@ export interface ExportChapterRewardConfig {
 }
 
 export function transformChapterRewardConfigToExport(config: ChapterRewardConfig): ExportChapterRewardConfig {
+  if (!config) {
+    return {
+      Undo: 1,
+      Hint: 1,
+      Shuffle: 1,
+    };
+  }
   return {
-    Undo: config.undo,
-    Hint: config.hint,
-    Shuffle: config.shuffle,
+    Undo: config.undo ?? 1,
+    Hint: config.hint ?? 1,
+    Shuffle: config.shuffle ?? 1,
   };
 }
 

@@ -33,18 +33,18 @@ export type SpinConfig = z.infer<typeof spinConfigSchema>;
 // ============================================
 
 export const defaultRewardSlot: RewardSlot = {
-  probability: 0.25,
+  probability: 0,
   item_id: '',
-  amount: 1,
-  upgrade_multiplier: 2,
+  amount: 0,
+  upgrade_multiplier: 0,
 };
 
 export const defaultSpinConfig: SpinConfig = {
-  enabled: true,
-  free_spin_count: 1,
-  ad_spin_count: 4,
-  cooldown_hours: 24,
-  min_level: 20,
+  enabled: false,
+  free_spin_count: 0,
+  ad_spin_count: 0,
+  cooldown_hours: 0,
+  min_level: 0,
   reward_slots: [],
 };
 

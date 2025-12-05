@@ -11,10 +11,17 @@ export interface ExportGameEconomyConfig {
 }
 
 export function transformGameEconomyConfigToExport(config: GameEconomyConfig): ExportGameEconomyConfig {
+  if (!config) {
+    return {
+      ReviveCoinCost: 300,
+      AdLevelCompleteCoinReward: 50,
+      SceneryCompleteCoinReward: 50,
+    };
+  }
   return {
-    ReviveCoinCost: config.revive_coin_cost,
-    AdLevelCompleteCoinReward: config.ad_level_complete_coin_reward,
-    SceneryCompleteCoinReward: config.scenery_complete_coin_reward,
+    ReviveCoinCost: config.revive_coin_cost ?? 300,
+    AdLevelCompleteCoinReward: config.ad_level_complete_coin_reward ?? 50,
+    SceneryCompleteCoinReward: config.scenery_complete_coin_reward ?? 50,
   };
 }
 

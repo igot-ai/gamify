@@ -21,6 +21,8 @@ import type { GameConfig } from './validations/gameConfig';
 import type { HapticConfig, HapticType } from './validations/hapticConfig';
 import type { RemoveAdsConfig } from './validations/removeAdsConfig';
 import type { TileBundleConfig } from './validations/tileBundleConfig';
+import type { AnalyticsConfig } from './validations/analyticsConfig';
+import type { TutorialConfig } from './validations/tutorialConfig';
 
 // ============================================
 // MAIN ENTRY POINT
@@ -61,6 +63,10 @@ export function transformImportData(sectionType: SectionType, data: any): any {
       return transformRemoveAdsConfigFromImport(data);
     case 'tile_bundle':
       return transformTileBundleConfigFromImport(data);
+    case 'analytics':
+      return transformAnalyticsConfigFromImport(data);
+    case 'tutorial':
+      return transformTutorialConfigFromImport(data);
     default:
       // For other types, return as-is (they might not have transforms)
       return data;
@@ -341,7 +347,7 @@ function transformShopSettingsConfigFromImport(data: any): ShopSettingsConfig {
 // ============================================
 
 function isUnitySpinConfig(data: any): boolean {
-  return data && ('Enabled' in data || 'RewardSlots' in data || 'SpinCost' in data);
+  return data && ('Enabled' in data || 'RewardSlots' in data || 'FreeSpinCount' in data || 'MinLevel' in data);
 }
 
 function transformSpinConfigFromImport(data: any): SpinConfig {
@@ -351,14 +357,15 @@ function transformSpinConfigFromImport(data: any): SpinConfig {
 
   return {
     enabled: data.Enabled ?? true,
-    spin_cost: data.SpinCost ?? 100,
-    free_spin_interval_hours: data.FreeSpinIntervalHours ?? 24,
     min_level: data.MinLevel ?? 1,
-    reward_slots: (data.RewardSlots ?? []).map((slot: any): RewardSlot => ({
-      reward_type: slot.RewardType === 0 ? 'Currency' : 'Item',
-      reward_id: slot.RewardId ?? '',
-      amount: slot.Amount ?? 1,
-      weight: slot.Weight ?? 1,
+    free_spin_count: data.FreeSpinCount ?? 1,
+    ad_spin_count: data.AdSpinCount ?? 4,
+    cooldown_hours: data.CooldownHours ?? 24,
+    reward_slots: (data.RewardSlots ?? []).filter((slot: any) => slot).map((slot: any): RewardSlot => ({
+      probability: slot.Probability ?? slot.probability ?? 0.25,
+      item_id: slot.ItemId ?? slot.item_id ?? '',
+      amount: slot.Amount ?? slot.amount ?? 1,
+      upgrade_multiplier: slot.UpgradeMultiplier ?? slot.upgrade_multiplier ?? 2,
     })),
   };
 }
@@ -576,4 +583,69 @@ function transformTileBundleConfigFromImport(data: any): TileBundleConfig {
     cooldownOfferHours: data.CooldownOfferHours ?? 24,
   };
 }
+
+// ============================================
+// ANALYTICS CONFIG
+// ============================================
+
+function isUnityAnalyticsConfig(data: any): boolean {
+  return data && ('DevKey' in data || 'AppId' in data);
+}
+
+function transformAnalyticsConfigFromImport(data: any): AnalyticsConfig {
+  if (!isUnityAnalyticsConfig(data)) {
+    return data as AnalyticsConfig;
+  }
+
+  return {
+    dev_key: data.DevKey ?? '',
+    app_id: data.AppId ?? '',
+  };
+}
+
+// ============================================
+// TUTORIAL CONFIG
+// ============================================
+
+function isUnityTutorialConfig(data: any): boolean {
+  return data && ('Option' in data || 'Data' in data || 'option' in data);
+}
+
+function transformTutorialConfigFromImport(data: any): TutorialConfig {
+  if (!isUnityTutorialConfig(data)) {
+    return data as TutorialConfig;
+  }
+
+  // Tutorial data structure is mostly PascalCase internally
+  // Only the top-level 'option' needs transformation
+  return {
+    option: data.Option ?? data.option ?? 1,
+    data: data.Data ?? data.data ?? { Id: '1', Levels: [] },
+  };
+}
+
+// ============================================
+// NAMED EXPORTS FOR INDIVIDUAL TRANSFORMS
+// ============================================
+// These are used by form components to transform Unity format to internal format
+
+export {
+  transformAdConfigFromImport,
+  transformNotificationConfigFromImport,
+  transformBoosterConfigFromImport,
+  transformHintOfferConfigFromImport,
+  transformRatingConfigFromImport,
+  transformLinkConfigFromImport,
+  transformGameEconomyConfigFromImport,
+  transformChapterRewardConfigFromImport,
+  transformShopSettingsConfigFromImport,
+  transformSpinConfigFromImport,
+  transformEconomyConfigFromImport,
+  transformGameConfigFromImport,
+  transformHapticConfigFromImport,
+  transformRemoveAdsConfigFromImport,
+  transformTileBundleConfigFromImport,
+  transformAnalyticsConfigFromImport,
+  transformTutorialConfigFromImport,
+};
 

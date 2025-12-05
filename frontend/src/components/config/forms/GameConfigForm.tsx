@@ -19,7 +19,10 @@ import { FormWithJsonTabs } from '../shared/FormWithJsonTabs';
 import {
   gameConfigSchema,
   type GameConfig,
+  defaultGameConfig,
 } from '@/lib/validations/gameConfig';
+import { transformGameConfigToExport } from '@/lib/gameExportTransform';
+import { transformGameConfigFromImport } from '@/lib/importTransforms';
 
 interface GameConfigFormProps {
   initialData?: GameConfig;
@@ -86,19 +89,28 @@ const Vector2Field = ({ control, baseName, label }: { control: any; baseName: st
   </div>
 );
 
+// Helper to check if data is empty or has required structure
+const isValidGameConfig = (data: any): data is GameConfig => {
+  return data && data.gameLogic && data.viewConfig;
+};
+
 export const GameConfigForm = forwardRef<GameConfigFormRef, GameConfigFormProps>(
   function GameConfigForm({ initialData, onSubmit, onChange, onCancel, isSaving = false }, ref) {
     const [originalData, setOriginalData] = useState<GameConfig | undefined>();
     const initializedRef = useRef(false);
 
+    // Use default config if initialData is empty or invalid
+    const effectiveInitialData = isValidGameConfig(initialData) ? initialData : defaultGameConfig;
+
     const form = useForm<GameConfig>({
       resolver: zodResolver(gameConfigSchema),
-      defaultValues: initialData,
+      defaultValues: effectiveInitialData,
     });
 
     useEffect(() => {
       if (initialData) {
-        setOriginalData(JSON.parse(JSON.stringify(initialData)));
+        const data = isValidGameConfig(initialData) ? initialData : defaultGameConfig;
+        setOriginalData(JSON.parse(JSON.stringify(data)));
         if (!initializedRef.current) {
           initializedRef.current = true;
         }
@@ -114,8 +126,10 @@ export const GameConfigForm = forwardRef<GameConfigFormRef, GameConfigFormProps>
     useImperativeHandle(ref, () => ({
       getData: () => form.getValues(),
       reset: (data: GameConfig) => {
-        form.reset(data);
-        setOriginalData(JSON.parse(JSON.stringify(data)));
+        // Use default config if data is empty or invalid
+        const resetData = isValidGameConfig(data) ? data : defaultGameConfig;
+        form.reset(resetData);
+        setOriginalData(JSON.parse(JSON.stringify(resetData)));
       },
     }));
 
@@ -125,6 +139,10 @@ export const GameConfigForm = forwardRef<GameConfigFormRef, GameConfigFormProps>
           formData={form.watch()}
           originalData={originalData}
           onJsonChange={(data) => form.reset(data)}
+          transformToUnity={transformGameConfigToExport}
+          transformFromUnity={transformGameConfigFromImport}
+          onSave={() => onSubmit(form.getValues())}
+          isSaving={isSaving}
         >
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <ConfigFormSection title="Game Logic" description="Configure game logic parameters and combo settings">

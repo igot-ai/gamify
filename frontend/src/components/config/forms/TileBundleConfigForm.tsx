@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { forwardRef, useImperativeHandle, useEffect } from 'react';
+import { forwardRef, useImperativeHandle, useEffect, useState, useRef } from 'react';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import {
@@ -16,10 +16,18 @@ import {
 } from '@/components/ui/Form';
 import { Switch } from '@/components/ui/switch';
 import { ConfigFormSection } from '../shared/ConfigFormSection';
+import { FormWithJsonTabs } from '../shared/FormWithJsonTabs';
 import {
   tileBundleConfigSchema,
   type TileBundleConfig,
+  defaultTileBundleConfig,
 } from '@/lib/validations/tileBundleConfig';
+import { transformTileBundleConfigToExport } from '@/lib/tileBundleExportTransform';
+import { transformTileBundleConfigFromImport } from '@/lib/importTransforms';
+
+const isValidConfig = (data: any): data is TileBundleConfig => {
+  return data && typeof data.enabled === 'boolean';
+};
 
 interface TileBundleConfigFormProps {
   initialData?: TileBundleConfig;
@@ -42,33 +50,58 @@ export const TileBundleConfigForm = forwardRef<TileBundleConfigFormRef, TileBund
     onCancel,
     isSaving = false,
   }, ref) {
+    const [originalData, setOriginalData] = useState<TileBundleConfig | undefined>();
+    const initializedRef = useRef(false);
+
+    const effectiveInitialData = isValidConfig(initialData)
+      ? { ...defaultTileBundleConfig, ...initialData }
+      : defaultTileBundleConfig;
+
     const form = useForm<TileBundleConfig>({
       resolver: zodResolver(tileBundleConfigSchema) as any,
-      defaultValues: initialData,
+      defaultValues: effectiveInitialData,
     });
+
+    useEffect(() => {
+      if (initialData) {
+        const data = isValidConfig(initialData)
+          ? { ...defaultTileBundleConfig, ...initialData }
+          : defaultTileBundleConfig;
+        setOriginalData(JSON.parse(JSON.stringify(data)));
+        if (!initializedRef.current) {
+          initializedRef.current = true;
+        }
+      }
+    }, [initialData]);
 
     useImperativeHandle(ref, () => ({
       getData: () => form.getValues(),
-      reset: (data: TileBundleConfig) => form.reset(data),
+      reset: (data: TileBundleConfig) => {
+        const resetData = isValidConfig(data)
+          ? { ...defaultTileBundleConfig, ...data }
+          : defaultTileBundleConfig;
+        form.reset(resetData);
+        setOriginalData(JSON.parse(JSON.stringify(resetData)));
+      },
     }));
 
-    const watchedValues = form.watch();
     useEffect(() => {
-      if (onChange) {
-        const currentValues = JSON.stringify(watchedValues);
-        const initialValues = JSON.stringify(initialData);
-        if (currentValues !== initialValues) {
-          onChange(watchedValues);
-        }
-      }
-    }, [watchedValues, onChange, initialData]);
-
-    const isValid = form.formState.isValid;
-    const handleSubmit = form.handleSubmit(onSubmit);
+      const sub = form.watch((data) => onChange?.(data as TileBundleConfig));
+      return () => sub.unsubscribe();
+    }, [form, onChange]);
 
     return (
       <Form {...form}>
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <FormWithJsonTabs
+          formData={form.watch()}
+          originalData={originalData}
+          onJsonChange={(data) => form.reset(data)}
+          transformToUnity={transformTileBundleConfigToExport}
+          transformFromUnity={transformTileBundleConfigFromImport}
+          onSave={() => onSubmit(form.getValues())}
+          isSaving={isSaving}
+        >
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <ConfigFormSection
             title="Tile Bundle Offer"
             description="Configure the tile bundle offer settings and triggers"
@@ -321,13 +354,14 @@ export const TileBundleConfigForm = forwardRef<TileBundleConfigFormRef, TileBund
             )}
             <Button
               type="submit"
-              disabled={!isValid || isSaving}
+              disabled={!form.formState.isValid || isSaving}
               className="shadow-stripe-sm transition-all hover:shadow-stripe-md hover:-translate-y-0.5"
             >
               {isSaving ? 'Saving...' : 'Save Changes'}
             </Button>
           </div>
         </form>
+        </FormWithJsonTabs>
       </Form>
     );
   }

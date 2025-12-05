@@ -10,9 +10,15 @@ export interface ExportShopSettingsConfig {
 }
 
 export function transformShopSettingsConfigToExport(config: ShopSettingsConfig): ExportShopSettingsConfig {
+  if (!config) {
+    return {
+      Enabled: true,
+      RestoreMinLevel: 1,
+    };
+  }
   return {
-    Enabled: config.enabled,
-    RestoreMinLevel: config.restore_min_level,
+    Enabled: config.enabled ?? true,
+    RestoreMinLevel: config.restore_min_level ?? 1,
   };
 }
 

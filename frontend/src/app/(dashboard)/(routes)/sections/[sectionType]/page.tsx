@@ -116,10 +116,13 @@ export default function SectionEditorPage() {
   useEffect(() => {
     if (versionsData?.versions && versionsData.versions.length > 0 && !selectedVersion) {
       const firstVersion = versionsData.versions[0];
+      // Transform from PascalCase (Unity format) to camelCase for form use
+      const rawData = firstVersion.config_data ?? {};
+      const configData = transformImportData(sectionType, rawData);
       setSelectedVersion(firstVersion);
-      setCurrentData(firstVersion.config_data ?? {});
+      setCurrentData(configData);
     }
-  }, [versionsData, selectedVersion]);
+  }, [versionsData, selectedVersion, sectionType]);
 
   // Update URL when tab changes
   const handleTabChange = (tabId: string) => {
@@ -161,10 +164,13 @@ export default function SectionEditorPage() {
     setIsSaving(true);
     try {
       const saveData = data ?? getFormData() ?? currentData;
+      // Transform to PascalCase (Unity format) before saving
+      const transformFn = sectionTransformMap[sectionType];
+      const unityFormatData = transformFn ? transformFn(saveData) : saveData;
       await updateVersionMutation.mutateAsync({ 
         sectionConfigId: config.id,
         versionId: selectedVersion.id, 
-        data: { config_data: saveData }
+        data: { config_data: unityFormatData }
       });
       setCurrentData(saveData);
       setHasLocalChanges(false);
@@ -188,7 +194,9 @@ export default function SectionEditorPage() {
       return;
     }
     
-    const configData = version.config_data ?? {};
+    // Transform from PascalCase (Unity format) to camelCase for form use
+    const rawData = version.config_data ?? {};
+    const configData = transformImportData(sectionType, rawData);
     setSelectedVersion(version);
     setCurrentData(configData);
     setHasLocalChanges(false);
@@ -197,7 +205,9 @@ export default function SectionEditorPage() {
 
   const handleConfirmDiscard = () => {
     if (pendingVersion) {
-      const configData = pendingVersion.config_data ?? {};
+      // Transform from PascalCase (Unity format) to camelCase for form use
+      const rawData = pendingVersion.config_data ?? {};
+      const configData = transformImportData(sectionType, rawData);
       setSelectedVersion(pendingVersion);
       setCurrentData(configData);
       setHasLocalChanges(false);
@@ -209,7 +219,9 @@ export default function SectionEditorPage() {
 
   const handleVersionCreated = (version: SectionConfigVersion) => {
     refetchVersions();
-    const configData = version.config_data ?? {};
+    // Transform from PascalCase (Unity format) to camelCase for form use
+    const rawData = version.config_data ?? {};
+    const configData = transformImportData(sectionType, rawData);
     setSelectedVersion(version);
     setCurrentData(configData);
     setHasLocalChanges(false);

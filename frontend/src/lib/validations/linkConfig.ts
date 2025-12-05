@@ -7,3 +7,8 @@ export const linkConfigSchema = z.object({
 
 export type LinkConfig = z.infer<typeof linkConfigSchema>;
 
+export const defaultLinkConfig: LinkConfig = {
+  privacy_link: '',
+  terms_link: '',
+};
+

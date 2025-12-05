@@ -26,21 +26,38 @@ export interface ExportHapticConfig {
   Error: ExportHapticType;
 }
 
-function transformHapticType(haptic: HapticType): ExportHapticType {
+const DEFAULT_HAPTIC_TYPE: ExportHapticType = {
+  Android: { Duration: 50, Amplitude: 100 },
+  IOS: { Intensity: 0.5, Sharpness: 0.5, Duration: 0.1 },
+};
+
+function transformHapticType(haptic?: HapticType): ExportHapticType {
+  if (!haptic) return DEFAULT_HAPTIC_TYPE;
   return {
     Android: {
-      Duration: haptic.android.duration,
-      Amplitude: haptic.android.amplitude,
+      Duration: haptic.android?.duration ?? 50,
+      Amplitude: haptic.android?.amplitude ?? 100,
     },
     IOS: {
-      Intensity: haptic.ios.intensity,
-      Sharpness: haptic.ios.sharpness,
-      Duration: haptic.ios.duration,
+      Intensity: haptic.ios?.intensity ?? 0.5,
+      Sharpness: haptic.ios?.sharpness ?? 0.5,
+      Duration: haptic.ios?.duration ?? 0.1,
     },
   };
 }
 
 export function transformHapticConfigToExport(config: HapticConfig): ExportHapticConfig {
+  if (!config) {
+    return {
+      Soft: DEFAULT_HAPTIC_TYPE,
+      Light: DEFAULT_HAPTIC_TYPE,
+      Medium: DEFAULT_HAPTIC_TYPE,
+      Heavy: DEFAULT_HAPTIC_TYPE,
+      Button: DEFAULT_HAPTIC_TYPE,
+      Success: DEFAULT_HAPTIC_TYPE,
+      Error: DEFAULT_HAPTIC_TYPE,
+    };
+  }
   return {
     Soft: transformHapticType(config.soft),
     Light: transformHapticType(config.light),

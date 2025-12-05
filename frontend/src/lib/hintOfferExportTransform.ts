@@ -14,13 +14,23 @@ export interface ExportHintOfferConfig {
 }
 
 export function transformHintOfferConfigToExport(config: HintOfferConfig): ExportHintOfferConfig {
+  if (!config) {
+    return {
+      Enabled: true,
+      Duration: 5,
+      DelayBeforeCountdown: 0,
+      MinLevel: 1,
+      IdleTimeTrigger: 10,
+      MaxAppearancesPerLevel: 3,
+    };
+  }
   return {
-    Enabled: config.enabled,
-    Duration: config.duration,
-    DelayBeforeCountdown: config.delay_before_countdown,
-    MinLevel: config.min_level,
-    IdleTimeTrigger: config.idle_time_trigger,
-    MaxAppearancesPerLevel: config.max_appearances_per_level,
+    Enabled: config.enabled ?? true,
+    Duration: config.duration ?? 5,
+    DelayBeforeCountdown: config.delay_before_countdown ?? 0,
+    MinLevel: config.min_level ?? 1,
+    IdleTimeTrigger: config.idle_time_trigger ?? 10,
+    MaxAppearancesPerLevel: config.max_appearances_per_level ?? 3,
   };
 }
 

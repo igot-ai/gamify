@@ -186,14 +186,14 @@ export const defaultInventoryItem: InventoryItem = {
   description: '',
   iconPath: '',
   startingQuantity: 0,
-  isStackable: true,
+  isStackable: false,
   maxStackSize: 0,
 };
 
 export const defaultResourceReference: ResourceReference = {
   type: 'Currency',
   resourceId: '',
-  amount: 1,
+  amount: 0,
 };
 
 export const defaultVirtualPurchase: VirtualPurchase = {
@@ -214,7 +214,7 @@ export const defaultRealPurchase: RealPurchase = {
 
 export const defaultEconomySettings: EconomySettings = {
   enableRefundProcessing: false,
-  remoteConfigKey: 'ECONOMY_CONFIG',
+  remoteConfigKey: '',
 };
 
 export const defaultEconomyConfig: EconomyConfig = {

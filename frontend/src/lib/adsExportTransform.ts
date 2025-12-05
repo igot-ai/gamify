@@ -69,6 +69,22 @@ const BANNER_POSITION_MAP: Record<BannerPosition, number> = {
  * Transform internal AdConfig to Unity-compatible export format.
  */
 export function transformAdConfigToExport(config: AdConfig): ExportAdConfig {
+  if (!config) {
+    return {
+      BannerAdUnitId: '',
+      InterstitialAdUnitId: '',
+      RewardedAdUnitId: '',
+      AutoHideBanner: true,
+      BannerPosition: 0,
+      BannerRefreshRate: 0,
+      BannerMemoryThreshold: 1536,
+      DestroyBannerOnLowMemory: true,
+      PreloadInterstitial: false,
+      PreloadRewarded: true,
+      EnableConsentFlow: true,
+      Placements: [],
+    };
+  }
   return {
     BannerAdUnitId: config.adUnitIds?.banner ?? '',
     InterstitialAdUnitId: config.adUnitIds?.interstitial ?? '',
@@ -86,10 +102,10 @@ export function transformAdConfigToExport(config: AdConfig): ExportAdConfig {
 }
 
 function transformPlacements(placements: AdConfig['placements']): ExportPlacement[] {
-  return placements.map((placement) => ({
-    PlacementId: placement.name,
-    AdFormat: AD_FORMAT_MAP[placement.type],
-    Action: ACTION_MAP[placement.action],
+  return (placements || []).filter(Boolean).map((placement) => ({
+    PlacementId: placement.name ?? '',
+    AdFormat: AD_FORMAT_MAP[placement.type] ?? 1,
+    Action: ACTION_MAP[placement.action] ?? 2,
     MinLevel: placement.minLevel ?? 1,
     TimeBetween: placement.timeBetween ?? 0,
     ShowLoading: placement.showLoading ?? false,

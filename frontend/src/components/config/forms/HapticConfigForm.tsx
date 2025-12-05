@@ -17,7 +17,13 @@ import {
 } from '@/components/ui/Form';
 import { ConfigFormSection } from '../shared/ConfigFormSection';
 import { FormWithJsonTabs } from '../shared/FormWithJsonTabs';
-import { hapticConfigSchema, type HapticConfig } from '@/lib/validations/hapticConfig';
+import { hapticConfigSchema, type HapticConfig, defaultHapticConfig } from '@/lib/validations/hapticConfig';
+import { transformHapticConfigToExport } from '@/lib/hapticExportTransform';
+import { transformHapticConfigFromImport } from '@/lib/importTransforms';
+
+const isValidConfig = (data: any): data is HapticConfig => {
+  return data && data.soft && data.light && data.medium;
+};
 
 interface HapticConfigFormProps {
   initialData?: HapticConfig;
@@ -64,14 +70,17 @@ export const HapticConfigForm = forwardRef<HapticConfigFormRef, HapticConfigForm
     const [originalData, setOriginalData] = useState<HapticConfig | undefined>();
     const initializedRef = useRef(false);
 
+    const effectiveInitialData = isValidConfig(initialData) ? initialData : defaultHapticConfig;
+
     const form = useForm<HapticConfig>({
       resolver: zodResolver(hapticConfigSchema),
-      defaultValues: initialData,
+      defaultValues: effectiveInitialData,
     });
 
     useEffect(() => {
       if (initialData) {
-        setOriginalData(JSON.parse(JSON.stringify(initialData)));
+        const data = isValidConfig(initialData) ? initialData : defaultHapticConfig;
+        setOriginalData(JSON.parse(JSON.stringify(data)));
         if (!initializedRef.current) {
           initializedRef.current = true;
         }
@@ -86,8 +95,9 @@ export const HapticConfigForm = forwardRef<HapticConfigFormRef, HapticConfigForm
     useImperativeHandle(ref, () => ({
       getData: () => form.getValues(),
       reset: (data: HapticConfig) => {
-        form.reset(data);
-        setOriginalData(JSON.parse(JSON.stringify(data)));
+        const resetData = isValidConfig(data) ? data : defaultHapticConfig;
+        form.reset(resetData);
+        setOriginalData(JSON.parse(JSON.stringify(resetData)));
       },
     }));
 
@@ -213,7 +223,15 @@ export const HapticConfigForm = forwardRef<HapticConfigFormRef, HapticConfigForm
 
     return (
       <Form {...form}>
-        <FormWithJsonTabs formData={form.watch()} originalData={originalData} onJsonChange={(data) => form.reset(data)}>
+        <FormWithJsonTabs 
+          formData={form.watch()} 
+          originalData={originalData} 
+          onJsonChange={(data) => form.reset(data)}
+          transformToUnity={transformHapticConfigToExport}
+          transformFromUnity={transformHapticConfigFromImport}
+          onSave={() => onSubmit(form.getValues())}
+          isSaving={isSaving}
+        >
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <ConfigFormSection title="Haptic Feedback" description="Configure haptic feedback settings for different feedback types on Android and iOS">
               <div className="space-y-2">

@@ -10,9 +10,15 @@ export interface ExportLinkConfig {
 }
 
 export function transformLinkConfigToExport(config: LinkConfig): ExportLinkConfig {
+  if (!config) {
+    return {
+      PrivacyLink: '',
+      TermsLink: '',
+    };
+  }
   return {
-    PrivacyLink: config.privacy_link,
-    TermsLink: config.terms_link,
+    PrivacyLink: config.privacy_link ?? '',
+    TermsLink: config.terms_link ?? '',
   };
 }
 

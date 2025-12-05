@@ -102,43 +102,36 @@ export const defaultChannel: NotificationChannel = {
   id: '',
   name: '',
   description: '',
-  defaultBadge: 1,
-  importance: 3, // Default importance
-  enableLights: true,
-  enableVibration: true,
+  defaultBadge: 0,
+  importance: 0,
+  enableLights: false,
+  enableVibration: false,
   canBypassDnd: false,
-  canShowBadge: true,
-  lockScreenVisibility: 0, // Private
+  canShowBadge: false,
+  lockScreenVisibility: 0,
 };
 
 // Default notification strategy
 export const defaultStrategy: NotificationStrategy = {
   id: '',
   name: '',
-  mode: 0, // DELAY
+  mode: 0,
   delaySeconds: 0,
-  fixedHour: 8,
+  fixedHour: 0,
   fixedMinute: 0,
   fixedDaysOffset: 0,
-  repeatPolicy: 0, // NO_REPEAT
+  repeatPolicy: 0,
   repeatSeconds: 0,
-  active: true,
-  autoScheduled: true,
-  schedulingMode: 0, // RANDOM
-  defaultChannelId: 'default_channel',
-  notifications: [{ ...defaultMessage, title: 'NOTIFICATION_TITLE', body: 'NOTIFICATION_BODY' }],
+  active: false,
+  autoScheduled: false,
+  schedulingMode: 0,
+  defaultChannelId: '',
+  notifications: [],
 };
 
 // Default notification config
 export const defaultNotificationConfig: NotificationConfig = {
-  enable: true,
+  enable: false,
   strategies: [],
-  channels: [
-    {
-      ...defaultChannel,
-      id: 'default_channel',
-      name: 'Default',
-      description: 'Default notification channel',
-    },
-  ],
+  channels: [],
 };

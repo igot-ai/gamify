@@ -8,3 +8,9 @@ export const chapterRewardConfigSchema = z.object({
 
 export type ChapterRewardConfig = z.infer<typeof chapterRewardConfigSchema>;
 
+export const defaultChapterRewardConfig: ChapterRewardConfig = {
+  undo: 0,
+  hint: 0,
+  shuffle: 0,
+};
+

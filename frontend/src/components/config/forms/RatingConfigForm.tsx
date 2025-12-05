@@ -18,14 +18,13 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { ConfigFormSection } from '../shared/ConfigFormSection';
 import { FormWithJsonTabs } from '../shared/FormWithJsonTabs';
-import { ratingConfigSchema, type RatingConfig } from '@/lib/validations/ratingConfig';
+import { ratingConfigSchema, type RatingConfig, defaultRatingConfig } from '@/lib/validations/ratingConfig';
+import { transformRatingConfigToExport } from '@/lib/ratingExportTransform';
+import { transformRatingConfigFromImport } from '@/lib/importTransforms';
 
-const DEFAULT_CONFIG: RatingConfig = {
-  enabled: true,
-  min_star_required: 4,
-  interval_hours: 48.0,
-  min_levels: 9,
-  max_show_count: 3,
+// Helper to check if data is valid
+const isValidConfig = (data: any): data is RatingConfig => {
+  return data && typeof data.enabled === 'boolean';
 };
 
 interface RatingConfigFormProps {
@@ -46,14 +45,21 @@ export const RatingConfigForm = forwardRef<RatingConfigFormRef, RatingConfigForm
     const [originalData, setOriginalData] = useState<RatingConfig | undefined>();
     const initializedRef = useRef(false);
 
+    const effectiveInitialData = isValidConfig(initialData) 
+      ? { ...defaultRatingConfig, ...initialData } 
+      : defaultRatingConfig;
+
     const form = useForm<RatingConfig>({
       resolver: zodResolver(ratingConfigSchema),
-      defaultValues: initialData ? { ...DEFAULT_CONFIG, ...initialData } : DEFAULT_CONFIG,
+      defaultValues: effectiveInitialData,
     });
 
     useEffect(() => {
       if (initialData) {
-        setOriginalData(JSON.parse(JSON.stringify(initialData)));
+        const data = isValidConfig(initialData) 
+          ? { ...defaultRatingConfig, ...initialData } 
+          : defaultRatingConfig;
+        setOriginalData(JSON.parse(JSON.stringify(data)));
         if (!initializedRef.current) {
           initializedRef.current = true;
         }
@@ -68,14 +74,25 @@ export const RatingConfigForm = forwardRef<RatingConfigFormRef, RatingConfigForm
     useImperativeHandle(ref, () => ({
       getData: () => form.getValues(),
       reset: (data: RatingConfig) => {
-        form.reset(data);
-        setOriginalData(JSON.parse(JSON.stringify(data)));
+        const resetData = isValidConfig(data) 
+          ? { ...defaultRatingConfig, ...data } 
+          : defaultRatingConfig;
+        form.reset(resetData);
+        setOriginalData(JSON.parse(JSON.stringify(resetData)));
       },
     }));
 
     return (
       <Form {...form}>
-        <FormWithJsonTabs formData={form.watch()} originalData={originalData} onJsonChange={(data) => form.reset(data)}>
+        <FormWithJsonTabs 
+          formData={form.watch()} 
+          originalData={originalData} 
+          onJsonChange={(data) => form.reset(data)}
+          transformToUnity={transformRatingConfigToExport}
+          transformFromUnity={transformRatingConfigFromImport}
+          onSave={() => onSubmit(form.getValues())}
+          isSaving={isSaving}
+        >
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <ConfigFormSection title="Rating Settings" description="Configure in-app rating prompt behavior" collapsible={false}>
               <div className="space-y-4">

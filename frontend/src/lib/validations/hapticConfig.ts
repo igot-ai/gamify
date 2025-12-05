@@ -35,3 +35,18 @@ export type AndroidHaptic = z.infer<typeof androidHapticSchema>;
 export type IOSHaptic = z.infer<typeof iosHapticSchema>;
 export type HapticType = z.infer<typeof hapticTypeSchema>;
 export type HapticConfig = z.infer<typeof hapticConfigSchema>;
+
+const defaultHapticType: HapticType = {
+  android: { duration: 0, amplitude: 0 },
+  ios: { intensity: 0, sharpness: 0, duration: 0 },
+};
+
+export const defaultHapticConfig: HapticConfig = {
+  soft: { ...defaultHapticType },
+  light: { ...defaultHapticType },
+  medium: { ...defaultHapticType },
+  heavy: { ...defaultHapticType },
+  button: { ...defaultHapticType },
+  success: { ...defaultHapticType },
+  error: { ...defaultHapticType },
+};

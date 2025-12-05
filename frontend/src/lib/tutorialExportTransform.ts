@@ -130,11 +130,18 @@ function transformTutorialData(data: TutorialData): ExportTutorialData {
 
 /**
  * Transform TutorialConfig to Unity-compatible export format.
- * Returns just the Option config that selects which tutorial to use.
+ * Returns the full tutorial config including data.
  */
-export function transformTutorialConfigToExport(config: TutorialConfig): ExportTutorialConfig {
+export function transformTutorialConfigToExport(config: TutorialConfig): { Option: number; Data: ExportTutorialData } {
+  if (!config) {
+    return {
+      Option: 1,
+      Data: { Id: '1', Levels: [] },
+    };
+  }
   return {
-    Option: config.option,
+    Option: config.option ?? 1,
+    Data: config.data ? transformTutorialData(config.data) : { Id: '1', Levels: [] },
   };
 }
 

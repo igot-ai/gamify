@@ -17,11 +17,12 @@ import {
 } from '@/components/ui/Form';
 import { ConfigFormSection } from '../shared/ConfigFormSection';
 import { FormWithJsonTabs } from '../shared/FormWithJsonTabs';
-import { linkConfigSchema, type LinkConfig } from '@/lib/validations/linkConfig';
+import { linkConfigSchema, type LinkConfig, defaultLinkConfig } from '@/lib/validations/linkConfig';
+import { transformLinkConfigToExport } from '@/lib/linkExportTransform';
+import { transformLinkConfigFromImport } from '@/lib/importTransforms';
 
-const DEFAULT_CONFIG: LinkConfig = {
-  privacy_link: '',
-  terms_link: '',
+const isValidConfig = (data: any): data is LinkConfig => {
+  return data && (typeof data.privacy_link === 'string' || typeof data.terms_link === 'string');
 };
 
 interface LinkConfigFormProps {
@@ -42,14 +43,21 @@ export const LinkConfigForm = forwardRef<LinkConfigFormRef, LinkConfigFormProps>
     const [originalData, setOriginalData] = useState<LinkConfig | undefined>();
     const initializedRef = useRef(false);
 
+    const effectiveInitialData = isValidConfig(initialData) 
+      ? { ...defaultLinkConfig, ...initialData } 
+      : defaultLinkConfig;
+
     const form = useForm<LinkConfig>({
       resolver: zodResolver(linkConfigSchema),
-      defaultValues: initialData ? { ...DEFAULT_CONFIG, ...initialData } : DEFAULT_CONFIG,
+      defaultValues: effectiveInitialData,
     });
 
     useEffect(() => {
       if (initialData) {
-        setOriginalData(JSON.parse(JSON.stringify(initialData)));
+        const data = isValidConfig(initialData) 
+          ? { ...defaultLinkConfig, ...initialData } 
+          : defaultLinkConfig;
+        setOriginalData(JSON.parse(JSON.stringify(data)));
         if (!initializedRef.current) {
           initializedRef.current = true;
         }
@@ -64,14 +72,25 @@ export const LinkConfigForm = forwardRef<LinkConfigFormRef, LinkConfigFormProps>
     useImperativeHandle(ref, () => ({
       getData: () => form.getValues(),
       reset: (data: LinkConfig) => {
-        form.reset(data);
-        setOriginalData(JSON.parse(JSON.stringify(data)));
+        const resetData = isValidConfig(data) 
+          ? { ...defaultLinkConfig, ...data } 
+          : defaultLinkConfig;
+        form.reset(resetData);
+        setOriginalData(JSON.parse(JSON.stringify(resetData)));
       },
     }));
 
     return (
       <Form {...form}>
-        <FormWithJsonTabs formData={form.watch()} originalData={originalData} onJsonChange={(data) => form.reset(data)}>
+        <FormWithJsonTabs 
+          formData={form.watch()} 
+          originalData={originalData} 
+          onJsonChange={(data) => form.reset(data)}
+          transformToUnity={transformLinkConfigToExport}
+          transformFromUnity={transformLinkConfigFromImport}
+          onSave={() => onSubmit(form.getValues())}
+          isSaving={isSaving}
+        >
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <ConfigFormSection title="Legal Links" description="Configure privacy policy and terms of service URLs" collapsible={false}>
               <div className="space-y-4">

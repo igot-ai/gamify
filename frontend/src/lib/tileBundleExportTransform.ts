@@ -18,17 +18,31 @@ export interface ExportTileBundleConfig {
 }
 
 export function transformTileBundleConfigToExport(config: TileBundleConfig): ExportTileBundleConfig {
+  if (!config) {
+    return {
+      Enabled: true,
+      Discount: 20,
+      MinLevel: 5,
+      DaysPlayedTrigger: 3,
+      SessionsPlayedTrigger: 5,
+      DurationHours: 24,
+      MaxLifetimeShows: 5,
+      MaxSessionShows: 1,
+      CooldownPopupHours: 24,
+      CooldownOfferHours: 48,
+    };
+  }
   return {
-    Enabled: config.enabled,
-    Discount: config.discount,
-    MinLevel: config.minLevel,
-    DaysPlayedTrigger: config.daysPlayedTrigger,
-    SessionsPlayedTrigger: config.sessionsPlayedTrigger,
-    DurationHours: config.durationHours,
-    MaxLifetimeShows: config.maxLifetimeShows,
-    MaxSessionShows: config.maxSessionShows,
-    CooldownPopupHours: config.cooldownPopupHours,
-    CooldownOfferHours: config.cooldownOfferHours,
+    Enabled: config.enabled ?? true,
+    Discount: config.discount ?? 20,
+    MinLevel: config.minLevel ?? 5,
+    DaysPlayedTrigger: config.daysPlayedTrigger ?? 3,
+    SessionsPlayedTrigger: config.sessionsPlayedTrigger ?? 5,
+    DurationHours: config.durationHours ?? 24,
+    MaxLifetimeShows: config.maxLifetimeShows ?? 5,
+    MaxSessionShows: config.maxSessionShows ?? 1,
+    CooldownPopupHours: config.cooldownPopupHours ?? 24,
+    CooldownOfferHours: config.cooldownOfferHours ?? 48,
   };
 }
 

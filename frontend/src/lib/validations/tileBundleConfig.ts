@@ -14,3 +14,16 @@ export const tileBundleConfigSchema = z.object({
 });
 
 export type TileBundleConfig = z.infer<typeof tileBundleConfigSchema>;
+
+export const defaultTileBundleConfig: TileBundleConfig = {
+  enabled: false,
+  discount: 0,
+  minLevel: 0,
+  daysPlayedTrigger: 0,
+  sessionsPlayedTrigger: 0,
+  durationHours: 0,
+  maxLifetimeShows: 0,
+  maxSessionShows: 0,
+  cooldownPopupHours: 0,
+  cooldownOfferHours: 0,
+};

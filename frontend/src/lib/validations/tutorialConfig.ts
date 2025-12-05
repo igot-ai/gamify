@@ -285,7 +285,7 @@ export const defaultTutorialData: TutorialData = {
 };
 
 export const defaultTutorialConfig: TutorialConfig = {
-  option: 1,
+  option: 0,
   data: defaultTutorialData,
 };
 

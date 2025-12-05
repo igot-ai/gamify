@@ -51,6 +51,8 @@ import {
   defaultStrategy,
   defaultMessage,
 } from '@/lib/validations/notificationConfig';
+import { transformNotificationConfigToExport } from '@/lib/notificationExportTransform';
+import { transformNotificationConfigFromImport } from '@/lib/importTransforms';
 
 interface NotificationConfigFormProps {
   initialData?: NotificationConfig;
@@ -245,11 +247,19 @@ export const NotificationConfigForm = forwardRef<NotificationConfigFormRef, Noti
 
     return (
       <Form {...form}>
-        <FormWithJsonTabs formData={form.watch()} originalData={originalData} onJsonChange={(data) => {
-          form.reset(data);
-          if (data.channels) replaceChannels(data.channels);
-          if (data.strategies) replaceStrategies(data.strategies);
-        }}>
+        <FormWithJsonTabs 
+          formData={form.watch()} 
+          originalData={originalData} 
+          onJsonChange={(data) => {
+            form.reset(data);
+            if (data.channels) replaceChannels(data.channels);
+            if (data.strategies) replaceStrategies(data.strategies);
+          }}
+          transformToUnity={transformNotificationConfigToExport}
+          transformFromUnity={transformNotificationConfigFromImport}
+          onSave={() => onSubmit(form.getValues())}
+          isSaving={isSaving}
+        >
           <form onSubmit={handleSubmit} className="space-y-6">
           {/* Section 1: General Settings */}
           <ConfigFormSection

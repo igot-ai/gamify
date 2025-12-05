@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { forwardRef, useImperativeHandle } from 'react';
+import { forwardRef, useImperativeHandle, useState, useRef, useEffect } from 'react';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import {
@@ -16,10 +16,18 @@ import {
 } from '@/components/ui/Form';
 import { Switch } from '@/components/ui/switch';
 import { ConfigFormSection } from '../shared/ConfigFormSection';
+import { FormWithJsonTabs } from '../shared/FormWithJsonTabs';
 import {
   removeAdsConfigSchema,
   type RemoveAdsConfig,
+  defaultRemoveAdsConfig,
 } from '@/lib/validations/removeAdsConfig';
+import { transformRemoveAdsConfigToExport } from '@/lib/removeAdsExportTransform';
+import { transformRemoveAdsConfigFromImport } from '@/lib/importTransforms';
+
+const isValidConfig = (data: any): data is RemoveAdsConfig => {
+  return data && typeof data.enabled === 'boolean';
+};
 
 interface RemoveAdsConfigFormProps {
   initialData?: RemoveAdsConfig;
@@ -42,32 +50,58 @@ export const RemoveAdsConfigForm = forwardRef<RemoveAdsConfigFormRef, RemoveAdsC
     onCancel,
     isSaving = false,
   }, ref) {
+    const [originalData, setOriginalData] = useState<RemoveAdsConfig | undefined>();
+    const initializedRef = useRef(false);
+
+    const effectiveInitialData = isValidConfig(initialData)
+      ? { ...defaultRemoveAdsConfig, ...initialData }
+      : defaultRemoveAdsConfig;
+
     const form = useForm<RemoveAdsConfig>({
       resolver: zodResolver(removeAdsConfigSchema) as any,
-      defaultValues: initialData,
+      defaultValues: effectiveInitialData,
     });
+
+    useEffect(() => {
+      if (initialData) {
+        const data = isValidConfig(initialData)
+          ? { ...defaultRemoveAdsConfig, ...initialData }
+          : defaultRemoveAdsConfig;
+        setOriginalData(JSON.parse(JSON.stringify(data)));
+        if (!initializedRef.current) {
+          initializedRef.current = true;
+        }
+      }
+    }, [initialData]);
 
     useImperativeHandle(ref, () => ({
       getData: () => form.getValues(),
-      reset: (data: RemoveAdsConfig) => form.reset(data),
+      reset: (data: RemoveAdsConfig) => {
+        const resetData = isValidConfig(data)
+          ? { ...defaultRemoveAdsConfig, ...data }
+          : defaultRemoveAdsConfig;
+        form.reset(resetData);
+        setOriginalData(JSON.parse(JSON.stringify(resetData)));
+      },
     }));
 
-    // Watch for changes and notify parent
-    React.useEffect(() => {
-      const subscription = form.watch((data) => {
-        if (onChange) {
-          onChange(data as RemoveAdsConfig);
-        }
-      });
+    useEffect(() => {
+      const subscription = form.watch((data) => onChange?.(data as RemoveAdsConfig));
       return () => subscription.unsubscribe();
     }, [form, onChange]);
 
-    const isValid = form.formState.isValid;
-    const handleSubmit = form.handleSubmit(onSubmit);
-
     return (
       <Form {...form}>
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <FormWithJsonTabs
+          formData={form.watch()}
+          originalData={originalData}
+          onJsonChange={(data) => form.reset(data)}
+          transformToUnity={transformRemoveAdsConfigToExport}
+          transformFromUnity={transformRemoveAdsConfigFromImport}
+          onSave={() => onSubmit(form.getValues())}
+          isSaving={isSaving}
+        >
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <ConfigFormSection
             title="Remove Ads Offer"
             description="Configure the remove ads offer settings and triggers"
@@ -295,13 +329,14 @@ export const RemoveAdsConfigForm = forwardRef<RemoveAdsConfigFormRef, RemoveAdsC
             )}
             <Button
               type="submit"
-              disabled={!isValid || isSaving}
+              disabled={!form.formState.isValid || isSaving}
               className="shadow-stripe-sm transition-all hover:shadow-stripe-md hover:-translate-y-0.5"
             >
               {isSaving ? 'Saving...' : 'Save Changes'}
             </Button>
           </div>
         </form>
+        </FormWithJsonTabs>
       </Form>
     );
   }

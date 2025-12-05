@@ -10,3 +10,11 @@ export const ratingConfigSchema = z.object({
 
 export type RatingConfig = z.infer<typeof ratingConfigSchema>;
 
+export const defaultRatingConfig: RatingConfig = {
+  enabled: false,
+  min_star_required: 0,
+  interval_hours: 0,
+  min_levels: 0,
+  max_show_count: 0,
+};
+

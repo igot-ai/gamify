@@ -10,9 +10,15 @@ export interface ExportAnalyticsConfig {
 }
 
 export function transformAnalyticsConfigToExport(config: AnalyticsConfig): ExportAnalyticsConfig {
+  if (!config) {
+    return {
+      DevKey: '',
+      AppId: '',
+    };
+  }
   return {
-    DevKey: config.dev_key,
-    AppId: config.app_id,
+    DevKey: config.dev_key ?? '',
+    AppId: config.app_id ?? '',
   };
 }
 

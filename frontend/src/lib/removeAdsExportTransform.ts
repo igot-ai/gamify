@@ -30,16 +30,29 @@ export interface ExportRemoveAdsConfig {
  * Transform internal RemoveAdsConfig to Unity-compatible export format.
  */
 export function transformRemoveAdsConfigToExport(config: RemoveAdsConfig): ExportRemoveAdsConfig {
+  if (!config) {
+    return {
+      Enabled: true,
+      MinLevel: 5,
+      AdWatchedTrigger: 10,
+      DaysPlayedTrigger: 3,
+      DurationHours: 24,
+      MaxLifetimeShows: 5,
+      MaxSessionShows: 1,
+      CooldownPopupHours: 24,
+      CooldownOfferHours: 48,
+    };
+  }
   return {
-    Enabled: config.enabled,
-    MinLevel: config.minLevel,
-    AdWatchedTrigger: config.adWatchedTrigger,
-    DaysPlayedTrigger: config.daysPlayedTrigger,
-    DurationHours: config.durationHours,
-    MaxLifetimeShows: config.maxLifetimeShows,
-    MaxSessionShows: config.maxSessionShows,
-    CooldownPopupHours: config.cooldownPopupHours,
-    CooldownOfferHours: config.cooldownOfferHours,
+    Enabled: config.enabled ?? true,
+    MinLevel: config.minLevel ?? 5,
+    AdWatchedTrigger: config.adWatchedTrigger ?? 10,
+    DaysPlayedTrigger: config.daysPlayedTrigger ?? 3,
+    DurationHours: config.durationHours ?? 24,
+    MaxLifetimeShows: config.maxLifetimeShows ?? 5,
+    MaxSessionShows: config.maxSessionShows ?? 1,
+    CooldownPopupHours: config.cooldownPopupHours ?? 24,
+    CooldownOfferHours: config.cooldownOfferHours ?? 48,
   };
 }
 

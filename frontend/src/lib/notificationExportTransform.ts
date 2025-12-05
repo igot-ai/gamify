@@ -63,10 +63,17 @@ export interface ExportNotificationConfig {
  * Transform internal NotificationConfig to Unity-compatible export format.
  */
 export function transformNotificationConfigToExport(config: NotificationConfig): ExportNotificationConfig {
+  if (!config) {
+    return {
+      Enable: true,
+      Strategies: [],
+      Channels: [],
+    };
+  }
   return {
-    Enable: config.enable,
-    Strategies: transformStrategies(config.strategies),
-    Channels: transformChannels(config.channels),
+    Enable: config.enable ?? true,
+    Strategies: transformStrategies(config.strategies || []),
+    Channels: transformChannels(config.channels || []),
   };
 }
 

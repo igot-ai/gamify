@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { forwardRef, useImperativeHandle, useEffect } from 'react';
+import { forwardRef, useImperativeHandle, useEffect, useState, useRef } from 'react';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import {
@@ -16,7 +16,16 @@ import {
   FormMessage,
 } from '@/components/ui/Form';
 import { Switch } from '@/components/ui/switch';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/Select';
+import { Label } from '@/components/ui/Label';
 import { ConfigFormSection } from '../shared/ConfigFormSection';
+import { FormWithJsonTabs } from '../shared/FormWithJsonTabs';
 import { RewardSlotEditor } from '../spin/RewardSlotEditor';
 import {
   spinConfigSchema,
@@ -26,6 +35,12 @@ import {
 import { useSectionConfig, useSectionConfigVersions } from '@/hooks/useSectionConfigs';
 import { useSelectedGame } from '@/hooks/useSelectedGame';
 import type { EconomyConfig, Currency, InventoryItem } from '@/lib/validations/economyConfig';
+import { transformSpinConfigToExport } from '@/lib/spinExportTransform';
+import { transformSpinConfigFromImport, transformEconomyConfigFromImport } from '@/lib/importTransforms';
+
+const isValidConfig = (data: any): data is SpinConfig => {
+  return data && typeof data.enabled === 'boolean';
+};
 
 interface SpinConfigFormProps {
   initialData?: SpinConfig;
@@ -48,6 +63,10 @@ export const SpinConfigForm = forwardRef<SpinConfigFormRef, SpinConfigFormProps>
     onCancel,
     isSaving = false,
   }, ref) {
+    const [originalData, setOriginalData] = useState<SpinConfig | undefined>();
+    const [selectedEconomyVersionId, setSelectedEconomyVersionId] = useState<string>('');
+    const initializedRef = useRef(false);
+
     // Fetch economy config to get currencies and inventory items
     const { selectedGame } = useSelectedGame();
     const { data: economyConfig } = useSectionConfig({
@@ -57,50 +76,75 @@ export const SpinConfigForm = forwardRef<SpinConfigFormRef, SpinConfigFormProps>
     
     // Fetch economy versions to get the config data
     const { data: economyVersionsData } = useSectionConfigVersions(economyConfig?.id || '');
+    const economyVersions = economyVersionsData?.versions || [];
     
-    // Extract currencies and inventory items from the latest economy version
-    const latestEconomyVersion = economyVersionsData?.versions?.[0];
-    const economyData = latestEconomyVersion?.config_data as EconomyConfig | undefined;
+    // Auto-select first version when versions load
+    useEffect(() => {
+      if (economyVersions.length > 0 && !selectedEconomyVersionId) {
+        setSelectedEconomyVersionId(economyVersions[0].id);
+      }
+    }, [economyVersions, selectedEconomyVersionId]);
+    
+    // Extract currencies and inventory items from selected economy version
+    // Data may be in Unity format (PascalCase) so transform it first
+    const selectedEconomyVersion = economyVersions.find(v => v.id === selectedEconomyVersionId);
+    const rawEconomyData = selectedEconomyVersion?.config_data;
+    const economyData = rawEconomyData ? transformEconomyConfigFromImport(rawEconomyData) : undefined;
     const currencies: Currency[] = economyData?.currencies || [];
     const inventoryItems: InventoryItem[] = economyData?.inventoryItems || [];
 
-    const mergedDefaults = initialData
-      ? {
-          ...defaultSpinConfig,
-          ...initialData,
-        }
+    const effectiveInitialData = isValidConfig(initialData)
+      ? { ...defaultSpinConfig, ...initialData }
       : defaultSpinConfig;
 
     const form = useForm<SpinConfig>({
       resolver: zodResolver(spinConfigSchema),
-      defaultValues: mergedDefaults,
+      defaultValues: effectiveInitialData,
     });
+
+    useEffect(() => {
+      if (initialData) {
+        const data = isValidConfig(initialData)
+          ? { ...defaultSpinConfig, ...initialData }
+          : defaultSpinConfig;
+        setOriginalData(JSON.parse(JSON.stringify(data)));
+        if (!initializedRef.current) {
+          initializedRef.current = true;
+        }
+      }
+    }, [initialData]);
 
     useImperativeHandle(ref, () => ({
       getData: () => form.getValues(),
-      reset: (data: SpinConfig) => form.reset(data),
+      reset: (data: SpinConfig) => {
+        const resetData = isValidConfig(data)
+          ? { ...defaultSpinConfig, ...data }
+          : defaultSpinConfig;
+        form.reset(resetData);
+        setOriginalData(JSON.parse(JSON.stringify(resetData)));
+      },
     }));
 
-    const watchedValues = form.watch();
     useEffect(() => {
-      if (onChange) {
-        const currentValues = JSON.stringify(watchedValues);
-        const initialValues = JSON.stringify(initialData);
-        if (currentValues !== initialValues) {
-          onChange(watchedValues);
-        }
-      }
-    }, [watchedValues, onChange, initialData]);
-
-    const isValid = form.formState.isValid;
-    const handleSubmit = form.handleSubmit(onSubmit);
+      const sub = form.watch((data) => onChange?.(data as SpinConfig));
+      return () => sub.unsubscribe();
+    }, [form, onChange]);
 
     // Watch reward_slots for the editor
     const rewardSlots = form.watch('reward_slots') || [];
 
     return (
       <Form {...form}>
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <FormWithJsonTabs
+          formData={form.watch()}
+          originalData={originalData}
+          onJsonChange={(data) => form.reset(data)}
+          transformToUnity={transformSpinConfigToExport}
+          transformFromUnity={transformSpinConfigFromImport}
+          onSave={() => onSubmit(form.getValues())}
+          isSaving={isSaving}
+        >
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {/* General Settings */}
           <ConfigFormSection
             title="Spin Settings"
@@ -227,6 +271,49 @@ export const SpinConfigForm = forwardRef<SpinConfigFormRef, SpinConfigFormProps>
             title="Reward Slots"
             description="Define the prizes available on the spin wheel"
           >
+            {/* Economy Version Selector */}
+            <div className="mb-6 p-4 rounded-lg border border-border bg-muted/10">
+              <div className="flex items-center gap-4">
+                <div className="flex-1">
+                  <Label className="text-sm font-medium">Economy Version</Label>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Select which economy version to use for currencies and items
+                  </p>
+                </div>
+                <Select
+                  value={selectedEconomyVersionId}
+                  onValueChange={setSelectedEconomyVersionId}
+                >
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="Select version..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {economyVersions.length === 0 ? (
+                      <div className="px-2 py-1.5 text-xs text-muted-foreground">
+                        No economy versions available
+                      </div>
+                    ) : (
+                      economyVersions.map((version, index) => (
+                        <SelectItem key={version.id} value={version.id}>
+                          {version.title || `Version ${economyVersions.length - index}`}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+              {currencies.length > 0 || inventoryItems.length > 0 ? (
+                <div className="mt-3 flex gap-4 text-xs text-muted-foreground">
+                  <span>{currencies.length} currencies</span>
+                  <span>{inventoryItems.length} inventory items</span>
+                </div>
+              ) : (
+                <p className="mt-3 text-xs text-amber-500">
+                  No currencies or items found in selected economy version
+                </p>
+              )}
+            </div>
+
             <RewardSlotEditor
               title="Spin Wheel Rewards"
               description="Define what rewards players can win from spinning"
@@ -252,13 +339,14 @@ export const SpinConfigForm = forwardRef<SpinConfigFormRef, SpinConfigFormProps>
             )}
             <Button
               type="submit"
-              disabled={!isValid || isSaving}
+              disabled={!form.formState.isValid || isSaving}
               className="shadow-stripe-sm transition-all hover:shadow-stripe-md hover:-translate-y-0.5"
             >
               {isSaving ? 'Saving...' : 'Save Changes'}
             </Button>
           </div>
         </form>
+        </FormWithJsonTabs>
       </Form>
     );
   }

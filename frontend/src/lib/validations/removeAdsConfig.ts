@@ -13,3 +13,15 @@ export const removeAdsConfigSchema = z.object({
 });
 
 export type RemoveAdsConfig = z.infer<typeof removeAdsConfigSchema>;
+
+export const defaultRemoveAdsConfig: RemoveAdsConfig = {
+  enabled: false,
+  minLevel: 0,
+  adWatchedTrigger: 0,
+  daysPlayedTrigger: 0,
+  durationHours: 0,
+  maxLifetimeShows: 0,
+  maxSessionShows: 0,
+  cooldownPopupHours: 0,
+  cooldownOfferHours: 0,
+};
