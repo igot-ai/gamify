@@ -236,7 +236,7 @@ export function VersionDropdown({
                         </div>
                       </div>
                       <div className="text-xs text-muted-foreground mt-0.5">
-                        <span className="font-medium">Experiment:</span> {version.experiment || '—'} <span className="mx-1">|</span> <span className="font-medium">Variant:</span> {version.variant || '—'}
+                        <span className="font-medium">Experiment:</span> {version.experiment || '—'} <span className="mx-1">|</span> <span className="font-medium">Variant:</span> {version.variant || '—'} <span className="mx-1">|</span> {formatDate(version.created_at)}
                       </div>
                       {version.description && (
                         <div className="text-xs text-muted-foreground mt-1 italic truncate">

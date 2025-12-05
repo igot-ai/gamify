@@ -43,7 +43,7 @@ export default function LoginPage() {
           Welcome back
         </CardTitle>
         <CardDescription className="text-slate-500">
-          Sign in to Sunstudio Config Portal
+          Sign in to SUN.STUDIO GameOps Dashboard
         </CardDescription>
       </CardHeader>
       <CardContent>

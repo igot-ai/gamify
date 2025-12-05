@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useGames, useCreateGame, useUpdateGame, useDeleteGame } from '@/hooks/useGames';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import {
@@ -22,7 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/Table';
-import { Plus, Edit, Trash2, Gamepad2 } from 'lucide-react';
+import { Plus, Edit, Trash2, Gamepad2, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useIsAdmin } from '@/stores/authStore';
 
@@ -50,65 +50,61 @@ export default function GamesPage() {
 
   if (isLoading) {
     return (
-      <div className="p-8">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-muted rounded w-1/4"></div>
-          <div className="h-64 bg-muted rounded"></div>
-        </div>
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
       </div>
     );
   }
 
   return (
-    <div className="p-8 space-y-8">
-      <div className="space-y-2">
-        <h1 className="text-4xl font-bold from-primary to-accent bg-clip-text text-transparent">
-          Games
-        </h1>
-        <p className="text-muted-foreground">
-          Manage all your games and their configurations
-        </p>
-      </div>
-
-      <div className="flex gap-4">
-        <Input
-          placeholder="Search games..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-md"
-        />
-        {isAdmin && (
-          <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                New Game
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <GameForm
-                onSuccess={() => {
-                  setIsCreateOpen(false);
-                  toast.success('Game created successfully');
-                }}
-              />
-            </DialogContent>
-          </Dialog>
-        )}
+    <div className="container mx-auto py-8 px-4">
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-[#1a73e8] rounded-lg flex items-center justify-center">
+            <Gamepad2 className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-semibold text-slate-900">Game Management</h1>
+            <p className="text-sm text-slate-500">Manage all your games and their configurations</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <Input
+            placeholder="Search games..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-64"
+          />
+          {isAdmin && (
+            <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Game
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <GameForm
+                  onSuccess={() => {
+                    setIsCreateOpen(false);
+                    toast.success('Game created successfully');
+                  }}
+                />
+              </DialogContent>
+            </Dialog>
+          )}
+        </div>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Games List</CardTitle>
-          <CardDescription>
-            {filteredGames.length} game{filteredGames.length !== 1 ? 's' : ''}
-          </CardDescription>
+          <CardTitle className="text-lg">All Games</CardTitle>
         </CardHeader>
         <CardContent>
           {filteredGames.length === 0 ? (
             <div className="text-center py-12">
-              <Gamepad2 className="mx-auto h-12 w-12 text-muted-foreground mb-2" />
-              <p className="text-muted-foreground">
+              <Gamepad2 className="mx-auto h-12 w-12 text-slate-300 mb-2" />
+              <p className="text-slate-500">
                 {games?.length === 0
                   ? 'No games yet. Create your first game to get started.'
                   : 'No games match your search.'}
@@ -120,7 +116,8 @@ export default function GamesPage() {
                 <TableRow>
                   <TableHead>Game</TableHead>
                   <TableHead>App ID</TableHead>
-                  <TableHead>Created</TableHead>
+                  <TableHead>Created At</TableHead>
+                  <TableHead>Updated At</TableHead>
                   <TableHead className="w-24">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -152,8 +149,11 @@ export default function GamesPage() {
                     <TableCell className="font-mono text-xs">
                       {game.app_id}
                     </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
+                    <TableCell className="text-sm text-slate-500">
                       {game.created_at ? new Date(game.created_at).toLocaleDateString() : ''}
+                    </TableCell>
+                    <TableCell className="text-sm text-slate-500">
+                      {game.updated_at ? new Date(game.updated_at).toLocaleDateString() : ''}
                     </TableCell>
                     <TableCell className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                       <Dialog>

@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import { Textarea } from '@/components/ui/Textarea';
-import { ScrollArea } from '@/components/ui/ScrollArea';
+import Editor from '@monaco-editor/react';
 import { AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -25,7 +24,6 @@ export function JsonEditor({
     value ? JSON.stringify(value, null, 2) : ''
   );
   const [parseError, setParseError] = useState<string | null>(null);
-  const [isValid, setIsValid] = useState(true);
 
   // Sync jsonText when value prop changes externally
   useEffect(() => {
@@ -33,21 +31,19 @@ export function JsonEditor({
     if (newText !== jsonText) {
       setJsonText(newText);
       setParseError(null);
-      setIsValid(true);
     }
   }, [value]);
 
   const handleJsonTextChange = useCallback(
-    (text: string) => {
-      setJsonText(text);
+    (text: string | undefined) => {
+      const newText = text || '';
+      setJsonText(newText);
       try {
-        const parsed = JSON.parse(text);
+        const parsed = JSON.parse(newText);
         setParseError(null);
-        setIsValid(true);
         onChange?.(parsed);
       } catch (error: any) {
         setParseError(error.message);
-        setIsValid(false);
       }
     },
     [onChange]
@@ -55,16 +51,28 @@ export function JsonEditor({
 
   return (
     <div className={cn('space-y-3', className)}>
-      <Textarea
-        value={jsonText}
-        onChange={(e) => handleJsonTextChange(e.target.value)}
-        readOnly={readOnly}
-        className={cn(
-          'font-mono text-[13px] leading-relaxed min-h-[400px] resize-none',
-          !isValid && 'border-destructive focus-visible:ring-destructive'
-        )}
-        placeholder="Enter JSON configuration..."
-      />
+      <div className="rounded-lg overflow-hidden border border-border">
+        <Editor
+          height="400px"
+          language="json"
+          value={jsonText}
+          onChange={handleJsonTextChange}
+          options={{
+            readOnly,
+            minimap: { enabled: false },
+            fontSize: 14,
+            lineNumbers: 'on',
+            scrollBeyondLastLine: false,
+            automaticLayout: true,
+            tabSize: 2,
+            wordWrap: 'on',
+            folding: true,
+            renderLineHighlight: 'line',
+            padding: { top: 12, bottom: 12 },
+          }}
+          theme="light"
+        />
+      </div>
 
       {/* Error message */}
       {parseError && (

@@ -52,7 +52,7 @@ export function Header({ onMenuClick }: HeaderProps) {
           <div className="flex items-center gap-2">
             <Settings2 className="h-5 w-5 text-primary" />
             <span className="font-semibold text-base hidden sm:inline-block">
-              Sunstudio Config Portal
+              SUN.STUDIO GameOps Dashboard
             </span>
             <span className="font-semibold text-base sm:hidden">
               Config

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useLayoutEffect, useState, useRef } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { Header } from './Header';
@@ -17,7 +17,6 @@ import {
   Gamepad2,
   BookOpen,
   ChevronDown,
-  ChevronRight,
   Sparkles,
   Layers,
   Users,
@@ -95,7 +94,9 @@ const configSections: NavItem[] = [
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set(['Economy'])); // Economy expanded by default
+  // Use a Set to track expanded tabs - allows multiple tabs to be open
+  const [expandedTabs, setExpandedTabs] = useState<Set<string>>(new Set());
+  const lastActiveParentRef = useRef<string | null>(null);
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -128,77 +129,121 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     return queryString ? `${path}?${queryString}` : path;
   };
 
-  const toggleExpanded = (label: string) => {
-    setExpandedItems(prev => {
-      const next = new Set(prev);
-      if (next.has(label)) {
-        next.delete(label);
-      } else {
-        next.add(label);
+  // Determine which parent should be expanded based on current path
+  const getActiveParent = (): string | null => {
+    for (const item of configSections) {
+      if (!item.subItems) continue;
+      if (isActive(item.path)) return item.label;
+      for (const sub of item.subItems) {
+        if (sub.path && isActive(sub.path)) return item.label;
+        // Also check for tab-based subitems
+        if (sub.tabParam && isTabActive(item.path, sub.tabParam)) return item.label;
       }
-      return next;
-    });
+    }
+    return null;
   };
+
+  const activeParent = getActiveParent();
+  
+  // Auto-expand/collapse based on active parent - only one tab open at a time
+  useLayoutEffect(() => {
+    if (activeParent && activeParent !== lastActiveParentRef.current) {
+      // New parent - collapse all others and expand this one
+      setExpandedTabs(new Set([activeParent]));
+      lastActiveParentRef.current = activeParent;
+    } else if (!activeParent) {
+      setExpandedTabs(new Set());
+      lastActiveParentRef.current = null;
+    }
+  }, [activeParent]);
 
   const renderNavItem = (item: NavItem, onClick?: () => void) => {
     const Icon = item.icon;
     const active = isActive(item.path);
 
     return (
-      <Button
+      <div
         key={item.path}
-        variant={active ? 'secondary' : 'ghost'}
         className={cn(
-          'w-full justify-start text-sm font-normal',
+          'group flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer transition-all duration-150',
           active
-            ? 'bg-secondary text-secondary-foreground border-l-2 border-primary font-medium'
-            : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+            ? 'bg-primary/10 text-primary'
+            : 'text-muted-foreground hover:bg-muted hover:text-foreground'
         )}
         onClick={() => {
           router.push(buildNavUrl(item.path));
           onClick?.();
         }}
       >
-        <Icon className="mr-2 h-4 w-4" />
-        <span className="flex-1 text-left">{item.label}</span>
-      </Button>
+        <Icon className={cn(
+          'h-[18px] w-[18px] flex-shrink-0 transition-colors',
+          active ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'
+        )} />
+        <span className={cn(
+          'text-sm transition-colors',
+          active ? 'font-medium' : 'font-normal'
+        )}>{item.label}</span>
+        {active && (
+          <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary" />
+        )}
+      </div>
     );
   };
 
   const renderNavItemWithSubItems = (item: NavItem, onClick?: () => void) => {
     const Icon = item.icon;
-    const isExpanded = expandedItems.has(item.label);
-    // Check if any sub-item is active (for path-based sub-items)
+    const isExpanded = expandedTabs.has(item.label);
     const hasActiveSubItem = item.subItems?.some(sub => sub.path && isActive(sub.path));
     const isParentActive = isActive(item.path) || hasActiveSubItem;
+
+    const handleParentClick = () => {
+      setExpandedTabs(prev => {
+        const next = new Set(prev);
+        if (isExpanded) {
+          next.delete(item.label);
+        } else {
+          next.add(item.label);
+        }
+        return next;
+      });
+    };
 
     return (
       <div key={item.path}>
         {/* Parent item */}
-        <Button
-          variant={isParentActive && !isExpanded ? 'secondary' : 'ghost'}
+        <div
           className={cn(
-            'w-full justify-start text-sm font-normal',
+            'group flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer transition-all duration-150',
             isParentActive
-              ? 'text-foreground font-medium'
-              : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+              ? 'text-foreground'
+              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
           )}
-          onClick={() => toggleExpanded(item.label)}
+          onClick={handleParentClick}
         >
-          <Icon className="mr-2 h-4 w-4" />
-          <span className="flex-1 text-left">{item.label}</span>
-          {isExpanded ? (
-            <ChevronDown className="h-4 w-4" />
-          ) : (
-            <ChevronRight className="h-4 w-4" />
-          )}
-        </Button>
+          <Icon className={cn(
+            'h-[18px] w-[18px] flex-shrink-0 transition-colors',
+            isParentActive ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'
+          )} />
+          <span className={cn(
+            'flex-1 text-sm transition-colors',
+            isParentActive ? 'font-medium' : 'font-normal'
+          )}>{item.label}</span>
+          <ChevronDown className={cn(
+            'h-4 w-4 text-muted-foreground/60 transition-transform duration-200',
+            isExpanded ? 'rotate-0' : '-rotate-90'
+          )} />
+        </div>
 
-        {/* Sub-items */}
-        {isExpanded && item.subItems && (
-          <div className="ml-4 mt-1 space-y-1">
-            {item.subItems.map((subItem) => {
-              // Handle both tab-based (Economy) and path-based (Special Offer) sub-items
+        {/* Sub-items with connecting line */}
+        {isExpanded && (
+        <div 
+          className="relative overflow-hidden animate-in slide-in-from-top-2 fade-in duration-150"
+        >
+          {/* Vertical connecting line */}
+          <div className="absolute left-[21px] top-1 bottom-1 w-px bg-border/60" />
+          
+          <div className="ml-3 pl-4 py-1 space-y-0.5">
+            {item.subItems?.map((subItem) => {
               const isSubActive = subItem.path 
                 ? isActive(subItem.path) 
                 : isTabActive(item.path, subItem.tabParam!);
@@ -208,32 +253,45 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 : buildNavUrl(item.path, subItem.tabParam);
 
               return (
-                <Button
+                <div
                   key={subItem.id}
-                  variant={isSubActive ? 'secondary' : 'ghost'}
                   className={cn(
-                    'w-full justify-start text-sm font-normal pl-6',
+                    'group/sub relative flex items-center gap-2 px-2.5 py-1.5 rounded-md cursor-pointer transition-all duration-150',
                     isSubActive
-                      ? 'bg-secondary text-secondary-foreground border-l-2 border-primary font-medium'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                   )}
                   onClick={() => {
+                    // Immediately collapse all other tabs and expand this one
+                    // This prevents flicker by updating state before navigation
+                    setExpandedTabs(new Set([item.label]));
                     router.push(subItemUrl);
                     onClick?.();
                   }}
                 >
-                  <span className="flex-1 text-left">{subItem.label}</span>
-                </Button>
+                  {/* Active indicator dot */}
+                  <div className={cn(
+                    'absolute -left-4 w-1.5 h-1.5 rounded-full transition-all duration-150',
+                    isSubActive 
+                      ? 'bg-primary scale-100' 
+                      : 'bg-border scale-75 group-hover/sub:scale-100'
+                  )} />
+                  <span className={cn(
+                    'text-[13px] transition-colors',
+                    isSubActive ? 'font-medium' : 'font-normal'
+                  )}>{subItem.label}</span>
+                </div>
               );
             })}
           </div>
+        </div>
         )}
       </div>
     );
   };
 
   const renderSidebarContent = (onItemClick?: () => void) => (
-    <nav className="space-y-1 flex flex-col h-full">
+    <nav className="space-y-0.5 flex flex-col h-full">
       {/* Dashboard - Always visible */}
       {renderNavItem({ label: 'Dashboard', icon: Home, path: '/dashboard' }, onItemClick)}
       
@@ -247,16 +305,18 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       {selectedGameId && (
         <>
           {/* Configure Section Header */}
-          <div className="pt-4 pb-2">
-            <span className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+          <div className="pt-5 pb-2">
+            <span className="px-3 text-[11px] font-semibold text-muted-foreground/60 uppercase tracking-wider">
               Configure
             </span>
           </div>
-          {configSections.map((item) => 
-            item.subItems 
-              ? renderNavItemWithSubItems(item, onItemClick)
-              : renderNavItem(item, onItemClick)
-          )}
+          <div className="space-y-0.5">
+            {configSections.map((item) => 
+              item.subItems 
+                ? renderNavItemWithSubItems(item, onItemClick)
+                : renderNavItem(item, onItemClick)
+            )}
+          </div>
         </>
       )}
 
@@ -264,7 +324,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       <div className="flex-1" />
 
       {/* Settings - Always at bottom */}
-      <div className="border-t border-border pt-2 mt-2">
+      <div className="border-t border-border pt-3 mt-3">
         {renderNavItem({ label: 'Settings', icon: Settings, path: '/settings' }, onItemClick)}
       </div>
     </nav>
