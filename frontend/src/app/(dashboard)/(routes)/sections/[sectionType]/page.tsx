@@ -105,6 +105,13 @@ export default function SectionEditorPage() {
   const updateVersionMutation = useUpdateVersion();
   const createVersionMutation = useCreateVersion();
 
+  // Reset version when config changes (i.e., when switching games)
+  useEffect(() => {
+    setSelectedVersion(null);
+    setCurrentData(null);
+    setHasLocalChanges(false);
+  }, [config?.id]);
+
   // Auto-select first version when versions load
   useEffect(() => {
     if (versionsData?.versions && versionsData.versions.length > 0 && !selectedVersion) {

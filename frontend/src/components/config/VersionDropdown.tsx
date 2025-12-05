@@ -235,13 +235,8 @@ export function VersionDropdown({
                           </Button>
                         </div>
                       </div>
-                      {(version.experiment || version.variant) && (
-                        <div className="text-xs text-muted-foreground mt-0.5">
-                          {[version.experiment, version.variant].filter(Boolean).join(' / ')}
-                        </div>
-                      )}
                       <div className="text-xs text-muted-foreground mt-0.5">
-                        {formatDate(version.created_at)}
+                        <span className="font-medium">Experiment:</span> {version.experiment || '—'} <span className="mx-1">|</span> <span className="font-medium">Variant:</span> {version.variant || '—'}
                       </div>
                       {version.description && (
                         <div className="text-xs text-muted-foreground mt-1 italic truncate">
