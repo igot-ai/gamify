@@ -4,13 +4,13 @@ CLI tool for administrative tasks.
 
 Usage:
     # Create admin user (will prompt for password)
-    python -m app.cli create-admin --email admin@example.com --name "Admin User"
+    python -m app.cli admin@example.com "Admin User"
     
     # With password as parameter
-    python -m app.cli create-admin --email admin@example.com --name "Admin" --password secret123
+    python -m app.cli admin@example.com "Admin User" --password secret123
     
     # With password via environment (for automation)
-    ADMIN_PASSWORD=secret123 python -m app.cli create-admin --email admin@example.com --name "Admin"
+    ADMIN_PASSWORD=secret123 python -m app.cli admin@example.com "Admin User"
 """
 
 import asyncio
@@ -19,7 +19,7 @@ import os
 import sys
 from typing import Optional
 
-import typer
+import click
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
@@ -27,11 +27,6 @@ from sqlalchemy.orm import sessionmaker
 from app.core.auth import get_password_hash
 from app.core.config import settings
 from app.models.user import User, UserRole
-
-app = typer.Typer(
-    name="gamify-cli",
-    help="Gamify Config API - Administrative CLI",
-)
 
 
 async def create_admin_user(
@@ -49,8 +44,8 @@ async def create_admin_user(
         existing = result.scalar_one_or_none()
 
         if existing:
-            typer.echo(f"Error: User with email '{email}' already exists.", err=True)
-            raise typer.Exit(code=1)
+            click.echo(f"Error: User with email '{email}' already exists.", err=True)
+            sys.exit(1)
 
         # Create admin user
         admin = User(
@@ -62,10 +57,10 @@ async def create_admin_user(
         session.add(admin)
         await session.commit()
 
-        typer.echo("✓ Admin user created successfully!")
-        typer.echo(f"  Email: {email}")
-        typer.echo(f"  Name: {name}")
-        typer.echo(f"  Role: admin")
+        click.echo("✓ Admin user created successfully!")
+        click.echo(f"  Email: {email}")
+        click.echo(f"  Name: {name}")
+        click.echo(f"  Role: admin")
 
     await engine.dispose()
 
@@ -75,12 +70,12 @@ def get_password_interactive() -> str:
     while True:
         password = getpass.getpass("Password: ")
         if len(password) < 6:
-            typer.echo("Error: Password must be at least 6 characters.", err=True)
+            click.echo("Error: Password must be at least 6 characters.", err=True)
             continue
 
         confirm = getpass.getpass("Confirm password: ")
         if password != confirm:
-            typer.echo("Error: Passwords do not match.", err=True)
+            click.echo("Error: Passwords do not match.", err=True)
             continue
 
         return password
@@ -94,26 +89,24 @@ def resolve_password(password: Optional[str] = None) -> str:
 
     env_password = os.environ.get("ADMIN_PASSWORD")
     if env_password:
-        typer.echo("Using password from ADMIN_PASSWORD environment variable.")
+        click.echo("Using password from ADMIN_PASSWORD environment variable.")
         return env_password
 
     return get_password_interactive()
 
 
-@app.command()
-def create_admin(
-    email: str = typer.Option(..., "--email", "-e", help="Admin email address"),
-    name: str = typer.Option(..., "--name", "-n", help="Admin display name"),
-    password: Optional[str] = typer.Option(
-        None,
-        "--password",
-        "-p",
-        help="Admin password (will prompt if not provided, or use ADMIN_PASSWORD env var)",
-    ),
-) -> None:
+@click.command()
+@click.argument("email")
+@click.argument("name")
+@click.option(
+    "--password", "-p",
+    default=None,
+    help="Admin password (will prompt if not provided, or use ADMIN_PASSWORD env var)",
+)
+def create_admin(email: str, name: str, password: Optional[str]) -> None:
     """Create an admin user."""
-    typer.echo(f"\nCreating admin user: {email}")
-    typer.echo("-" * 40)
+    click.echo(f"\nCreating admin user: {email}")
+    click.echo("-" * 40)
 
     resolved_password = resolve_password(password)
 
@@ -128,7 +121,7 @@ def create_admin(
 
 def main() -> None:
     """Main CLI entry point."""
-    app()
+    create_admin()
 
 
 if __name__ == "__main__":

@@ -17,6 +17,7 @@ A unified configuration management platform for mobile games. Manage game config
 cd backend
 poetry install
 # Create .env file with your database configuration (see Environment Variables section)
+cp .env.example .env
 poetry run alembic upgrade head
 poetry run uvicorn app.main:app --reload
 ```
@@ -24,12 +25,40 @@ poetry run uvicorn app.main:app --reload
 API available at `http://localhost:8000`  
 Swagger docs: `http://localhost:8000/docs`
 
+#### Creating the First Admin User
+
+After setting up the backend, create your first admin user using the CLI:
+
+```bash
+cd backend
+poetry run python -m app.cli admin@example.com "Admin User"
+```
+
+This will prompt you to enter and confirm a password. Alternatively, you can provide the password directly:
+
+```bash
+poetry run python -m app.cli admin@example.com "Admin User" --password your-password
+```
+
+Or use an environment variable (Linux/macOS):
+
+```bash
+ADMIN_PASSWORD=your-password poetry run python -m app.cli admin@example.com "Admin User"
+```
+
+On Windows PowerShell:
+
+```powershell
+$env:ADMIN_PASSWORD="your-password"; poetry run python -m app.cli admin@example.com "Admin User"
+```
+
 ### Frontend
 
 ```bash
 cd frontend
 npm install
-echo "NEXT_PUBLIC_API_URL=http://localhost:8000" > .env.local
+# Create .env file with your database configuration (see Environment Variables section)
+cp .env.example .env
 npm run dev
 ```
 
