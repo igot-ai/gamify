@@ -1,0 +1,15 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "Gamify Config DB",
+      "Group": "Servers",
+      "Host": "postgres",
+      "Port": 5432,
+      "MaintenanceDB": "gamify_config",
+      "Username": "dev",
+      "SSLMode": "prefer",
+      "PassFile": "/pgpass"
+    }
+  }
+}
+
