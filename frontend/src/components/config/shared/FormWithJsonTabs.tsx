@@ -11,7 +11,6 @@ interface FormWithJsonTabsProps<T, U = T> {
   formData: T;
   originalData?: T;
   onJsonChange: (data: T) => void;
-  readOnly?: boolean;
   /** Transform form data (camelCase) to Unity format (PascalCase) for JSON display */
   transformToUnity?: (data: T) => U;
   /** Transform Unity format (PascalCase) back to form data (camelCase) */
@@ -27,7 +26,6 @@ export function FormWithJsonTabs<T, U = T>({
   formData,
   originalData,
   onJsonChange,
-  readOnly = false,
   transformToUnity,
   transformFromUnity,
   onSave,
@@ -39,11 +37,6 @@ export function FormWithJsonTabs<T, U = T>({
   const jsonDisplayData = useMemo(
     () => (transformToUnity ? transformToUnity(formData) : formData),
     [formData, transformToUnity]
-  );
-
-  const jsonOriginalData = useMemo(
-    () => (transformToUnity && originalData ? transformToUnity(originalData) : originalData),
-    [originalData, transformToUnity]
   );
 
   const hasChanges = useMemo(
@@ -81,13 +74,11 @@ export function FormWithJsonTabs<T, U = T>({
       <TabsContent value="json" className="mt-0 space-y-4">
         <JsonEditor
           value={jsonDisplayData}
-          originalValue={jsonOriginalData}
-          onChange={readOnly ? undefined : handleJsonChange}
-          readOnly={readOnly}
+          onChange={handleJsonChange}
         />
         
         {/* Save Button for JSON tab */}
-        {!readOnly && onSave && (
+        {onSave && (
           <div className="flex items-center justify-end pt-4 border-t border-border/30">
             <Button
               type="button"

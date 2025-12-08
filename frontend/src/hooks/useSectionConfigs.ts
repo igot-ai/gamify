@@ -180,7 +180,7 @@ export function useCreateVersion() {
       );
       return response.data;
     },
-    onSuccess: (data, variables) => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['section-config-versions', variables.sectionConfigId] });
       queryClient.invalidateQueries({ queryKey: ['section-configs-summary'] });
     },
@@ -209,7 +209,7 @@ export function useUpdateVersion() {
       );
       return response.data;
     },
-    onSuccess: (data, variables) => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['section-config-versions', variables.sectionConfigId] });
       queryClient.invalidateQueries({ queryKey: ['section-config-version', variables.sectionConfigId, variables.versionId] });
       queryClient.invalidateQueries({ queryKey: ['section-configs-summary'] });

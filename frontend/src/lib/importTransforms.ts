@@ -120,10 +120,13 @@ function transformAdConfigFromImport(data: any): AdConfig {
     },
     optionalSettings: {
       enableConsentFlow: data.EnableConsentFlow ?? true,
+      forceTestMode: data.ForceTestMode ?? false,
+      removeAdsEnabled: data.RemoveAdsEnabled ?? false,
     },
     placements: (data.Placements ?? []).map((p: any): AdPlacementItem => ({
       name: p.PlacementId ?? '',
       type: AD_FORMAT_REVERSE_MAP[p.AdFormat] ?? 'Interstitial',
+      enabled: p.Enabled ?? true,
       action: ACTION_REVERSE_MAP[p.Action] ?? 'LoadAndShow',
       minLevel: p.MinLevel ?? 1,
       timeBetween: p.TimeBetween ?? 0,
@@ -134,6 +137,8 @@ function transformAdConfigFromImport(data: any): AdConfig {
       delayTime: p.DelayTime ?? 0,
       customAdUnitId: p.CustomAdUnitId ?? '',
     })),
+    networks: data.Networks ?? [],
+    remove_ads_product_id: data.RemoveAdsProductId ?? '',
   };
 }
 
@@ -442,6 +447,8 @@ function transformEconomyConfigFromImport(data: any): EconomyConfig {
       enableRefundProcessing: data.EnableRefundProcessing ?? false,
       remoteConfigKey: 'ECONOMY_CONFIG',
     },
+    iap_packages: [],
+    daily_rewards: [],
   };
 }
 

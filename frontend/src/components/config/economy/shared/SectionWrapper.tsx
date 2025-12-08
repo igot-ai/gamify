@@ -22,8 +22,6 @@ interface SectionWrapperProps<T = unknown, U = T> {
   itemCount?: number;
   showClearAll?: boolean;
   className?: string;
-  /** Read-only mode - hides all action buttons */
-  readOnly?: boolean;
   /** JSON data for the JSON editor tab */
   jsonData?: T;
   /** Original JSON data for diff comparison */
@@ -48,7 +46,6 @@ export function SectionWrapper<T = unknown, U = T>({
   itemCount = 0,
   showClearAll = true,
   className,
-  readOnly = false,
   jsonData,
   originalJsonData,
   onJsonChange,
@@ -64,11 +61,6 @@ export function SectionWrapper<T = unknown, U = T>({
   const jsonDisplayData = useMemo(
     () => (transformToUnity && jsonData ? transformToUnity(jsonData) : jsonData),
     [jsonData, transformToUnity]
-  );
-
-  const jsonOriginalDisplayData = useMemo(
-    () => (transformToUnity && originalJsonData ? transformToUnity(originalJsonData) : originalJsonData),
-    [originalJsonData, transformToUnity]
   );
 
   // Handle JSON changes - transform back to form format (camelCase) if needed
@@ -116,7 +108,7 @@ export function SectionWrapper<T = unknown, U = T>({
 
           <TabsContent value="form" className="mt-4">
             {/* Actions - only show in Form tab */}
-            {!readOnly && (onAdd || (showClearAll && itemCount > 0 && onClearAll)) && (
+            {(onAdd || (showClearAll && itemCount > 0 && onClearAll)) && (
               <div className="flex items-center justify-end gap-2 mb-4">
                 {showClearAll && itemCount > 0 && onClearAll && (
                   <Button
@@ -153,16 +145,14 @@ export function SectionWrapper<T = unknown, U = T>({
             {/* JSON Editor */}
             <JsonEditor
               value={jsonDisplayData}
-              originalValue={jsonOriginalDisplayData}
-              onChange={readOnly ? undefined : handleJsonChange}
-              readOnly={readOnly}
+              onChange={handleJsonChange}
             />
           </TabsContent>
         </Tabs>
       ) : (
         <>
           {/* Actions - when no JSON support */}
-          {!readOnly && (onAdd || (showClearAll && itemCount > 0 && onClearAll)) && (
+          {(onAdd || (showClearAll && itemCount > 0 && onClearAll)) && (
             <div className="flex items-center justify-end gap-2">
               {showClearAll && itemCount > 0 && onClearAll && (
                 <Button
@@ -198,7 +188,7 @@ export function SectionWrapper<T = unknown, U = T>({
       )}
 
       {/* Save Button */}
-      {!readOnly && onSave && (
+      {onSave && (
         <div className="flex items-center justify-end pt-4 border-t border-border/30">
           <Button
             type="button"

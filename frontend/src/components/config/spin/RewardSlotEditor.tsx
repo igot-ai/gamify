@@ -157,7 +157,7 @@ export function RewardSlotEditor({
                   {/* Type Selector */}
                   <Select
                     value={itemType}
-                    onValueChange={(value: 'Currency' | 'Item') => {
+                    onValueChange={(_value: 'Currency' | 'Item') => {
                       handleChange(index, 'item_id', '');
                     }}
                   >

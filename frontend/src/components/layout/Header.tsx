@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
-import { Menu, Settings2, User, LogOut, Users, Shield, Gamepad2, Loader2 } from 'lucide-react';
+import { Menu, Settings2, User, LogOut, Shield, Gamepad2, Loader2 } from 'lucide-react';
 import { GameSelector } from './GameSelector';
 import { useAuthStore, useUser, useIsAdmin } from '@/stores/authStore';
 

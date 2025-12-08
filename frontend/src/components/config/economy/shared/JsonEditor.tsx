@@ -7,17 +7,13 @@ import { cn } from '@/lib/utils';
 
 interface JsonEditorProps {
   value: any;
-  originalValue?: any;
   onChange?: (data: any) => void;
-  readOnly?: boolean;
   className?: string;
 }
 
 export function JsonEditor({
   value,
-  originalValue,
   onChange,
-  readOnly = false,
   className,
 }: JsonEditorProps) {
   const [jsonText, setJsonText] = useState<string>(() =>
@@ -58,7 +54,6 @@ export function JsonEditor({
           value={jsonText}
           onChange={handleJsonTextChange}
           options={{
-            readOnly,
             minimap: { enabled: false },
             fontSize: 14,
             lineNumbers: 'on',

@@ -20,7 +20,6 @@ import {
   type EconomyConfig,
   defaultEconomyConfig
 } from '@/lib/validations/economyConfig';
-import { transformEconomyConfigToExport } from '@/lib/economyExportTransform';
 
 import { CurrenciesSection } from './CurrenciesSection';
 import { InventoryItemsSection } from './InventoryItemsSection';
@@ -73,8 +72,6 @@ interface EconomyConfigLayoutProps {
   activeTab?: string;
   /** Hide internal sidebar navigation (when controlled from main sidebar) */
   hideSidebar?: boolean;
-  /** Read-only mode for viewing deployed configs */
-  readOnly?: boolean;
 }
 
 export interface EconomyConfigLayoutRef {
@@ -92,7 +89,6 @@ export const EconomyConfigLayout = forwardRef<EconomyConfigLayoutRef, EconomyCon
     isSaving = false,
     activeTab,
     hideSidebar = false,
-    readOnly = false,
   }, ref) {
   const [activeSection, setActiveSection] = useState<SectionId>(
     (activeTab as SectionId) || 'currencies'
@@ -173,52 +169,30 @@ export const EconomyConfigLayout = forwardRef<EconomyConfigLayoutRef, EconomyCon
         <CurrenciesSection 
           onSave={(data) => handleSectionSave('currencies', data)}
           isSaving={isSaving}
-          readOnly={readOnly}
         />
       )}
       {activeSection === 'inventory' && (
         <InventoryItemsSection 
           onSave={(data) => handleSectionSave('inventory', data)}
           isSaving={isSaving}
-          readOnly={readOnly}
         />
       )}
       {activeSection === 'virtual-purchases' && (
         <VirtualPurchasesSection 
           onSave={(data) => handleSectionSave('virtual-purchases', data)}
           isSaving={isSaving}
-          readOnly={readOnly}
         />
       )}
       {activeSection === 'real-purchases' && (
         <RealPurchasesSection 
           onSave={(data) => handleSectionSave('real-purchases', data)}
           isSaving={isSaving}
-          readOnly={readOnly}
         />
       )}
       {activeSection === 'settings' && (
         <EconomySettingsSection 
           onSave={(data) => handleSectionSave('settings', data)}
           isSaving={isSaving}
-          onExport={() => {
-            const data = form.getValues();
-            const exportData = transformEconomyConfigToExport(data);
-            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'economy-config.json';
-            a.click();
-            URL.revokeObjectURL(url);
-          }}
-          onImport={(data) => {
-            form.reset(data);
-          }}
-          onValidate={() => {
-            return form.trigger();
-          }}
-          readOnly={readOnly}
         />
       )}
     </div>

@@ -15,7 +15,6 @@ import { Input } from '@/components/ui/Input';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
-import { ReadOnlyField } from '@/components/ui/ReadOnlyField';
 import {
   FormControl,
   FormField,
@@ -31,13 +30,11 @@ import { JsonEditor } from './shared/JsonEditor';
 interface EconomySettingsSectionProps {
   onSave?: (data: EconomyConfig['settings']) => void;
   isSaving?: boolean;
-  readOnly?: boolean;
 }
 
 export function EconomySettingsSection({ 
   onSave, 
   isSaving = false,
-  readOnly = false,
 }: EconomySettingsSectionProps) {
   const form = useFormContext<EconomyConfig>();
   const [activeTab, setActiveTab] = useState<'form' | 'json'>('form');
@@ -125,59 +122,44 @@ export function EconomySettingsSection({
               <div className="space-y-4">
                 <h4 className="text-sm font-medium text-foreground/80">IAP Configuration</h4>
                 
-                {readOnly ? (
-                  <>
-                    <ReadOnlyField 
-                      label="Enable Refund Processing" 
-                      value={form.getValues('settings.enableRefundProcessing')} 
-                    />
-                    <ReadOnlyField 
-                      label="Remote Config Key" 
-                      value={form.getValues('settings.remoteConfigKey')} 
-                    />
-                  </>
-                ) : (
-                  <>
-                    <FormField
-                      control={form.control}
-                      name="settings.enableRefundProcessing"
-                      render={({ field }) => (
-                        <FormItem className="flex items-center justify-between rounded-lg border border-border/70 bg-muted/20 p-4">
-                          <div className="space-y-0.5">
-                            <FormLabel className="text-sm">Enable Refund Processing</FormLabel>
-                            <FormDescription className="text-xs">
-                              Automatically handle refund requests from app stores
-                            </FormDescription>
-                          </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
+                  <FormField
+                  control={form.control}
+                  name="settings.enableRefundProcessing"
+                  render={({ field }) => (
+                    <FormItem className="flex items-center justify-between rounded-lg border border-border/70 bg-muted/20 p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-sm">Enable Refund Processing</FormLabel>
+                        <FormDescription className="text-xs">
+                          Automatically handle refund requests from app stores
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
 
-                    <FormField
-                      control={form.control}
-                      name="settings.remoteConfigKey"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-xs">Remote Config Key</FormLabel>
-                          <FormControl>
-                            <Input 
-                              {...field} 
-                              placeholder="ECONOMY_CONFIG"
-                              className="h-9"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </>
-                )}
+                <FormField
+                  control={form.control}
+                  name="settings.remoteConfigKey"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-xs">Remote Config Key</FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          placeholder="ECONOMY_CONFIG"
+                          className="h-9"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
             </CardContent>
           </Card>
@@ -186,29 +168,25 @@ export function EconomySettingsSection({
         <TabsContent value="json" className="mt-4">
           <JsonEditor
             value={settings}
-            originalValue={originalSettings}
-            onChange={readOnly ? undefined : handleJsonChange}
-            readOnly={readOnly}
+            onChange={handleJsonChange}
           />
           
           {/* Save Button for JSON tab */}
-          {!readOnly && (
-            <div className="flex items-center justify-end pt-4 mt-4 border-t border-border/30">
-              <Button
-                type="button"
-                onClick={handleSaveNow}
-                disabled={isSaving}
-                className="h-9 shadow-stripe-sm transition-all hover:shadow-stripe-md hover:-translate-y-0.5"
-              >
-                {isSaving ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Save className="mr-2 h-4 w-4" />
-                )}
-                {isSaving ? 'Saving...' : 'Save Changes'}
-              </Button>
-            </div>
-          )}
+          <div className="flex items-center justify-end pt-4 mt-4 border-t border-border/30">
+            <Button
+              type="button"
+              onClick={handleSaveNow}
+              disabled={isSaving}
+              className="h-9 shadow-stripe-sm transition-all hover:shadow-stripe-md hover:-translate-y-0.5"
+            >
+              {isSaving ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="mr-2 h-4 w-4" />
+              )}
+              {isSaving ? 'Saving...' : 'Save Changes'}
+            </Button>
+          </div>
         </TabsContent>
       </Tabs>
     </div>

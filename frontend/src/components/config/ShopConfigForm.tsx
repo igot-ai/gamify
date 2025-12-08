@@ -45,7 +45,7 @@ export function ShopConfigForm({
   initialData,
   onSubmit,
   onCancel,
-  configId,
+  configId: _configId,
   availableCurrencies: propCurrencies,
 }: ShopConfigFormProps) {
   const [editingCategoryIndex, setEditingCategoryIndex] = useState<number | null>(null);

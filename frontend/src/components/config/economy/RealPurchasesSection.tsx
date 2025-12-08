@@ -35,7 +35,6 @@ import { cn } from '@/lib/utils';
 import { SectionWrapper } from './shared/SectionWrapper';
 import { CostRewardEditor } from './shared/CostRewardEditor';
 import { BonusEditor } from './shared/BonusEditor';
-import { ReadOnlyField, ReadOnlyFieldGroup } from '@/components/ui/ReadOnlyField';
 import { useArrayFieldManagement } from '@/hooks/useArrayFieldManagement';
 import { 
   type EconomyConfig, 
@@ -50,10 +49,9 @@ import {
 interface RealPurchasesSectionProps {
   onSave?: (data: RealPurchase[]) => void;
   isSaving?: boolean;
-  readOnly?: boolean;
 }
 
-export function RealPurchasesSection({ onSave, isSaving = false, readOnly = false }: RealPurchasesSectionProps) {
+export function RealPurchasesSection({ onSave, isSaving = false }: RealPurchasesSectionProps) {
   const form = useFormContext<EconomyConfig>();
 
   // Get available currencies and items for reward selection
@@ -74,11 +72,11 @@ export function RealPurchasesSection({ onSave, isSaving = false, readOnly = fals
   } = useArrayFieldManagement({
     form,
     fieldName: 'realPurchases',
-    createDefaultItem: (fieldsLength) => ({
+    createDefaultItem: (fieldsLength): RealPurchase => ({
       ...defaultRealPurchase,
       productId: `studio.game.product${fieldsLength + 1}`,
       displayName: `Product ${fieldsLength + 1}`,
-      productType: 'Consumable' as const,
+      productType: 'Consumable',
       rewards: [],
       bonuses: [],
     }),
@@ -89,16 +87,15 @@ export function RealPurchasesSection({ onSave, isSaving = false, readOnly = fals
     <SectionWrapper
       title="Real Money Product Definitions"
       description="Configure In-App Purchases (IAP) with real money"
-      onAdd={readOnly ? undefined : handleAdd}
-      onClearAll={readOnly ? undefined : handleClearAll}
-      onSave={readOnly ? undefined : handleSave}
+      onAdd={handleAdd}
+      onClearAll={handleClearAll}
+      onSave={handleSave}
       isSaving={isSaving}
       addButtonText="Add Product"
       itemCount={fields.length}
-      readOnly={readOnly}
       jsonData={realPurchases}
       originalJsonData={originalPurchases}
-      onJsonChange={readOnly ? undefined : handleJsonChange}
+      onJsonChange={handleJsonChange}
       transformToUnity={transformRealPurchasesToUnity}
       transformFromUnity={transformRealPurchasesFromUnity}
     >
@@ -107,7 +104,7 @@ export function RealPurchasesSection({ onSave, isSaving = false, readOnly = fals
           <CreditCard className="h-12 w-12 text-foreground/50 mb-3" />
           <p className="text-sm text-foreground/80 mb-1">No IAP products defined</p>
           <p className="text-xs text-foreground/60">
-            {readOnly ? 'No IAP products in this configuration' : 'Add your first real money product to get started'}
+            Add your first real money product to get started
           </p>
         </div>
       ) : (
@@ -163,20 +160,18 @@ export function RealPurchasesSection({ onSave, isSaving = false, readOnly = fals
                         >
                           {purchase?.productType || 'Consumable'}
                         </Badge>
-                        {!readOnly && (
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleRemove(index);
-                            }}
-                            className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        )}
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRemove(index);
+                          }}
+                          className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
                   </CollapsibleTrigger>
@@ -184,64 +179,7 @@ export function RealPurchasesSection({ onSave, isSaving = false, readOnly = fals
                   {/* Expanded Content */}
                   <CollapsibleContent>
                     <div className="px-4 pb-4 space-y-6 border-t border-border/70 pt-4">
-                      {readOnly ? (
-                        /* Read-only display */
-                        <>
-                          <div className="space-y-4">
-                            <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                              <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                              Identity
-                            </h4>
-                            <ReadOnlyFieldGroup className="pl-3">
-                              <ReadOnlyField label="Product ID" value={purchase?.productId} />
-                              <ReadOnlyField label="Display Name" value={purchase?.displayName} />
-                              <ReadOnlyField label="Product Type" value={purchase?.productType} />
-                            </ReadOnlyFieldGroup>
-                          </div>
-
-                          <div className="space-y-4">
-                            <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                              <PlusIcon className="h-4 w-4 text-green-500" />
-                              Rewards ({purchase?.rewards?.length || 0})
-                            </h4>
-                            <div className="pl-3 space-y-2">
-                              {purchase?.rewards?.length > 0 ? (
-                                purchase.rewards.map((reward: any, idx: number) => (
-                                  <div key={idx} className="text-sm py-2 px-3 bg-muted/30 rounded-md border border-border/50">
-                                    <span className="font-medium">{reward.id}</span>
-                                    <span className="text-foreground/70 ml-2">× {reward.amount}</span>
-                                    <span className="text-xs text-foreground/70 ml-2">({reward.type})</span>
-                                  </div>
-                                ))
-                              ) : (
-                                <p className="text-sm text-foreground/70 italic">No rewards defined</p>
-                              )}
-                            </div>
-                          </div>
-
-                          {purchase?.bonuses?.length > 0 && (
-                            <div className="space-y-4">
-                              <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                                Bonuses ({purchase.bonuses.length})
-                              </h4>
-                              <div className="pl-3 space-y-2">
-                                {purchase.bonuses.map((bonus: any, idx: number) => (
-                                  <div key={idx} className="text-sm py-2 px-3 bg-amber-500/10 rounded-md border border-amber-500/30">
-                                    <span className="font-medium">{bonus.triggerType}</span>
-                                    <span className="text-foreground/70 ml-2">
-                                      {bonus.rewards?.length || 0} bonus rewards
-                                    </span>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </>
-                      ) : (
-                        /* Editable form fields */
-                        <>
-                          {/* Identity Section */}
+                      {/* Identity Section */}
                           <div className="space-y-4">
                             <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
                               <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
@@ -334,17 +272,15 @@ export function RealPurchasesSection({ onSave, isSaving = false, readOnly = fals
                             />
                           </div>
 
-                          {/* Bonuses Section */}
-                          <div className="space-y-4 pl-3">
-                            <BonusEditor
-                              items={purchase?.bonuses || []}
-                              onChange={(items) => form.setValue(`realPurchases.${index}.bonuses`, items)}
-                              currencies={currencies}
-                              inventoryItems={inventoryItems}
-                            />
-                          </div>
-                        </>
-                      )}
+                      {/* Bonuses Section */}
+                      <div className="space-y-4 pl-3">
+                        <BonusEditor
+                          items={purchase?.bonuses || []}
+                          onChange={(items) => form.setValue(`realPurchases.${index}.bonuses`, items)}
+                          currencies={currencies}
+                          inventoryItems={inventoryItems}
+                        />
+                      </div>
                     </div>
                   </CollapsibleContent>
                 </div>

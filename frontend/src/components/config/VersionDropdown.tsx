@@ -18,7 +18,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/Dialog';
-import { ChevronDown, Plus, Copy, Trash2, Loader2, Edit2 } from 'lucide-react';
+import { ChevronDown, Plus, Copy, Trash2, Loader2 } from 'lucide-react';
 import type { SectionConfig, SectionConfigVersion, SectionConfigVersionCreate } from '@/types/api';
 import { 
   useSectionConfigVersions, 

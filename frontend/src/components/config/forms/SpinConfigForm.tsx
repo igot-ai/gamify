@@ -34,7 +34,7 @@ import {
 } from '@/lib/validations/spinConfig';
 import { useSectionConfig, useSectionConfigVersions } from '@/hooks/useSectionConfigs';
 import { useSelectedGame } from '@/hooks/useSelectedGame';
-import type { EconomyConfig, Currency, InventoryItem } from '@/lib/validations/economyConfig';
+import type { Currency, InventoryItem } from '@/lib/validations/economyConfig';
 import { transformSpinConfigToExport } from '@/lib/spinExportTransform';
 import { transformSpinConfigFromImport, transformEconomyConfigFromImport } from '@/lib/importTransforms';
 

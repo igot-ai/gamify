@@ -26,7 +26,6 @@ import {
 } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
 import { SectionWrapper } from './shared/SectionWrapper';
-import { ReadOnlyField, ReadOnlyFieldGroup } from '@/components/ui/ReadOnlyField';
 import { useArrayFieldManagement } from '@/hooks/useArrayFieldManagement';
 import { 
   type EconomyConfig, 
@@ -41,10 +40,9 @@ import {
 interface CurrenciesSectionProps {
   onSave?: (data: Currency[]) => void;
   isSaving?: boolean;
-  readOnly?: boolean;
 }
 
-export function CurrenciesSection({ onSave, isSaving = false, readOnly = false }: CurrenciesSectionProps) {
+export function CurrenciesSection({ onSave, isSaving = false }: CurrenciesSectionProps) {
   const form = useFormContext<EconomyConfig>();
   
   const {
@@ -61,7 +59,7 @@ export function CurrenciesSection({ onSave, isSaving = false, readOnly = false }
   } = useArrayFieldManagement({
     form,
     fieldName: 'currencies',
-    createDefaultItem: (fieldsLength) => ({
+    createDefaultItem: (fieldsLength): Currency => ({
       ...defaultCurrency,
       id: `currency_${fieldsLength + 1}`,
       displayName: `Currency ${fieldsLength + 1}`,
@@ -73,16 +71,15 @@ export function CurrenciesSection({ onSave, isSaving = false, readOnly = false }
     <SectionWrapper
       title="Currency Definitions"
       description="Define in-game currencies with starting balances and constraints"
-      onAdd={readOnly ? undefined : handleAdd}
-      onClearAll={readOnly ? undefined : handleClearAll}
-      onSave={readOnly ? undefined : handleSave}
+      onAdd={handleAdd}
+      onClearAll={handleClearAll}
+      onSave={handleSave}
       isSaving={isSaving}
       addButtonText="Add Currency"
       itemCount={fields.length}
-      readOnly={readOnly}
       jsonData={currencies}
       originalJsonData={originalCurrencies}
-      onJsonChange={readOnly ? undefined : handleJsonChange}
+      onJsonChange={handleJsonChange}
       transformToUnity={transformCurrenciesToUnity}
       transformFromUnity={transformCurrenciesFromUnity}
     >
@@ -131,75 +128,27 @@ export function CurrenciesSection({ onSave, isSaving = false, readOnly = false }
                           </p>
                         </div>
                       </div>
-                      {!readOnly && (
-                        <div className="flex items-center gap-2">
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleRemove(index);
-                            }}
-                            className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      )}
+                      <div className="flex items-center gap-2">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRemove(index);
+                          }}
+                          className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                   </CollapsibleTrigger>
 
                   {/* Expanded Content */}
                   <CollapsibleContent>
                     <div className="px-4 pb-4 space-y-6 border-t border-border/70 pt-4">
-                      {readOnly ? (
-                        /* Read-only display */
-                        <>
-                          <div className="space-y-4">
-                            <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                              <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-                              Identity
-                            </h4>
-                            <ReadOnlyFieldGroup className="pl-3">
-                              <ReadOnlyField label="ID" value={currency?.id} />
-                              <ReadOnlyField label="Display Name" value={currency?.displayName} />
-                            </ReadOnlyFieldGroup>
-                          </div>
-
-                          <div className="space-y-4">
-                            <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                              <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-                              Configuration
-                            </h4>
-                            <div className="space-y-4 pl-3">
-                              <ReadOnlyField label="Description" value={currency?.description} />
-                              <ReadOnlyField label="Icon Path" value={currency?.iconPath} />
-                            </div>
-                          </div>
-
-                          <div className="space-y-4">
-                            <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                              <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-                              Balance & Constraints
-                            </h4>
-                            <ReadOnlyFieldGroup className="pl-3">
-                              <ReadOnlyField label="Starting Balance" value={currency?.startingBalance} />
-                              <ReadOnlyField 
-                                label="Max Value" 
-                                value={currency?.maxValue === 0 ? 'Unlimited' : currency?.maxValue} 
-                              />
-                              <ReadOnlyField 
-                                label="Allow Negative" 
-                                value={currency?.allowNegative} 
-                              />
-                            </ReadOnlyFieldGroup>
-                          </div>
-                        </>
-                      ) : (
-                        /* Editable form fields */
-                        <>
-                          {/* Identity Section */}
+                      {/* Identity Section */}
                           <div className="space-y-4">
                             <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
                               <span className="w-1.5 h-1.5 rounded-full bg-primary" />
@@ -366,8 +315,6 @@ export function CurrenciesSection({ onSave, isSaving = false, readOnly = false }
                               />
                             </div>
                           </div>
-                        </>
-                      )}
                     </div>
                   </CollapsibleContent>
                 </div>

@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { forwardRef, useImperativeHandle, useEffect, useState, useRef, useMemo } from 'react';
+import { forwardRef, useImperativeHandle, useEffect, useRef, useMemo } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Save, Loader2 } from 'lucide-react';
 import { Form } from '@/components/ui/Form';
@@ -39,7 +39,6 @@ export const TutorialConfigForm = forwardRef<TutorialConfigFormRef, TutorialConf
     onCancel,
     isSaving = false,
   }, ref) {
-    const [originalData, setOriginalData] = useState<TutorialConfig | undefined>();
     const isResettingRef = useRef(false);
 
     const mergedDefaults = initialData
@@ -58,7 +57,7 @@ export const TutorialConfigForm = forwardRef<TutorialConfigFormRef, TutorialConf
       defaultValues: mergedDefaults,
     });
 
-    // Update form and originalData when initialData changes (version switch)
+    // Update form when initialData changes (version switch)
     useEffect(() => {
       if (initialData) {
         isResettingRef.current = true;
@@ -71,7 +70,6 @@ export const TutorialConfigForm = forwardRef<TutorialConfigFormRef, TutorialConf
           },
         };
         form.reset(data);
-        setOriginalData(JSON.parse(JSON.stringify(data)));
         // Allow onChange to work again after a short delay
         setTimeout(() => {
           isResettingRef.current = false;
@@ -94,7 +92,6 @@ export const TutorialConfigForm = forwardRef<TutorialConfigFormRef, TutorialConf
       reset: (data: TutorialConfig) => {
         isResettingRef.current = true;
         form.reset(data);
-        setOriginalData(JSON.parse(JSON.stringify(data)));
         setTimeout(() => {
           isResettingRef.current = false;
         }, 100);
@@ -105,11 +102,6 @@ export const TutorialConfigForm = forwardRef<TutorialConfigFormRef, TutorialConf
     const jsonDisplayData = useMemo(
       () => transformTutorialConfigToExport(form.watch()),
       [form.watch()]
-    );
-
-    const jsonOriginalData = useMemo(
-      () => originalData ? transformTutorialConfigToExport(originalData) : undefined,
-      [originalData]
     );
 
     const handleJsonChange = (data: any) => {
@@ -124,9 +116,7 @@ export const TutorialConfigForm = forwardRef<TutorialConfigFormRef, TutorialConf
         <div className="space-y-4">
           <JsonEditor
             value={jsonDisplayData}
-            originalValue={jsonOriginalData}
             onChange={handleJsonChange}
-            readOnly={false}
           />
 
           {/* Save Button */}

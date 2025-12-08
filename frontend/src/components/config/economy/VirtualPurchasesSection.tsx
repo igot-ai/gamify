@@ -27,7 +27,6 @@ import { cn } from '@/lib/utils';
 import { SectionWrapper } from './shared/SectionWrapper';
 import { CostRewardEditor } from './shared/CostRewardEditor';
 import { BonusEditor } from './shared/BonusEditor';
-import { ReadOnlyField, ReadOnlyFieldGroup } from '@/components/ui/ReadOnlyField';
 import { useArrayFieldManagement } from '@/hooks/useArrayFieldManagement';
 import { 
   type EconomyConfig, 
@@ -42,10 +41,9 @@ import {
 interface VirtualPurchasesSectionProps {
   onSave?: (data: VirtualPurchase[]) => void;
   isSaving?: boolean;
-  readOnly?: boolean;
 }
 
-export function VirtualPurchasesSection({ onSave, isSaving = false, readOnly = false }: VirtualPurchasesSectionProps) {
+export function VirtualPurchasesSection({ onSave, isSaving = false }: VirtualPurchasesSectionProps) {
   const form = useFormContext<EconomyConfig>();
 
   // Get available currencies and items for cost/reward selection
@@ -66,7 +64,7 @@ export function VirtualPurchasesSection({ onSave, isSaving = false, readOnly = f
   } = useArrayFieldManagement({
     form,
     fieldName: 'virtualPurchases',
-    createDefaultItem: (fieldsLength) => ({
+    createDefaultItem: (fieldsLength): VirtualPurchase => ({
       ...defaultVirtualPurchase,
       id: `purchase_${fieldsLength + 1}`,
       name: `Purchase ${fieldsLength + 1}`,
@@ -81,16 +79,15 @@ export function VirtualPurchasesSection({ onSave, isSaving = false, readOnly = f
     <SectionWrapper
       title="Virtual Purchase Definitions"
       description="Configure purchases using in-game currencies and items"
-      onAdd={readOnly ? undefined : handleAdd}
-      onClearAll={readOnly ? undefined : handleClearAll}
-      onSave={readOnly ? undefined : handleSave}
+      onAdd={handleAdd}
+      onClearAll={handleClearAll}
+      onSave={handleSave}
       isSaving={isSaving}
       addButtonText="Add Purchase"
       itemCount={fields.length}
-      readOnly={readOnly}
       jsonData={virtualPurchases}
       originalJsonData={originalPurchases}
-      onJsonChange={readOnly ? undefined : handleJsonChange}
+      onJsonChange={handleJsonChange}
       transformToUnity={transformVirtualPurchasesToUnity}
       transformFromUnity={transformVirtualPurchasesFromUnity}
     >
@@ -99,7 +96,7 @@ export function VirtualPurchasesSection({ onSave, isSaving = false, readOnly = f
           <ShoppingCart className="h-12 w-12 text-foreground/50 mb-3" />
           <p className="text-sm text-foreground/80 mb-1">No virtual purchases defined</p>
           <p className="text-xs text-foreground/60">
-            {readOnly ? 'No virtual purchases in this configuration' : 'Add your first virtual purchase to get started'}
+            Add your first virtual purchase to get started
           </p>
         </div>
       ) : (
@@ -147,105 +144,27 @@ export function VirtualPurchasesSection({ onSave, isSaving = false, readOnly = f
                           </p>
                         </div>
                       </div>
-                      {!readOnly && (
-                        <div className="flex items-center gap-2">
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleRemove(index);
-                            }}
-                            className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      )}
+                      <div className="flex items-center gap-2">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRemove(index);
+                          }}
+                          className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                   </CollapsibleTrigger>
 
                   {/* Expanded Content */}
                   <CollapsibleContent>
                     <div className="px-4 pb-4 space-y-6 border-t border-border/70 pt-4">
-                      {readOnly ? (
-                        /* Read-only display */
-                        <>
-                          <div className="space-y-4">
-                            <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                              <span className="w-1.5 h-1.5 rounded-full bg-accent" />
-                              Purchase Information
-                            </h4>
-                            <ReadOnlyFieldGroup className="pl-3">
-                              <ReadOnlyField label="ID" value={purchase?.id} />
-                              <ReadOnlyField label="Name" value={purchase?.name} />
-                            </ReadOnlyFieldGroup>
-                          </div>
-
-                          <div className="space-y-4">
-                            <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                              <Minus className="h-4 w-4 text-destructive" />
-                              Costs ({purchase?.costs?.length || 0})
-                            </h4>
-                            <div className="pl-3 space-y-2">
-                              {purchase?.costs?.length > 0 ? (
-                                purchase.costs.map((cost: any, idx: number) => (
-                                  <div key={idx} className="text-sm py-2 px-3 bg-muted/30 rounded-md border border-border/50">
-                                    <span className="font-medium">{cost.id}</span>
-                                    <span className="text-foreground/70 ml-2">× {cost.amount}</span>
-                                    <span className="text-xs text-foreground/70 ml-2">({cost.type})</span>
-                                  </div>
-                                ))
-                              ) : (
-                                <p className="text-sm text-foreground/70 italic">No costs defined</p>
-                              )}
-                            </div>
-                          </div>
-
-                          <div className="space-y-4">
-                            <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                              <PlusIcon className="h-4 w-4 text-green-500" />
-                              Rewards ({purchase?.rewards?.length || 0})
-                            </h4>
-                            <div className="pl-3 space-y-2">
-                              {purchase?.rewards?.length > 0 ? (
-                                purchase.rewards.map((reward: any, idx: number) => (
-                                  <div key={idx} className="text-sm py-2 px-3 bg-muted/30 rounded-md border border-border/50">
-                                    <span className="font-medium">{reward.id}</span>
-                                    <span className="text-foreground/70 ml-2">× {reward.amount}</span>
-                                    <span className="text-xs text-foreground/70 ml-2">({reward.type})</span>
-                                  </div>
-                                ))
-                              ) : (
-                                <p className="text-sm text-foreground/70 italic">No rewards defined</p>
-                              )}
-                            </div>
-                          </div>
-
-                          {purchase?.bonuses?.length > 0 && (
-                            <div className="space-y-4">
-                              <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                                Bonuses ({purchase.bonuses.length})
-                              </h4>
-                              <div className="pl-3 space-y-2">
-                                {purchase.bonuses.map((bonus: any, idx: number) => (
-                                  <div key={idx} className="text-sm py-2 px-3 bg-amber-500/10 rounded-md border border-amber-500/30">
-                                    <span className="font-medium">{bonus.triggerType}</span>
-                                    <span className="text-foreground/70 ml-2">
-                                      {bonus.rewards?.length || 0} bonus rewards
-                                    </span>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </>
-                      ) : (
-                        /* Editable form fields */
-                        <>
-                          {/* Purchase Information */}
+                      {/* Purchase Information */}
                           <div className="space-y-4">
                             <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
                               <span className="w-1.5 h-1.5 rounded-full bg-accent" />
@@ -315,17 +234,15 @@ export function VirtualPurchasesSection({ onSave, isSaving = false, readOnly = f
                             />
                           </div>
 
-                          {/* Bonuses Section */}
-                          <div className="space-y-4 pl-3">
-                            <BonusEditor
-                              items={purchase?.bonuses || []}
-                              onChange={(items) => form.setValue(`virtualPurchases.${index}.bonuses`, items)}
-                              currencies={currencies}
-                              inventoryItems={inventoryItems}
-                            />
-                          </div>
-                        </>
-                      )}
+                      {/* Bonuses Section */}
+                      <div className="space-y-4 pl-3">
+                        <BonusEditor
+                          items={purchase?.bonuses || []}
+                          onChange={(items) => form.setValue(`virtualPurchases.${index}.bonuses`, items)}
+                          currencies={currencies}
+                          inventoryItems={inventoryItems}
+                        />
+                      </div>
                     </div>
                   </CollapsibleContent>
                 </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useLayoutEffect, useState, useRef } from 'react';
+import { useLayoutEffect, useState, useRef, Suspense } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { Header } from './Header';
@@ -92,7 +92,7 @@ const configSections: NavItem[] = [
   { label: 'Tutorial', icon: BookOpen, path: '/sections/tutorial', sectionType: 'tutorial' },
 ];
 
-export function DashboardLayout({ children }: DashboardLayoutProps) {
+function DashboardLayoutInner({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   // Use a Set to track expanded tabs - allows multiple tabs to be open
   const [expandedTabs, setExpandedTabs] = useState<Set<string>>(new Set());
@@ -374,5 +374,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         </main>
       </div>
     </div>
+  );
+}
+
+// Wrap in Suspense to handle useSearchParams on static pages
+export function DashboardLayout({ children }: DashboardLayoutProps) {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-background" />}>
+      <DashboardLayoutInner>{children}</DashboardLayoutInner>
+    </Suspense>
   );
 }

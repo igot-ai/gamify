@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api';
-import { useAuthStore, useUser } from '@/stores/authStore';
+import { useAuthStore } from '@/stores/authStore';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
@@ -30,7 +30,6 @@ export default function SettingsPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { checkAuth } = useAuthStore();
-  const user = useUser();
 
   const [formData, setFormData] = useState({
     name: '',

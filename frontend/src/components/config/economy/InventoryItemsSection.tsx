@@ -27,7 +27,6 @@ import {
 } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
 import { SectionWrapper } from './shared/SectionWrapper';
-import { ReadOnlyField, ReadOnlyFieldGroup } from '@/components/ui/ReadOnlyField';
 import { useArrayFieldManagement } from '@/hooks/useArrayFieldManagement';
 import { 
   type EconomyConfig, 
@@ -42,10 +41,9 @@ import {
 interface InventoryItemsSectionProps {
   onSave?: (data: InventoryItem[]) => void;
   isSaving?: boolean;
-  readOnly?: boolean;
 }
 
-export function InventoryItemsSection({ onSave, isSaving = false, readOnly = false }: InventoryItemsSectionProps) {
+export function InventoryItemsSection({ onSave, isSaving = false }: InventoryItemsSectionProps) {
   const form = useFormContext<EconomyConfig>();
   
   const {
@@ -62,7 +60,7 @@ export function InventoryItemsSection({ onSave, isSaving = false, readOnly = fal
   } = useArrayFieldManagement({
     form,
     fieldName: 'inventoryItems',
-    createDefaultItem: (fieldsLength) => ({
+    createDefaultItem: (fieldsLength): InventoryItem => ({
       ...defaultInventoryItem,
       id: `item_${fieldsLength + 1}`,
       displayName: `Item ${fieldsLength + 1}`,
@@ -74,16 +72,15 @@ export function InventoryItemsSection({ onSave, isSaving = false, readOnly = fal
     <SectionWrapper
       title="Inventory Item Definitions"
       description="Define items that players can collect and use in the game"
-      onAdd={readOnly ? undefined : handleAdd}
-      onClearAll={readOnly ? undefined : handleClearAll}
-      onSave={readOnly ? undefined : handleSave}
+      onAdd={handleAdd}
+      onClearAll={handleClearAll}
+      onSave={handleSave}
       isSaving={isSaving}
       addButtonText="Add Item"
       itemCount={fields.length}
-      readOnly={readOnly}
       jsonData={inventoryItems}
       originalJsonData={originalItems}
-      onJsonChange={readOnly ? undefined : handleJsonChange}
+      onJsonChange={handleJsonChange}
       transformToUnity={transformInventoryItemsToUnity}
       transformFromUnity={transformInventoryItemsFromUnity}
     >
@@ -92,7 +89,7 @@ export function InventoryItemsSection({ onSave, isSaving = false, readOnly = fal
           <Package className="h-12 w-12 text-foreground/50 mb-3" />
           <p className="text-sm text-foreground/80 mb-1">No items defined</p>
           <p className="text-xs text-foreground/60">
-            {readOnly ? 'No inventory items in this configuration' : 'Add your first inventory item to get started'}
+            Add your first inventory item to get started
           </p>
         </div>
       ) : (
@@ -133,72 +130,27 @@ export function InventoryItemsSection({ onSave, isSaving = false, readOnly = fal
                           </p>
                         </div>
                       </div>
-                      {!readOnly && (
-                        <div className="flex items-center gap-2">
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleRemove(index);
-                            }}
-                            className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      )}
+                      <div className="flex items-center gap-2">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRemove(index);
+                          }}
+                          className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                   </CollapsibleTrigger>
 
                   {/* Expanded Content */}
                   <CollapsibleContent>
                     <div className="px-4 pb-4 space-y-6 border-t border-border/70 pt-4">
-                      {readOnly ? (
-                        /* Read-only display */
-                        <>
-                          <div className="space-y-4">
-                            <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                              <span className="w-1.5 h-1.5 rounded-full bg-secondary" />
-                              Identity
-                            </h4>
-                            <ReadOnlyFieldGroup className="pl-3">
-                              <ReadOnlyField label="ID" value={item?.id} />
-                              <ReadOnlyField label="Display Name" value={item?.displayName} />
-                            </ReadOnlyFieldGroup>
-                          </div>
-
-                          <div className="space-y-4">
-                            <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                              <span className="w-1.5 h-1.5 rounded-full bg-secondary" />
-                              Configuration
-                            </h4>
-                            <div className="space-y-4 pl-3">
-                              <ReadOnlyField label="Description" value={item?.description} />
-                              <ReadOnlyField label="Icon Path" value={item?.iconPath} />
-                            </div>
-                          </div>
-
-                          <div className="space-y-4">
-                            <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                              <Layers className="h-4 w-4 text-secondary" />
-                              Quantity & Stacking
-                            </h4>
-                            <ReadOnlyFieldGroup className="pl-3">
-                              <ReadOnlyField label="Starting Quantity" value={item?.startingQuantity} />
-                              <ReadOnlyField label="Is Stackable" value={item?.isStackable} />
-                              <ReadOnlyField 
-                                label="Max Stack Size" 
-                                value={item?.maxStackSize === 0 ? 'Unlimited' : item?.maxStackSize} 
-                              />
-                            </ReadOnlyFieldGroup>
-                          </div>
-                        </>
-                      ) : (
-                        /* Editable form fields */
-                        <>
-                          {/* Identity Section */}
+                      {/* Identity Section */}
                           <div className="space-y-4">
                             <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
                               <span className="w-1.5 h-1.5 rounded-full bg-secondary" />
@@ -366,8 +318,6 @@ export function InventoryItemsSection({ onSave, isSaving = false, readOnly = fal
                               />
                             </div>
                           </div>
-                        </>
-                      )}
                     </div>
                   </CollapsibleContent>
                 </div>
