@@ -248,17 +248,19 @@ export function CurrenciesSection({ onSave, isSaving = false }: CurrenciesSectio
                                 name={`currencies.${index}.startingBalance`}
                                 render={({ field }) => (
                                   <FormItem>
-                                    <FormLabel className="text-xs">Default Balance</FormLabel>
-                                    <FormControl>
-                                      <Input 
-                                        type="number"
-                                        min={0}
-                                        {...field}
-                                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                                        placeholder="0"
-                                        className="h-9 max-w-[200px]"
-                                      />
-                                    </FormControl>
+                                    <div className="flex items-center gap-2">
+                                      <FormLabel className="text-xs whitespace-nowrap">Default Balance</FormLabel>
+                                      <FormControl>
+                                        <Input 
+                                          type="number"
+                                          min={0}
+                                          {...field}
+                                          onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                                          placeholder="0"
+                                          className="h-9 max-w-[200px]"
+                                        />
+                                      </FormControl>
+                                    </div>
                                     <FormMessage />
                                   </FormItem>
                                 )}
@@ -278,17 +280,19 @@ export function CurrenciesSection({ onSave, isSaving = false }: CurrenciesSectio
                                 name={`currencies.${index}.maxValue`}
                                 render={({ field }) => (
                                   <FormItem>
-                                    <FormLabel className="text-xs">Max Value (0 = unlimited)</FormLabel>
-                                    <FormControl>
-                                      <Input 
-                                        type="number"
-                                        min={0}
-                                        {...field}
-                                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                                        placeholder="0"
-                                        className="h-9 max-w-[200px]"
-                                      />
-                                    </FormControl>
+                                    <div className="flex items-center gap-2">
+                                      <FormLabel className="text-xs whitespace-nowrap">Max Value (0 = unlimited)</FormLabel>
+                                      <FormControl>
+                                        <Input 
+                                          type="number"
+                                          min={0}
+                                          {...field}
+                                          onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                                          placeholder="0"
+                                          className="h-9 max-w-[200px]"
+                                        />
+                                      </FormControl>
+                                    </div>
                                     <FormMessage />
                                   </FormItem>
                                 )}

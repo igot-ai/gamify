@@ -250,17 +250,19 @@ export function InventoryItemsSection({ onSave, isSaving = false }: InventoryIte
                                 name={`inventoryItems.${index}.startingQuantity`}
                                 render={({ field }) => (
                                   <FormItem>
-                                    <FormLabel className="text-xs">Default Quantity</FormLabel>
-                                    <FormControl>
-                                      <Input 
-                                        type="number"
-                                        min={0}
-                                        {...field}
-                                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                                        placeholder="0"
-                                        className="h-9 max-w-[200px]"
-                                      />
-                                    </FormControl>
+                                    <div className="flex items-center gap-2">
+                                      <FormLabel className="text-xs whitespace-nowrap">Default Quantity</FormLabel>
+                                      <FormControl>
+                                        <Input 
+                                          type="number"
+                                          min={0}
+                                          {...field}
+                                          onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                                          placeholder="0"
+                                          className="h-9 max-w-[200px]"
+                                        />
+                                      </FormControl>
+                                    </div>
                                     <FormMessage />
                                   </FormItem>
                                 )}
@@ -300,18 +302,20 @@ export function InventoryItemsSection({ onSave, isSaving = false }: InventoryIte
                                 name={`inventoryItems.${index}.maxStackSize`}
                                 render={({ field }) => (
                                   <FormItem>
-                                    <FormLabel className="text-xs">Max Stack Size (0 = unlimited)</FormLabel>
-                                    <FormControl>
-                                      <Input 
-                                        type="number"
-                                        min={0}
-                                        {...field}
-                                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                                        placeholder="0"
-                                        className="h-9 max-w-[200px]"
-                                        disabled={!form.watch(`inventoryItems.${index}.isStackable`)}
-                                      />
-                                    </FormControl>
+                                    <div className="flex items-center gap-2">
+                                      <FormLabel className="text-xs whitespace-nowrap">Max Stack Size (0 = unlimited)</FormLabel>
+                                      <FormControl>
+                                        <Input 
+                                          type="number"
+                                          min={0}
+                                          {...field}
+                                          onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                                          placeholder="0"
+                                          className="h-9 max-w-[200px]"
+                                          disabled={!form.watch(`inventoryItems.${index}.isStackable`)}
+                                        />
+                                      </FormControl>
+                                    </div>
                                     <FormMessage />
                                   </FormItem>
                                 )}
